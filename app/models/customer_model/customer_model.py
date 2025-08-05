@@ -104,7 +104,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin, CustomBase):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
     permissions = models.ManyToManyField(Permission, related_name="users", blank=True)
-
+ 
     def get_full_name(self):
         """Returns the full name of the user."""
         return f"{self.first_name} {self.last_name}"

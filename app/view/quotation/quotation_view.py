@@ -34,7 +34,7 @@ class QuotationListView(View):
     template = "pages/quotation/quotation_list.html"
 
     def get(self, request):
-        quotations = Quotation.active_objects.all()
+        quotations = Quotation.active_objects.all().order_by('-created_at')
         products = Product.active_objects.all()
         units = Unit.active_objects.all()
         customer = Customer.active_objects.all()

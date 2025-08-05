@@ -16,6 +16,11 @@ class SubCategory(CustomBase):
         verbose_name = "Sub-Category"
         verbose_name_plural = "Sub-Categorys"
         ordering = ["-created_at"]
+        permissions = [("manage_subcategory", "Can manage Subcategories"),
+                       ("manage_subcategory_approver", "Can SubCategorie Approver")
+                       ]
+         
+        
         
 
     def __str__(self):

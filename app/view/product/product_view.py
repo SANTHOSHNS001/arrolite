@@ -2,12 +2,10 @@ import datetime
 from django.http import FileResponse, JsonResponse
 from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
-from app import models
 from app.forms.product.product_form import ProductCreateForm
 from app.models.category.category_model import Category
-from app.models.customer_model.customer_model import CustomUser, Customer
 from app.models.product.product_model import Product
-from app.models.product.quotation_model import Quotation, QuotationItem
+from app.models.product.quotation_model import Quotation
 from app.models.sub_category.sub_category_model import SubCategory
 from app.models.unit.unit_model import Unit
 from django.contrib import messages

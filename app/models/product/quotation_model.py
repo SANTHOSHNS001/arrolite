@@ -54,7 +54,7 @@ class Quotation(CustomBase):
         verbose_name_plural = "Quotations"
         permissions = [
             ("can_approve_quotation", "Can approve quotation"),
-            ("can_assign_approver", "Can assign approver"),
+            ("can_assign_approver_quotation", "Can assign approver"),
             ("can_manage_quotaion","Can manage Quotaions")
         ]
         ordering = ["-created_at"]
@@ -116,6 +116,9 @@ class QuotationItem(CustomBase):  # Singular name is conventional
     width = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     height = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
+    
+    class Meta:
+            ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.product.name} (x{self.quantity})"
@@ -133,6 +136,7 @@ class QuotationItem(CustomBase):  # Singular name is conventional
             "height": float(self.height or 0),
             "description": self.description,
         }
+        
     
      
         

@@ -35,7 +35,6 @@
     font-size: 25px;
 }
 .har-row{
- 
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -52,7 +51,6 @@
     padding: 10px;
     border-radius: 5px;
 }
-
 </style>
     <link href="{% static 'assets/advanced-datatable/media/css/demo_page.css'%}" rel="stylesheet" />
     <link href="{% static 'assets/advanced-datatable/media/css/demo_table.css'%}" rel="stylesheet" />
@@ -70,11 +68,11 @@
         <a class="btn btn-success"  href="{%url 'quotation_request'%}"><i class="fa fa-plus"></i> Add</a> 
         <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  back</button>
     </div>
-   </div>
-
+   </div> 
+ 
     <div class="card ">
           <!--Qoutaion List Table Start-->
-                 <div class="adv-table">
+                 <div class="adv-table">            
                        <table class="display table table-bordered" id="hidden-table-info">
                             <thead>
                                <tr>  
@@ -251,13 +249,7 @@
 
 
             $(document).ready(function() {
-              
-                $('#dynamic-table').dataTable( {
-                    "aaSorting": [[ 4, "desc" ]]
-                } );
-                $('#approve-table').dataTable({
-                    "aaSorting": [[2, "asc"]]  // Example
-                });
+               
                 const plusIcon = `<i class="fa fa-plus-square  text-success" style="font-size:22px;"></i>`;
                 const minusIconClass = "fa-minus-square";
                 const plusIconClass = "fa-plus-square";
@@ -278,10 +270,7 @@
                 * Initialse DataTables, with no sorting on the 'details' column
                 */
                 var oTable = $('#hidden-table-info').dataTable( {
-                    "aoColumnDefs": [
-                        { "bSortable": false, "aTargets": [ 0 ] }
-                    ],
-                    "aaSorting": [[1, 'asc']]
+                    ordering: false
                 });
 
                 /* Add event listener for opening and closing details

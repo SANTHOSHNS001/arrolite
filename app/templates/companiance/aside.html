@@ -1,55 +1,23 @@
-   <div id="sidebar"  class="nav-collapse ">
+{% load custom_tags %}
+{% get_sidebar_menu as sidebar_menu %}
+
+      <div id="sidebar"  class="nav-collapse ">
         <!-- sidebar menu start-->
             <ul class="sidebar-menu" id="nav-accordion">
-           <li>
-                    <a href="{%url 'home'%}">
-                     
-                        <i class="material-icons">home</i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>  
+      
+                {% for item in sidebar_menu %}
+           
+                {% if not item.perm or request.user|has_perm:item.perm %}
                 <li>
-                    <a  href="{%url 'category_list'%}">
-                        <i class="material-icons">category</i>
-                        <span>Categroy</span>
+                    <a href="{% url item.url %}">
+                    <i class="material-icons">{{ item.icon }}</i>
+                    <span>{{ item.name }}</span>
                     </a>
                 </li>
-                <li>
-                    <a  href="{%url 'sub_category_list'%}">
-                        <i class="material-icons">interests</i>                        
-                        <span>Sub-Categroy</span>
-                    </a>
-                </li>
-                    <li>
-                    <a  href="{%url 'product_list'%}">
-                        <i class="material-icons">inventory_2</i>                        
-                        <span>Product</span>
-                    </a>
-                </li>
-                    <li>
-                    <a  href="{%url 'quotation_list'%}">
-                        <i class="material-icons">request_quote</i>  
-                        <span>Quotation</span>
-                    </a>
-                </li>
-                  <li>
-                    <a  href="{%url 'quotation_waiting'%}">
-                        <i class="material-icons">pending_actions</i>  
-                        <span>Approved</span>
-                    </a>
-                </li>
-                 <li>
-                    <a  href="{%url 'quotation_invoice'%}">
-                        <i class="material-icons">receipt</i>  
-                        <span>Invoice</span>
-                    </a>
-                </li>
-                   <li>
-                    <a  href="{%url 'logout'%}">
-                        <i class="material-icons">logout</i>  
-                        <span>logout</span>
-                    </a>
-                </li>
+                {% endif %}
+                {% endfor %}
+                
+                  
                 {% comment %} <li>
                     <a  href="{%url 'quotation_invoice'%}">
                         <i class="material-icons">order_approve</i>  

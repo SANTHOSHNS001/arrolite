@@ -56,7 +56,7 @@ class CustomUserRegister(LoginRequiredMixin, CreateView):
     model = CustomUser
     form_class = CustomerUserRegisterFrom
     template_name = "pages/customer/customer_register.html"
-    success_url = reverse_lazy("category_list")
+    success_url = reverse_lazy("home")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
