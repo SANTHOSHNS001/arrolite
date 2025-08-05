@@ -1,0 +1,61 @@
+
+{% extends 'base/container.html' %}
+{% load static %}
+{% block title %}Product {% endblock %}
+
+{% block style %}
+ 
+{% endblock %}
+{% block body_content %} 
+
+<div class="wrapper">
+    <div class="card">
+        <div class="card-header">
+            <a href="{%url 'add_permission' %}"   >
+            <button type="button" class="btn btn-outline-primary"> Add Permission</button> </a>
+        </div>
+       <table class="table">      
+            <tbody>
+            <tr>
+                <td colspan="6">
+                    Admin<br>
+                    <span> Tue 23 12am</span>
+                </td>
+                <td> <button class="btn btn-shadow btn-primary" >edit</button>
+                  <button class="btn btn-shadow btn-danger">deleted</button>
+                </td>
+              
+            </tr>
+             <tr>
+                <td colspan="6">
+                    Staff<br>
+                    <span> Tue 23 12am</span>
+                </td>
+                <td> <button class="btn btn-shadow btn-primary" >edit</button>
+                  <button class="btn btn-shadow btn-danger">deleted</button>
+                </td>
+              
+            </tr><tr>
+                <td colspan="6">
+                    Staff<br>
+                    <span> Tue 23 12am</span>
+                </td>
+                <td> <button class="btn btn-shadow btn-primary" >edit</button>
+                  <button class="btn btn-shadow btn-danger">deleted</button>
+                </td>
+              
+            </tr>
+              
+            </tbody>
+      </table>
+    </div>
+</div>
+
+{% endblock %}
+{% block js %}
+
+
+
+
+
+{% endblock %}

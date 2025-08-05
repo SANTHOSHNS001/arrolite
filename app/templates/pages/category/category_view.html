@@ -1,0 +1,270 @@
+
+{% extends 'base/container.html' %}
+{% load static %}
+{% block title %}Category {% endblock %}
+{% block style %}
+<style>   
+    .card-custom-header {
+        display: flex;
+        align-content: center;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 18px;
+        font-weight: 800;
+    }
+</style>
+{% endblock %}
+{% block body_content %} 
+<div class="wrapper">
+    <div class="row mt-2">
+        <div class="col-lg-12">
+            <section class="card">
+                <header class="card-header card-custom-header">
+                     Category List
+                     <input type="text" id ="search-filter" class="form-control search" placeholder="Search">
+                     <a class="btn btn-primary" data-toggle="modal" href="#category-model"><i class="fa fa-plus"></i> Add</a>                  
+                </header>
+                <table class="table table-striped table-advance table-hover" id ="category-table">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th><i class="fa fa-bullhorn"></i> Category</th>
+                        <th class="hidden-phone"><i class="fa fa-question-circle"></i> Descrition</th>
+                        <th><i class="fa fa-edit"></i> Status</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody id ="category-tbody">
+                        {% for category in categories %}
+                        <tr>
+                             <td></td>
+                            <td><a href="#">{{category.name}}</a></td>
+                            <td class="hidden-phone">{{category.description}}</td>
+                            <td>
+                                {%if category.status %}
+                                <span class="badge badge-info label-mini">Active</span>
+                                {% else %}
+                                <span class="badge badge-danger label-mini">De-active</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button id ="edit-category-btn" class="btn btn-primary btn-sm edit-category-btn" data-id="{{category.id}}" data-name="{{category.name}}"data-description="{{category.description}}" data-status ="{{category.status}}"><i class="fa fa-pencil"></i></button>
+                                <button class="btn btn-danger btn-sm"><i class="fa fa-trash-o "></i></button>
+                            </td>
+                        </tr>
+                        {%empty%}
+                        <tr>
+                            <td colspan="5">No categories found.</td>
+                        </tr>
+                        {%endfor%}
+                            <!-- Hidden placeholder row for "no results found" -->
+                            <tr id="no-results" style="display:none;">
+                                <td colspan="4" class="text-center text-danger">No matching categories found.</td>
+                            </tr>
+                    </tbody>
+                </table>
+                <nav style="margin: 0px 9px;display: flex;justify-content: flex-end;">
+                    <ul class="pagination" id="pagination"></ul>
+                </nav>
+            </section>
+        </div>
+   
+        <!-- Model Add Category Add Part-->
+        <div class="modal fade" id="category-model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="myModal2">category-Add</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                           <form class="cmxform form-horizontal tasi-form" id="category-add-form" method="post" action="#">
+                            {% csrf_token %}
+                                <div class="form-group row">
+                                    <label for="name" class="control-label col-lg-2">Category Name</label>
+                                    <div class="col-lg-10">
+                                        <input class=" form-control" id="name" name="name" type="text" />
+                                    </div>
+                                </div>
+                                <div class="form-group row ">
+                                    <label for="description" class="control-label col-lg-2">Descripaaaation</label>
+                                    <div class="col-lg-10"> 
+                                        <textarea class=" form-control"  name="description" id="description"></textarea>
+                                    </div>
+                                </div>
+                                
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="submit" id="category-submit" class="btn btn-primary">Save</button>
+                                </div>
+                            </form>
+                       </div>
+                </div>
+            </div>
+        </div>
+        <!-- Model Add Category Add Part-->
+        <!-- Model Add Category Edit Part-->
+        <div class="modal fade" id="category-model-edit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="myModal2">category-Add</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                           <form class="cmxform form-horizontal tasi-form" id="category-edit-form" method="post" action="#">
+                            {% csrf_token %}
+                                <div class="form-group row">
+                                    <label for="name" class="control-label col-lg-2">Category Name</label>
+                                    <div class="col-lg-10">
+                                        <input class=" form-control" id="name" name="name" type="text" />
+                                    </div>
+                                </div>
+                                <div class="form-group row ">
+                                    <label for="description" class="control-label col-lg-2">Description</label>
+                                    <div class="col-lg-10"> 
+                                        <textarea class=" form-control"  name="description" id="description"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group row ">
+                                    <label for="description" class="control-label col-lg-2">Active</label>
+                                    <div class="col-lg-10"> 
+                                        <input type="checkbox" id="status" name="status" value="Bike">
+                                     </div>
+                                </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" id="category-edit-submit" class="btn btn-primary">Save</button>
+                                </div>
+                            </form>
+                       </div>
+                </div>
+            </div>
+        </div>
+        <!-- Model Add Category Edit Part-->
+    </div>
+</div>
+
+{% endblock %}
+{% block js %}
+<script>
+    const rowsPerPage = 5;
+    let currentPage = 1;
+
+    function paginateTable() {
+        const table = document.getElementById("category-table");
+        const tbody = document.getElementById("category-tbody");
+        const rows = tbody.querySelectorAll("tr");
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+        const pagination = document.getElementById("pagination");
+
+        rows.forEach((row, index) => {
+            row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? "" : "none";
+            if (row.style.display !== "none") {
+                row.querySelector("td").textContent = index + 1;
+            }
+        });
+
+        pagination.innerHTML = "";
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement("li");
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            li.addEventListener("click", function (e) {
+                e.preventDefault();
+                currentPage = i;
+                paginateTable();
+            });
+            pagination.appendChild(li);
+        }
+    }
+
+    function filterTable() {
+        const search = document.getElementById("search-filter").value.toLowerCase();
+        const rows = document.getElementById("category-tbody").querySelectorAll("tr");
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(search) ? "" : "none";
+        });
+        currentPage = 1;
+        paginateTable();
+    }
+
+    document.getElementById("search-filter").addEventListener("input", filterTable);
+
+    document.addEventListener("DOMContentLoaded", paginateTable);
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+  const searchInput = document.getElementById("search-filter");
+  const tableRows = document.querySelectorAll("table tbody tr:not(#no-results)");
+  const noResultsRow = document.getElementById("no-results");
+
+  searchInput.addEventListener("keyup", function () {
+    const query = this.value.toLowerCase();
+    let visibleCount = 0;
+
+    tableRows.forEach(function (row) {
+      const rowText = row.textContent.toLowerCase();
+      const match = rowText.includes(query);
+      row.style.display = match ? "" : "none";
+      if (match) visibleCount++;
+    });
+
+    // Show "No results" row if nothing is visible
+    noResultsRow.style.display = visibleCount === 0 ? "" : "none";
+  });
+});
+//Search  -Filter
+$(function () {
+    const modal = $("#category-model-edit");
+    const form = $("#category-edit-form");
+   debugger
+    // Populate modal form
+    $(".edit-category-btn").click(function () {
+        debugger;
+        const btn = $(this);
+        form.attr("data-id", btn.data("id"));
+        form.find("#name").val(btn.data("name"));
+        form.find("#description").val(btn.data("description"));
+        const isChecked = btn.data("status") === "True" || btn.data("status") === true;
+        form.find("#status").prop("checked", isChecked);
+        modal.modal("show");
+    });
+
+    // Submit updated form via AJAX
+    $("#category-edit-submit").click(function () {
+        const id = form.attr("data-id");
+        const url = "{% url 'category_edit' 0 %}".replace("0", id);
+        debugger;
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: form.serialize(),
+            headers: {
+                "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+            },
+            success: function (res) {
+                if (res.success) {
+                    modal.modal("hide");
+                    location.reload();  // OR update DOM without reload
+                } else {
+                    alert("Validation error");
+                    console.log(res.errors);
+                }
+            },
+            error: function (err) {
+                alert("Server error");
+                console.error(err.responseText);
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

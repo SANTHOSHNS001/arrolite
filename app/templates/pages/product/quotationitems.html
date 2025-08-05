@@ -1,0 +1,179 @@
+
+{% extends 'base/container.html' %}
+{% load static %}
+{% block title %}Product {% endblock %}
+
+{% block style %}
+
+{% endblock %}
+{% block body_content %}
+<style>
+
+    .detail-card{
+        background-color: #ffffff;
+    
+    display: flex;
+    /* align-content: flex-start; */
+    /* flex-wrap: wrap; */
+    flex-direction: row;
+    align-items: center;
+    gap: 11px;
+    border-radius: 16px;
+    
+    font-size: 18px;
+    font-weight: 700;
+    }
+   .detail-icon {
+    padding: 12px;
+    background-color: #edebeb;
+    display: grid;
+    border-radius: 56%;
+    /* font-size: 7px; */
+}
+</style>
+ <div class="wrapper">
+    <div class="wrapper-title">
+    <div class="wrapper-content">Invoice Bill</div>
+    <div class="wrapper-actions">
+         
+        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  back</button>
+    </div>
+   </div>
+    <div class="row">
+       <div class="col-lg-3 col-sm-6">
+        <div class="card detail-card">
+            <div class="detail-icon">  
+                <i class="material-icons">home</i>
+            </div>
+            <div class="Value-part">{{quotation}}</div>
+        </div>
+        </div>
+         <div class="col-lg-3 col-sm-6">
+            <div class="card detail-card">
+                <div class="detail-icon">  
+                    <i class="material-icons">group_add</i>
+                </div>
+                <div class="Value-part">{{quotation.customer.last.name}}</div>
+            </div>
+        </div>
+      
+        </div>
+         
+  <div class="card">
+     
+    
+    <table id ="quotation-table" class="display table table-bordered">
+        <thead>
+            <tr>
+                <th>SNO</th>
+                <th>Product</th>
+                <th>Customer</th>
+                <th>Unit Price</th>
+                <th>Quantity</th>
+                <th>Unit</th>
+                <th>Width</th>
+                <th>Height</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+             
+            {% for quotationsitem in quotationsitems %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ quotationsitem.product.name }}</td>
+                <td>{{ quotationsitem.product.name }}</td>
+                <td>${{ quotationsitem.product.price }}</td>
+                <td>{{ quotationsitem.quantity }}</td>
+                <td>{{ quotationsitem.unit.symbol }}</td>
+                <td>{{ quotationsitem.width }}</td>
+                <td>{{ quotationsitem.height }}</td>
+                <td>${{ quotationsitem.unit_cost }}</td>
+
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No items available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+          <tfoot>
+        <tr>
+            <th colspan="8" style="text-align:right">Subtotal:</th>
+                <th colspan="1"style="text-align:left">$ {{ quotation.total_cost|floatformat:2 }}</th>
+            </tr>
+            <tr>
+                <th colspan="8" style="text-align:right">
+                    Discount{% if quotation.discount %} ({{ quotation.discount }}%){% endif %}:
+                </th>
+                <th colspan="1"style="text-align:left">$ {{ quotation.discount_amount|floatformat:2 }}</th>
+            </tr>
+            <tr>
+                <th colspan="8" style="text-align:right"><strong>Total :</strong></th>
+                <th colspan="1"style="text-align:left"><strong>$ {{ quotation.payable_total|floatformat:2 }}</strong></th>
+            </tr>
+        </tfoot>
+    </table>
+ 
+</div>
+
+</div>
+
+{% endblock %}
+{% block js %}
+<script>
+    $('#quotation-table').dataTable( {
+            "aaSorting": [[ 4, "desc" ]]
+        } );
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Check cookie name
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function quotation_pdf_download(id) {
+    debugger;
+    const url = "{% url 'quotation_test' %}";  // Make sure this is your Django view URL
+
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ document_id: id })  
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "quotation.pdf";  // desired filename
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        showMessage("Something went wrong!", "danger");
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,127 @@
+
+{% extends 'base/container.html' %}
+{% load static %}
+{% block title %}Product {% endblock %}
+
+{% block style %}
+ <style>
+ 
+    .custom-card {
+        background: linear-gradient(82deg, #5a1c44, #ff55be);
+        border-radius: 15px;
+        color: white;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 24px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease;
+    }
+.custom-card.users {
+    background: linear-gradient(61deg, #181544, #8b9ff0);
+}
+/* Subcategories */
+.custom-card.card-subcategory {
+    background: linear-gradient(61deg, #8f7f08, #f8d020);
+}
+
+/* Products */
+.custom-card.card-product {
+    background: linear-gradient(61deg, #08691a, #78fc3b);
+}
+
+/* Brand-themed card (Black & Red) */
+.custom-card.brand {
+    background: linear-gradient(61deg, #1a1a1a, #ff1e1e);
+}
+
+/* Optional: dark theme with a hint of red */
+.custom-card.brand-dark {
+    background: linear-gradient(61deg, #2b2b2b, #b30000);
+}
+
+  .custom-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .symbol {
+    font-size: 30px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 15px;
+    border-radius: 50%;
+    margin-right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .value h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: bold;
+  }
+
+  .value p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+  }
+ </style>
+{% endblock %}
+{% block body_content %} 
+ <section class="wrapper">
+     
+    <!--state overview start-->
+    <div class="row dash-container">
+        <div class="col-lg-3 col-sm-6">
+            <section class="card custom-card">
+                <div class="symbol">
+                  <i class="material-icons">category</i>  
+                </div>
+                <div class="value">
+                <h1 class="count">{{categories_total}}</h1>
+                <p>Category</p>
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-3 col-sm-6">
+            <section class="card custom-card card-subcategory">
+                <div class="symbol">
+                <i class="material-icons">interests</i>
+                </div>
+                <div class="value">
+                <h1 class="count">{{subcategories_total}}</h1>
+                <p>Sub-Category</p>
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-3 col-sm-6">
+            <section class="card custom-card card-product">
+                <div class="symbol">
+                  <i class="material-icons">add_shopping_cart</i>
+                </div>
+                <div class="value">
+                <h1 class="count">{{Products_total}}</h1>
+                <p>Products</p>
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-3 col-sm-6">
+            <section class="card custom-card users">
+                <div class="symbol">
+                <i class="material-icons">groups_3</i> 
+                
+                </div>
+                <div class="value">
+                <h1 class="count">{{customers_total}}</h1>
+                <p>Customers</p>
+                </div>
+            </section>
+        </div>
+    </div>
+</section>
+{% endblock %}
+{% block js %}
+  
+
+{% endblock %}

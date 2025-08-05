@@ -1,0 +1,193 @@
+ <style>
+    .custom-message{
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+    }
+    .alert-error{
+        background-color: #e76868;
+        color: white;
+    }
+   .custom-alert {
+    display: none;
+    position: fixed;
+    top: 40px;
+    right: 20px;
+    padding: 3px 13px;
+    border-radius: 12px;
+    box-shadow: -2px 13px 20px rgb(54 20 20 / 55%);
+    z-index: 99999;
+    font-size: 16px;
+    min-width: 17%;
+    color: #725e5ef0;
+    animation: slideIn 0.4s linear;
+}
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0%);
+      }
+    }
+
+    .custom-alert.success {
+      background-color: #ecf2eeff;
+      border-left: 5px solid #6fb482;
+    }
+
+    .custom-alert.error {
+      background-color: #ecf2eeff;
+      border-left: 5px solid #d63031;
+    }
+
+    .alert-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .alert-icon {
+      font-size: 22px;
+    }
+
+    .alert-message {
+      flex-grow: 1;
+      font-weight: 600;
+    }
+
+    .closebtn {
+      font-size: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      line-height: 1;
+      color:red;
+    }
+
+    .alertprogress {
+      width: 100%;
+      height: 6px;
+      background-color: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .alertprogress-fill {
+      height: 100%;
+      width: 0%;
+      background-color: #9487ac;
+      transition: width 0.25s linear;
+    }
+</style>
+<div class="custom-message">
+    {% if messages %}
+        <div class="container mt-2">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+<!--Custom js alert Start-->
+<div id="custom-alert" class="custom-alert">
+    <div class="alert-content">
+       
+      <span id="custom-alert-message" class="alert-message">Message</span>
+      <span class="closebtn" onclick="document.getElementById('custom-alert').style.display='none';">&times;</span>
+    </div>
+    <div class="alertprogress">
+      <div id="alert-progress-fill" class="alertprogress-fill"></div>
+    </div>
+  </div>
+<!--Custom js alert End-->
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Auto-close alert after 5 seconds -->
+  <script>
+    $(document).ready(function () {
+        setTimeout(function () {
+            $(".alert").fadeTo(800, 0).slideUp(800, function () {
+                $(this).remove();
+            });
+        }, 5000); // 5 seconds
+    });
+    function DisplayAlert(success, message) {
+        
+      const msgBox = document.getElementById("custom-alert");
+      const msgPlace = document.getElementById("custom-alert-message");
+      const progressFill = document.getElementById("alert-progress-fill");
+    
+      if (!msgBox || !msgPlace || !progressFill  ) return;
+
+      msgBox.className = 'custom-alert';
+      msgBox.classList.add(success ? 'success' : 'error');
+      msgPlace.innerText = message;
+      msgBox.style.display = "block";
+      progressFill.style.width = "0%";
+
+      // Animate progress bar
+      let start = null;
+      const duration = 400000;
+
+      function animate(timestamp) {
+        if (!start) start = timestamp;
+        const elapsed = timestamp - start;
+        const progress = Math.min((elapsed / duration) * 100, 100);
+        progressFill.style.width = progress + "%";
+
+        if (elapsed < duration) {
+          requestAnimationFrame(animate);
+        } else {
+          msgBox.style.display = "none";
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+    function formatErrors(errors) {
+    if (typeof errors === "string") {
+        // Case: errors = "That is invalid"
+        return errors;
+    }
+
+    if (typeof errors === "object" && errors !== null) {
+        let messages = [];
+
+        for (const field in errors) {
+            const val = errors[field];
+
+            if (Array.isArray(val)) {
+                // Case: errors = { "email": ["This field is required."] }
+                val.forEach(msg => messages.push(`${field}: ${msg}`));
+            } else if (typeof val === "string") {
+                // Case: errors = { "email": "Customer with this Email Address already exists." }
+                messages.push(`${field}: ${val}`);
+            } else {
+                // Just in case it's something weird
+                messages.push(`${field}: Invalid input`);
+            }
+        }
+
+        return messages.join("\n");
+    }
+
+    return "An unknown error occurred.";
+}
+
+</script> 

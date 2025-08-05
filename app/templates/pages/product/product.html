@@ -1,0 +1,229 @@
+
+{% extends 'base/container.html' %}
+{% load static %}
+{% block title %}Product {% endblock %}
+
+{% block style %}
+
+<style>
+ .card-custom-header {
+    display: flex;
+    align-content: center;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 800;
+}
+</style>
+    <link href="{% static 'assets/advanced-datatable/media/css/demo_page.css'%}" rel="stylesheet" />
+    <link href="{% static 'assets/advanced-datatable/media/css/demo_table.css'%}" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'assets/data-tables/DT_bootstrap.css'%}" />
+{% endblock %}
+{% block body_content %} 
+ <div class="wrapper">
+    <div class="row">
+        <div class="col-sm-12">
+            <section class="card">
+               <header class="card-header card-custom-header" >
+                    Products List
+                   <a class="btn btn-primary" data-toggle="modal" href="#project-model"><i class="fa fa-plus"></i> Add</a>  
+               </header>
+               <div class="card-body">
+                    <div class="adv-table">
+                       <table class="display table table-bordered" id="hidden-table-info">
+                            <thead>
+                               <tr>
+                                    <th>Product Name</th>
+                                    <th>Category</th>
+                                    <th class="hidden-phone">Sub-Category</th>
+                                    <th class="hidden-phone">Unit</th>
+                                    <th class="hidden-phone">Width</th>
+                                    <th class="hidden-phone">Height</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                          
+                                {%for product in Products %}
+                                <tr class="gradeX">
+                                    <td>{{product.name}}</td>
+                                    <td>{{product.category.name}}</td>
+                                    <td>{{product.subcategory.name}}</td>
+                                    <td>{{product.unit.symbol}}</td>
+                                    <td>{{product.width}}</td>
+                                    <td>{{product.height}}</td>
+                                </tr>
+                                {% endfor %}
+                               
+                           </tbody>
+                       </table>
+                    </div>
+               </div>
+               <!--add Project Model Start-->
+                <div class="modal fade" id="project-model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="myModal2">Product-Add</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form class="cmxform form-horizontal tasi-form" id="project-add-form" method="post" action="#">
+                                    {% csrf_token %}
+                                        <div class="form-group row">
+                                            <label for="name" class="control-label col-lg-2">Product Name</label>
+                                            <div class="col-lg-10">
+                                                <input class=" form-control" id="name" name="name" type="text" />
+                                            </div>
+                                        </div>
+                                        
+                                         
+                                        <div class="form-group row">
+                                            <label for="name" class="control-label col-lg-2">Category Name</label>
+                                            <div class="col-lg-10">
+                                                <select class="form-control" id="category" name="category">
+                                                    {% for category in categories %}
+                                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                                    {% empty %}
+                                                        <option disabled>No categories available</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                         <div class="form-group row">
+                                            <label for="name" class="control-label col-lg-2">Sub-Category Name</label>
+                                            <div class="col-lg-10">
+                                                <select class="form-control" id="subcategory" name="subcategory">
+                                                     <option value="">--</option>
+                                                    {% for category in subcategories %}
+                                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                                    {% empty %}
+                                                        <option disabled>No Sub-categories available</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                                <label for="width" class="control-label col-lg-2">Width</label>
+                                                <div class="col-lg-2">
+                                                    <input type="number" class="form-control" name="width" id="width" />
+                                                </div>
+
+                                                <label for="height" class="control-label col-lg-2">Height</label>
+                                                <div class="col-lg-2">
+                                                    <input type="number" class="form-control" name="height" id="height" />
+                                                </div>
+                                                <label for="unit" class="control-label col-lg-2">Unit</label>
+                                                <div class="col-lg-2">
+                                                   
+                                                    <select class="form-control" id="unit" name="unit">
+                                                        {% for unit in units %}
+                                                            <option value="{{ unit.id }}">{{ unit.symbol }}</option>
+                                                        {% empty %}
+                                                            <option disabled>No Unit available</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                         <div class="form-group row ">
+                                            <label for="description" class="control-label col-lg-2">Price</label>
+                                            <div class="col-lg-10"> 
+                                                <input type="number" class="form-control" name="price" id="height" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row ">
+                                            <label for="description" class="control-label col-lg-2">Description</label>
+                                            <div class="col-lg-10"> 
+                                                <textarea class=" form-control"  name="description" id="description"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                            <button type="submit" id="category-submit" class="btn btn-primary">Save</button>
+                                        </div>
+                                    </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+               <!--add project Model End-->
+			</section>
+	    </div>
+    </div>
+</div>
+{% endblock %}
+{% block js %}
+    <!--dynamic table initialization -->
+    
+      <script>
+            function fnFormatDetails ( oTable, nTr )
+            {
+                var aData = oTable.fnGetData( nTr );
+                var sOut = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">';
+                sOut += '<tr><td>Rendering engine:</td><td>'+aData[1]+' '+aData[4]+'</td></tr>';
+                sOut += '<tr><td>Link to source:</td><td>Could provide a link here</td></tr>';
+                sOut += '<tr><td>Extra info:</td><td>And any further details here (img etc)</td></tr>';
+                sOut += '</table>';
+
+                return sOut;
+            }
+
+     $(document).ready(function() {
+
+        $('#dynamic-table').dataTable( {
+            "aaSorting": [[ 4, "desc" ]]
+        } );
+        const plusIcon = `<i class="fa fa-plus-square  text-success" style="font-size:22px;"></i>`;
+        const minusIconClass = "fa-minus-square";
+        const plusIconClass = "fa-plus-square";
+        var nCloneTh = document.createElement( 'th' );
+        var nCloneTd = document.createElement( 'td' );
+        nCloneTd.innerHTML = plusIcon;
+        nCloneTd.className = "center";
+
+        $('#hidden-table-info thead tr').each( function () {
+            this.insertBefore( nCloneTh, this.childNodes[0] );
+        } );
+
+        $('#hidden-table-info tbody tr').each( function () {
+            this.insertBefore(  nCloneTd.cloneNode( true ), this.childNodes[0] );
+        } );
+
+        /*
+        * Initialse DataTables, with no sorting on the 'details' column
+        */
+        var oTable = $('#hidden-table-info').dataTable( {
+            "aoColumnDefs": [
+                { "bSortable": false, "aTargets": [ 0 ] }
+            ],
+            "aaSorting": [[1, 'asc']]
+        });
+
+        /* Add event listener for opening and closing details
+        * Note that the indicator for showing which row is open is not controlled by DataTables,
+        * rather it is done here
+        */
+        $(document).on('click', '#hidden-table-info tbody td i ', function () {
+            const tr = $(this).closest('tr')[0];
+
+            if (oTable.fnIsOpen(tr)) {
+                // Close row
+                oTable.fnClose(tr);
+                $(this)
+                    .removeClass(minusIconClass + ' text-danger')
+                    .addClass(plusIconClass + ' text-success');
+            } else {
+                // Open row
+                oTable.fnOpen(tr, fnFormatDetails(oTable, tr), 'details');
+                $(this)
+                    .removeClass(plusIconClass + ' text-success')
+                    .addClass(minusIconClass + ' text-danger');
+            }
+        });
+    } );
+      </script>
+  
+ 
+
+{% endblock %}

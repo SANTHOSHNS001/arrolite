@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Login</title>
+  </head>
+  <link href="{% static 'css/bootstrap.min.css'%}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-reset.css'%}" rel="stylesheet">
+  <body style="margin:0;font-family:sans-serif;background:#f0f3f7;display:flex;justify-content:center;align-items:center;height:100vh">
+       {% include "companiance/message.html"%}
+    <div style="background:#fff;width:300px;padding:20px;border-radius:8px;box-shadow:0 0 10px #ccc">
+      <h2 style="margin:-20px -20px 15px -20px;padding:15px;background:#33d3c6;color:#fff;border-radius:8px 8px 0 0;text-align:center">SIGN IN NOW</h2>
+    <form  method="POST">
+        {% csrf_token %}
+      <input type="email" placeholder="Email" name="email" required style="width:100%;margin:8px 0;padding:10px;border:1px solid #ccc;border-radius:5px" />
+      <input type="password" placeholder="Password"  name="password" required style="width:100%;margin:8px 0;padding:10px;border:1px solid #ccc;border-radius:5px" />
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin:8px 0">
+        <label><input type="checkbox" />Remember</label><a href="#" style="color:#1cb5b2;text-decoration:none">Forgot password</a>
+      </div>
+      <button type="submit" style="width:100%;padding:10px;margin-top:10px;background:#f47068;color:#fff;border:none;border-radius:5px;font-weight:bold;cursor:pointer">SIGN IN</button>
+     </form>
+      <div style="text-align:center;font-size:13px;margin-top:10px">
+        No account? <a href="#" style="color:#1cb5b2;text-decoration:none">register here</a>
+      </div>
+    </div>
+  </body>
+</html>
