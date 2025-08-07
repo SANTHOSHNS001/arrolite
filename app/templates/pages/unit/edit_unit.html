@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Edit Unit</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <label for="name">Unit Name</label>
+    <input type="text" name="name" value="{{ unit.name }}" required><br>
+
+    <label for="symbol">Symbol</label>
+    <input type="text" name="symbol" value="{{ unit.symbol }}" required><br>
+
+    <button type="submit">Update</button>
+</form>
+
+<a href="{% url 'unit_list' %}">Back to list</a>
+{% endblock %}
+  

@@ -9,11 +9,19 @@ from app.view.quotation.quotation_view import QuotationApprovalView, QuotationIn
 from app.view.sub_category.sub_category_view import SubCategoryEditView, SubCategoryListView
 from app.view.category.category_view import CategoryEditView, CategoryListView
 from app.view.customer.customer_view import CustomUserRegister, CustomerRegister, Login, UserLogoutView
+from app.view.unit.unit_view import UnitcreateView,UnitDeleteView,UnitEditView
  
+ 
+# from app.view.unit.unit_view import UnitcreateView,UnitEditView,UnitDeleteView
+
+
 urlpatterns = [
                 path("login/", Login.as_view(), name="login"),
                 path("logout/", UserLogoutView.as_view(), name="logout"),
-                
+                path("unit" ,  UnitcreateView.as_view() , name ="unit"),
+                path('unit/edit/<int:pk>/', UnitEditView.as_view(), name='edit_unit'),
+                path('unit/delete/<int:pk>/', UnitDeleteView.as_view(), name='delete_unit'),
+
                 
                 path("", HomePageView.as_view(), name="home"),
                 path("user_add/", CustomUserRegister.as_view(), name="user_add"),
@@ -26,7 +34,6 @@ urlpatterns = [
                 path("quotation-awaiting/", QuotationApprovalView.as_view(), name="quotation_waiting"),
                 path("quotation-request/", QuotationRequestView.as_view(), name="quotation_request"),
                 path("quotation-invoice/", QuotationInvoiceView.as_view(), name="quotation_invoice"),
-                
                 
                 
                 
