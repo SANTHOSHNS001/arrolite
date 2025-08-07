@@ -1,0 +1,9 @@
+# app/forms/unit_form.py
+
+from django import forms
+from app.models.unit.unit_model import Unit
+
+class UnitForm(forms.ModelForm):
+    class Meta:
+        model = Unit
+        fields = ['name', 'symbol']
