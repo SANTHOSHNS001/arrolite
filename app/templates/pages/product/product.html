@@ -21,13 +21,20 @@
 {% endblock %}
 {% block body_content %} 
  <div class="wrapper">
+    <div class="wrapper-title">
+    <div class="wrapper-content">Products List</div>
+    <div class="wrapper-actions">
+         <a class="btn btn-primary" data-toggle="modal" href="#project-model"><i class="fa fa-plus"></i> Add</a>
+         
+        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  back</button>
+    </div>
+   </div>
+
+
     <div class="row">
         <div class="col-sm-12">
             <section class="card">
-               <header class="card-header card-custom-header" >
-                    Products List
-                   <a class="btn btn-primary" data-toggle="modal" href="#project-model"><i class="fa fa-plus"></i> Add</a>  
-               </header>
+               
                <div class="card-body">
                     <div class="adv-table">
                        <table class="display table table-bordered" id="hidden-table-info">

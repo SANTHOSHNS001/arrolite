@@ -110,8 +110,10 @@ class QuotationReportPdfView(View):
     def header(self, canvas, doc, quotation):
         canvas.saveState()
         # Register custom font
+        font_new = os.path.join(settings.BASE_DIR, 'static', 'fonts', 'montserrat', 'Montserrat-Black.ttf')
+ 
         pdfmetrics.registerFont(
-            TTFont("Montserrat-Black", r"D:\fatlip\arrolite\static\fonts\montserrat\Montserrat-Black.ttf")
+            TTFont("Montserrat-Black", font_new)
         )
 
         # Define Styles
