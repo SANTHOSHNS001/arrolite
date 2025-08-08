@@ -3,12 +3,14 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from app.view.home import HomePageView
+from app.view.iso_series.iso_view import ISOSizeEditView, ISOSizeListView
 from app.view.permission.permission import GroupUpdateView, GroupUserAddorUpdateView, PermissionAdd, PermissionSetting
 from app.view.product.product_view import ProductEditView, ProductListView, QuotationReportPdfView
 from app.view.quotation.quotation_view import QuotationApprovalView, QuotationInvoiceView, QuotationListView, QuotationRequestView, QuotationView,QuotationApprove
 from app.view.sub_category.sub_category_view import SubCategoryEditView, SubCategoryListView
 from app.view.category.category_view import CategoryEditView, CategoryListView
 from app.view.customer.customer_view import CustomUserRegister, CustomUserUpdate, CustomerRegister, CustomuserList, Login, UserLogoutView
+from app.view.unit.unit_view import UnitEditView, UnitListView
  
 urlpatterns = [
                 path("login/", Login.as_view(), name="login"),
@@ -42,6 +44,17 @@ urlpatterns = [
                 path("permission/<int:pk>/edit/", GroupUpdateView.as_view(), name="permission_update"),
                 path("permission/<int:pk>/add-users/", GroupUserAddorUpdateView.as_view(), name="group_user_add"),      
                 path('register-customer/', CustomerRegister.as_view(), name='register-customer'),
+                
+                # unit
+                path("unit-list", UnitListView.as_view(), name="unit_list"),
+                path("unit-edit/<int:pk>", UnitEditView.as_view(), name="unit_edit"),
+                # ISO
+                path("iso-list", ISOSizeListView.as_view(), name="iso_list"),
+                path("iso-edit/<int:pk>", ISOSizeEditView.as_view(), name="iso_edit"),
+                
+                
+                
+                
                               
               ]  
 if settings.DEBUG:
