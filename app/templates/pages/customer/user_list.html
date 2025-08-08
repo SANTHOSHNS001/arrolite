@@ -1,0 +1,72 @@
+{% extends 'base/container.html' %}
+{% load static %}
+{% block title %}User-List {% endblock %}
+
+{% block style %}
+{% endblock %}
+{% block body_content %} 
+<div class="wrapper">
+      <div class="wrapper-title">
+    <div class="wrapper-content">User List</div>
+    <div class="wrapper-actions">
+       <a class="btn btn-success"  href="{%url 'user_add'%}"><i class="fa fa-plus"></i> Add</a> 
+        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  back</button>
+    </div>
+        </div>
+    <div class="card">
+               <div class="adv-table">
+              <table  class="display table table-bordered table-striped" id="dynamic-table">
+              <thead>
+              <tr>
+                  <th>User Name</th>
+                  <th>Group</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Action</th>
+          
+              </tr>
+              </thead>
+              <tbody>
+                {% for user in users%}
+              <tr class="gradeX">
+                  <td>{{user.get_full_name}}</td>
+                   <td>
+                        {% for group in user.groups.all %}
+                            <span class="badge badge-info">{{ group.name }}</span>
+                        {% empty %}
+                            <span class="text-muted">No Group</span>
+                        {% endfor %}
+                    </td>
+                  <td>{{user.email}}</td>
+                  <td >{{user.phone_number}}</td>
+                  <td>
+                       <a href ="{%url 'user_update' user.id %}"id ="edit-category-btn" class="btn btn-primary btn-sm edit-category-btn" ><i class="fa fa-pencil"></i></a>
+                       <button class="btn btn-danger btn-sm"><i class="fa fa-trash-o "></i></button>
+                  </td>
+                 
+              </tr>
+              {%endfor%}
+             
+               
+            
+              </tbody>
+              
+              </table>
+              </div>
+    </div>
+    </div>
+ 
+
+
+{% endblock %}
+
+{% block js %}
+<script>
+  $('#dynamic-table').dataTable( {
+            "aaSorting": [[ 4, "desc" ]]
+        } );
+</script>
+
+
+
+{% endblock%}

@@ -17,7 +17,9 @@ class CategoryListView(View):
         print(request.POST)
         form = CategoryCreateForm(request.POST)
         if form.is_valid():
-            form.save()
+            category = form.save(commit=False)
+            category.status = True              # Set status here
+            category.save()
             return redirect('category_list')  # name of this view in your URLconf
         # If not valid, re-render with errors
         categories = Category.objects.all()

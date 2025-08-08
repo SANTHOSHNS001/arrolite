@@ -3,6 +3,7 @@ from django import template
 register = template.Library()
 @register.simple_tag
 def get_sidebar_menu():
+    
     return [
         {"url": "home", "name": "Dashboard", "icon": "home"},  
         {"url": "category_list", "name": "Category", "icon": "category", "perm": "app.manage_category"},
@@ -12,15 +13,14 @@ def get_sidebar_menu():
         {"url": "quotation_waiting", "name": "Approved", "icon": "pending_actions", "perm": "app.can_approve_quotation"},
         {"url": "quotation_invoice", "name": "Invoice", "icon": "receipt", "perm": "app.can_assign_approver_quotation"}, 
         {"url": "permission_setting", "name": "Permission", "icon": "admin_panel_settings", "perm": "app.can_assign_approver_quotation"},
-        {"url": "user_add", "name": "User Setting", "icon": "manage_accounts", "perm": "app.can_assign_approver_quotation"},
+        {"url": "user_list", "name": "User Setting", "icon": "manage_accounts", "perm": "app.can_assign_approver_quotation"},
+           # {"url": "Sheet", "name": "Sheet-Size", "icon": "user", "perm": "app.can_manage_isosize"},
         {"url": "logout", "name": "Logout", "icon": "logout"},  
         
         # {"url": "Sheet", "name": "Sheet-Size", "icon": "user", "perm": "app.can_manage_isosize"},
-        # {"url": "permission_setting", "name": "Permission", "icon": "passkey", "perm": "app.can_assign_approver_quotation"},
+        
         # {"url": "unit", "name": "Unit", "icon": "user", "perm": "app.manage_unit"}, 
     ]
-    
-    
 @register.filter
 def has_perm(user, perm_name):
     return user.has_perm(perm_name)

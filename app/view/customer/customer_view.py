@@ -88,7 +88,29 @@ class CustomUserRegister(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse("category_list")
+        return reverse("user_list")
+   
+# Edit user
+class CustomUserUpdate(LoginRequiredMixin, UpdateView):
+    model = CustomUser
+    form_class = CustomerUserRegisterFrom
+    template_name = "pages/customer/customer_register.html"
+    def form_invalid(self, form):
+        print("Form is invalid. Errors:", form.errors)
+        messages.error(self.request, form.errors)
+        return super().form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form_action"] = reverse("user_update", kwargs={"pk": self.object.pk})
+        context["is_update"] = True
+        return context
+
+    def get_success_url(self):
+        return reverse("user_list")
+   
+   
+   
     
 @method_decorator(csrf_exempt, name='dispatch')  
 class CustomerRegister(LoginRequiredMixin, CreateView):
@@ -116,3 +138,12 @@ class CustomerRegister(LoginRequiredMixin, CreateView):
                         for field, errors in form.errors.get_json_data().items()
                     }
             }, status=400)
+            
+            
+     
+class CustomuserList(View):
+    template_name = "pages/customer/user_list.html"
+    def get(self, request):
+        users = CustomUser.active_objects.all()
+        return render(request, self.template_name, {'users': users})
+    

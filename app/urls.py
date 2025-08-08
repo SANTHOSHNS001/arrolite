@@ -8,13 +8,17 @@ from app.view.product.product_view import ProductEditView, ProductListView, Quot
 from app.view.quotation.quotation_view import QuotationApprovalView, QuotationInvoiceView, QuotationListView, QuotationRequestView, QuotationView,QuotationApprove
 from app.view.sub_category.sub_category_view import SubCategoryEditView, SubCategoryListView
 from app.view.category.category_view import CategoryEditView, CategoryListView
-from app.view.customer.customer_view import CustomUserRegister, CustomerRegister, Login, UserLogoutView
+from app.view.customer.customer_view import CustomUserRegister, CustomUserUpdate, CustomerRegister, CustomuserList, Login, UserLogoutView
  
 urlpatterns = [
                 path("login/", Login.as_view(), name="login"),
                 path("logout/", UserLogoutView.as_view(), name="logout"),
                 path("", HomePageView.as_view(), name="home"),
                 path("user_add/", CustomUserRegister.as_view(), name="user_add"),
+                path("users/<int:pk>/edit/", CustomUserUpdate.as_view(), name="user_update"),
+                path("user_list/", CustomuserList.as_view(), name="user_list"),
+                
+                
                 path("category-list/", CategoryListView.as_view(), name="category_list"),    
                 path("category-edit/<int:pk>/", CategoryEditView.as_view(), name="category_edit"),
                 path("sub-category-list/", SubCategoryListView.as_view(), name="sub_category_list"),    
@@ -30,6 +34,8 @@ urlpatterns = [
                 path("quotaion-approval/<int:pk>/", QuotationApprove.as_view(), name="quotaion_approval") , 
                    
                 #  Customer Add 
+                # ISO  Series
+                
                 # Permission Path
                 path("permission-setting", PermissionSetting.as_view(), name="permission_setting"),
                 path("permission-add", PermissionAdd.as_view(), name="permission_add"), 

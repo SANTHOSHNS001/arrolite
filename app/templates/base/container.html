@@ -17,14 +17,17 @@
     <link href="{% static 'css/bootstrap-reset.css'%}" rel="stylesheet">
     <link href="{% static 'assets/select2/css/select2.min.css' %}" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Font Awesome 4.7.0 standalone (legacy support) -->
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<!-- ✅ Then load Select2 -->
-  
+    <!-- Font Awesome 4.7.0 standalone (legacy support) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- ✅ Then load Select2 -->
+ 
       <!--external css-->
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet">
     <link rel="stylesheet" href="{% static 'assets/data-tables/DT_bootstrap.css'%}" />
+    <link rel="stylesheet" href="{% static 'assets/data-tables/DT_bootstrap.css'%}" />
+
+   
     <!--right slidebar-->
     <link href="{% static 'css/slidebars.css'%}" rel="stylesheet">
 
@@ -175,7 +178,7 @@
                           </li>
                           <li>
                               <a href="#">
-                                  <span class="photo"><img alt="avatar" src="img/avatar-mini.jpg"></span>
+                                  <span class="photo"><img alt="avatar" src=""></span>
                                   <span class="subject">
                                     <span class="from">Jonathan Smith</span>
                                     <span class="time">Just now</span>
@@ -187,7 +190,7 @@
                           </li>
                           <li>
                               <a href="#">
-                                  <span class="photo"><img alt="avatar" src="img/avatar-mini2.jpg"></span>
+                                  <span class="photo"><img alt="avatar" src=" "></span>
                                   <span class="subject">
                                     <span class="from">Jhon Doe</span>
                                     <span class="time">10 mins</span>
@@ -199,7 +202,7 @@
                           </li>
                           <li>
                               <a href="#">
-                                  <span class="photo"><img alt="avatar" src="img/avatar-mini3.jpg"></span>
+                                  <span class="photo"><img alt="avatar" src=""></span>
                                   <span class="subject">
                                     <span class="from">Jason Stathum</span>
                                     <span class="time">3 hrs</span>
@@ -211,7 +214,7 @@
                           </li>
                           <li>
                               <a href="#">
-                                  <span class="photo"><img alt="avatar" src="img/avatar-mini4.jpg"></span>
+                                  <span class="photo"><img alt="avatar" src=""></span>
                                   <span class="subject">
                                     <span class="from">Jondi Rose</span>
                                     <span class="time">Just now</span>
@@ -244,7 +247,7 @@
                   <!-- user login dropdown start-->
                   <li class="dropdown">
                       <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-                          <img alt="" src="img/avatar1_small.jpg">
+                          <img alt="" src="">
                           <span class="username">{{request.user}}</span>
                           <b class="caret"></b>
                       </a>
@@ -256,16 +259,14 @@
                           <li><a href="#"><i class="fa fa-key"></i> Log Out</a></li>
                       </ul>
                   </li>
-                   
                   <!-- user login dropdown end -->
+                  
               </ul>
               <!--search & user info end-->
           </div>
       </header>
       <!--header end-->
       <!--sidebar start-->
-       
-
       <aside>{% include 'companiance/aside.html'%}</aside>
       
       <!--sidebar end-->
@@ -275,151 +276,6 @@
         {% block body_content %}
         {% endblock body_content %}
       </section>
-      <!--main content end-->
-      {% comment %} <!-- Right Slidebar start -->
-      <div class="sb-slidebar sb-right sb-style-overlay">
-          <h5 class="side-title">Online Customers</h5>
-          <ul class="quick-chat-list">
-              <li class="online">
-                  <div class="media">
-                      <a href="#" class="">
-                          <img alt="" src="img/chat-avatar2.jpg" class="mr-3 rounded-circle">
-                      </a>
-                      <div class="media-body">
-                          <strong>John Doe</strong>
-                          <small>Dream Land, AU</small>
-                      </div>
-                  </div><!-- media -->
-              </li>
-              <li class="online">
-                  <div class="media">
-                      <a href="#" class="">
-                          <img alt="" src="img/chat-avatar.jpg" class="mr-3 rounded-circle">
-                      </a>
-                      <div class="media-body">
-                          <div class="media-status">
-                              <span class=" badge bg-important">3</span>
-                          </div>
-                          <strong>Jonathan Smith</strong>
-                          <small>United States</small>
-                      </div>
-                  </div><!-- media -->
-              </li>
-
-              <li class="online">
-                  <div class="media">
-                      <a href="#" class="">
-                          <img alt="" src="img/pro-ac-1.png" class="mr-3 rounded-circle">
-                      </a>
-                      <div class="media-body">
-                          <div class="media-status">
-                              <span class=" badge badge-success">5</span>
-                          </div>
-                          <strong>Jane Doe</strong>
-                          <small>ABC, USA</small>
-                      </div>
-                  </div><!-- media -->
-              </li>
-              <li class="online">
-                  <div class="media">
-                      <a href="#" class="">
-                          <img alt="" src="img/avatar1.jpg" class="mr-3 rounded-circle">
-                      </a>
-                      <div class="media-body">
-                          <strong>Anjelina Joli</strong>
-                          <small>Fockland, UK</small>
-                      </div>
-                  </div><!-- media -->
-              </li>
-              <li class="online">
-                  <div class="media">
-                      <a href="#" class="">
-                          <img alt="" src="img/mail-avatar.jpg" class="mr-3 rounded-circle">
-                      </a>
-                      <div class="media-body">
-                          <div class="media-status">
-                              <span class=" badge bg-warning">7</span>
-                          </div>
-                          <strong>Mr Tasi</strong>
-                          <small>Dream Land, USA</small>
-                      </div>
-                  </div><!-- media -->
-              </li>
-          </ul>
-          <h5 class="side-title"> pending Task</h5>
-          <ul class="p-task tasks-bar">
-              <li>
-                  <a href="#">
-                      <div class="task-info">
-                          <div class="desc">Dashboard v1.3</div>
-                          <div class="percent">40%</div>
-                      </div>
-                      <div class="progress">
-                          <div style="width: 40%" aria-valuemax="100" aria-valuemin="0" aria-valuenow="40" role="progressbar" class="progress-bar progress-bar-striped bg-success">
-                              <span class="sr-only">40% Complete (success)</span>
-                          </div>
-                      </div>
-                  </a>
-              </li>
-              <li>
-                  <a href="#">
-                      <div class="task-info">
-                          <div class="desc">Database Update</div>
-                          <div class="percent">60%</div>
-                      </div>
-                      <div class="progress">
-                          <div style="width: 60%" aria-valuemax="100" aria-valuemin="0" aria-valuenow="60" role="progressbar" class="progress-bar progress-bar-striped bg-warning">
-                              <span class="sr-only">60% Complete (warning)</span>
-                          </div>
-                      </div>
-                  </a>
-              </li>
-              <li>
-                  <a href="#">
-                      <div class="task-info">
-                          <div class="desc">Iphone Development</div>
-                          <div class="percent">87%</div>
-                      </div>
-                      <div class="progress">
-                          <div style="width: 87%" aria-valuemax="100" aria-valuemin="0" aria-valuenow="20" role="progressbar" class="progress-bar progress-bar-striped bg-info">
-                              <span class="sr-only">87% Complete</span>
-                          </div>
-                      </div>
-                  </a>
-              </li>
-              <li>
-                  <a href="#">
-                      <div class="task-info">
-                          <div class="desc">Mobile App</div>
-                          <div class="percent">33%</div>
-                      </div>
-                      <div class="progress">
-                          <div style="width: 33%" aria-valuemax="100" aria-valuemin="0" aria-valuenow="80" role="progressbar" class="progress-bar progress-bar-striped bg-danger">
-                              <span class="sr-only">33% Complete (danger)</span>
-                          </div>
-                      </div>
-                  </a>
-              </li>
-              <li>
-                  <a href="#">
-                      <div class="task-info">
-                          <div class="desc">Dashboard v1.3</div>
-                          <div class="percent">45%</div>
-                      </div>
-                      <div class="progress">
-                          <div style="width: 45%" aria-valuemax="100" aria-valuemin="0" aria-valuenow="45" role="progressbar" class="progress-bar progress-bar-striped">
-                              <span class="sr-only">45% Complete</span>
-                          </div>
-                      </div>
-
-                  </a>
-              </li>
-              <li class="external">
-                  <a href="#">See All Tasks</a>
-              </li>
-          </ul>
-      </div>
-      <!-- Right Slidebar end --> {% endcomment %}
 
       <!--footer start-->
       <footer class="site-footer">
