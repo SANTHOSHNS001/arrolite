@@ -77,6 +77,30 @@
     /* border-color: red; */
  
 }
+.row-fluid {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.dataTables_filter input {
+    border: 2px solid #c9cbcf;   /* Red border */
+    border-radius: 6px;          /* Rounded corners */
+    padding: 6px 10px;           /* Inner spacing */
+    font-size: 14px;              /* Font size */
+    color: #333;                  /* Text color */
+    background-color: #fffdfdff;    /* Light pink background */
+    outline: none;                /* Remove default focus outline */
+                    /* Set width */
+}
+.adv-table .dataTables_length select {
+    display: inline-block;
+    margin: 0 10px 0 0;
+    padding: 11px 11px;
+    border: 1px solid #d4c2c2;
+    
+    border-radius: 8px;
+}
     </style>
      {% block style %} {% endblock %}
   </head>

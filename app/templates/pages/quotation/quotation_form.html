@@ -68,7 +68,7 @@
     <div class="wrapper-content">  Quotation Form</div>
     <div class="wrapper-actions">
          
-        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  back</button>
+        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
    </div>
 
@@ -78,7 +78,7 @@
                         {% csrf_token %}
                         <div class=" ">
                             <div class="row">
-                                <div class="col-5">
+                                <div class="col-4">
                                     <label class="" for="inlineFormInput">Customer</label>
                                     <div class="group-icon-f">
                                     <select class="form-control select2" id="category" name="user">
@@ -92,9 +92,19 @@
                                         <i class="fa fa-user"></i></a>
                                     </div>
                                 </div>
-                                <div class="col-5">
+                                <div class="col-4">
                                     <label for="requite_date" class="control-label ">Request Date</label>
                                     <input type="date" class="form-control" name="requite_date" required/>
+                                </div>  
+                                 <div class="col-4">
+                                    <label for="requite_date" class="control-label ">Sheet Size</label>
+                                    <select class="form-control select2" id="iso_size" name="iso_size">
+                                            {% for iso_size in iso_sizes %}
+                                                <option value="{{ iso_size.id }}">{{ iso_size.name }}</option>
+                                            {% empty %}
+                                                <option disabled>No Sheet available</option>
+                                            {% endfor %}
+                                        </select>
                                 </div>  
                                
                             </div>   
@@ -284,7 +294,7 @@
 
         const html = `
         <div class="form-group request-row custom-row-data mb-0" data-index="${counter}">
-            <select name="product_${counter}" class="select2 form-control product-select  ">
+            <select name="product_${counter}" class="select2 form-control product-select select2 ">
                 <option value="">Select Product</option>
                 {% for product in products %}
                     <option value="{{ product.id }}" data-price="{{ product.price }}">{{ product.name }}</option>
@@ -294,7 +304,7 @@
             <div class="dimension-row" style="display: contents;">
                 <input type="number" class="form-control" name="width_${counter}" placeholder="Width" />
                <input type="number" class="form-control" name="height_${counter}" placeholder="Height" />
-               <select class="form-control unit-select" name="unit_${counter}">
+               <select class="form-control unit-select select2" name="unit_${counter}">
                 {% for unit in units %}
                     <option value="{{ unit.id }}">{{ unit.symbol }}</option>
                 {% empty %}

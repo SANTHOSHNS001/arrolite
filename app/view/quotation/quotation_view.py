@@ -1,6 +1,7 @@
 from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
 from app.models.customer_model.customer_model import CustomUser, Customer
+from app.models.iso_series.iso_series_model import ISOSize
 from app.models.product.product_model import Product
 from app.models.product.quotation_model import Quotation, QuotationItem
 from app.models.unit.unit_model import Unit
@@ -12,6 +13,7 @@ class QuotationView(View):
     def get(self, request,pk):
         quotation = get_object_or_404(Quotation.active_objects, id=pk)
         quotation_items = QuotationItem.active_objects.filter(quotation=quotation)     
+        print("O",quotation_items)
         context = {
             'quotation':quotation,
             'quotationsitems': quotation_items,
@@ -58,11 +60,14 @@ class QuotationRequestView(View):
         products = Product.active_objects.all()
         units = Unit.active_objects.all()
         customer = Customer.active_objects.all() 
+        iso_sizes = ISOSize.active_objects.all() 
+        
         context = {
              
             'products': products,
             'units': units,
             'users': customer,
+            "iso_sizes":iso_sizes
         }
  
         return render(request, self.template, context)

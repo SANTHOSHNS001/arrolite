@@ -52,8 +52,7 @@
     border-radius: 5px;
 }
 </style>
-    <link href="{% static 'assets/advanced-datatable/media/css/demo_page.css'%}" rel="stylesheet" />
-    <link href="{% static 'assets/advanced-datatable/media/css/demo_table.css'%}" rel="stylesheet" />
+   
     <link rel="stylesheet" href="{% static 'assets/data-tables/DT_bootstrap.css'%}" />
     <!-- Bootstrap JS (v5.x) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -66,7 +65,7 @@
     <div class="wrapper-content">Quotation List</div>
     <div class="wrapper-actions">
         <a class="btn btn-success"  href="{%url 'quotation_request'%}"><i class="fa fa-plus"></i> Add</a> 
-        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  back</button>
+        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
    </div> 
  
@@ -81,7 +80,7 @@
                                     <th>Approver</th>
                                     <th>Customer</th>
                                     <th>Request Date</th>
-                                    <th>status</th>
+                                    <th>Status</th>
                                     <th style="display:none">Item-json</th>    
                                 </tr>
                             </thead>
@@ -179,7 +178,7 @@
 
                 console.log(dataitems)
                 try {
-                    const htmlContent = $('<div>').html(data[6]).text();
+                    const htmlContent = $('<div>').html(data[7]).text();
 
                     const fixedContent = htmlContent
                         .replace(/'/g, '"')
@@ -198,13 +197,7 @@
                     return '<div>No items available</div>';
                 }
                 let sOut =``
-                if (approvestatus === 'approved') {
-                        sOut += `<div style="margin-bottom: 10px;display: flex;justify-content: flex-end;">
-                                    <button onclick="Apitest(${quotationId})" class="btn btn-sm btn-outline-primary">
-                                        <i class="fa fa-download"></i> Download
-                                    </button>
-                                </div>`;
-                    }
+                
                 
 
                 sOut += '<table cellpadding="5" cellspacing="0"   style="width:100%;">';
@@ -212,7 +205,7 @@
 
                 itemData.items.forEach(item => {
                     sOut += `<tr >
-                    <td>${item.product_name || ''}</td>
+                    <td>${item.product_name || ''}  </td>
                     <td>${item.quantity || 0}</td>
                     <td>${item.unit || ''}</td>
                     <td>${item.unit_cost || 0}</td>

@@ -36,7 +36,7 @@
     <div class="wrapper-content">Invoice Bill</div>
     <div class="wrapper-actions">
          
-        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  back</button>
+        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
    </div>
     <div class="row">
@@ -58,63 +58,62 @@
         </div>
       
         </div>
-         
-  <div class="card">
      
-    
-    <table id ="quotation-table" class="display table table-bordered">
-        <thead>
-            <tr>
-                <th>SNO</th>
-                <th>Product</th>
-                <th>Customer</th>
-                <th>Unit Price</th>
-                <th>Quantity</th>
-                <th>Unit</th>
-                <th>Width</th>
-                <th>Height</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody>
-             
-            {% for quotationsitem in quotationsitems %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ quotationsitem.product.name }}</td>
-                <td>{{ quotationsitem.product.name }}</td>
-                <td>${{ quotationsitem.product.price }}</td>
-                <td>{{ quotationsitem.quantity }}</td>
-                <td>{{ quotationsitem.unit.symbol }}</td>
-                <td>{{ quotationsitem.width }}</td>
-                <td>{{ quotationsitem.height }}</td>
-                <td>${{ quotationsitem.unit_cost }}</td>
+  <div class="card">  
+    <div class="adv-table">
+        <table id ="quotation-table" class="display table table-bordered">
+            <thead>
+                <tr>
+                    <th>SNO</th>
+                    <th>Product</th>
+                    <th>Customer</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th>Unit</th>
+                    <th>Width</th>
+                    <th>Height</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                {% for quotationsitem in quotationsitems %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ quotationsitem.product.name }}</td>
+                    <td>{{ quotationsitem.product.name }}</td>
+                    <td>${{ quotationsitem.product.price }}</td>
+                    <td>{{ quotationsitem.quantity }}</td>
+                    <td>{{ quotationsitem.unit.symbol }}</td>
+                    <td>{{ quotationsitem.width }}</td>
+                    <td>{{ quotationsitem.height }}</td>
+                    <td>${{ quotationsitem.unit_cost }}</td>
 
-            </tr>
-            {% empty %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">No items available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
             <tr>
-                <td colspan="6">No items available.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-          <tfoot>
-        <tr>
-            <th colspan="8" style="text-align:right">Subtotal:</th>
-                <th colspan="1"style="text-align:left">$ {{ quotation.total_cost|floatformat:2 }}</th>
-            </tr>
-            <tr>
-                <th colspan="8" style="text-align:right">
-                    Discount{% if quotation.discount %} ({{ quotation.discount }}%){% endif %}:
-                </th>
-                <th colspan="1"style="text-align:left">$ {{ quotation.discount_amount|floatformat:2 }}</th>
-            </tr>
-            <tr>
-                <th colspan="8" style="text-align:right"><strong>Total :</strong></th>
-                <th colspan="1"style="text-align:left"><strong>$ {{ quotation.payable_total|floatformat:2 }}</strong></th>
-            </tr>
-        </tfoot>
-    </table>
- 
+                <th colspan="8" style="text-align:right">Subtotal:</th>
+                    <th colspan="1"style="text-align:left">$ {{ quotation.total_cost|floatformat:2 }}</th>
+                </tr>
+                <tr>
+                    <th colspan="8" style="text-align:right">
+                        Discount{% if quotation.discount %} ({{ quotation.discount }}%){% endif %}:
+                    </th>
+                    <th colspan="1"style="text-align:left">$ {{ quotation.discount_amount|floatformat:2 }}</th>
+                </tr>
+                <tr>
+                    <th colspan="8" style="text-align:right"><strong>Total :</strong></th>
+                    <th colspan="1"style="text-align:left"><strong>$ {{ quotation.payable_total|floatformat:2 }}</strong></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 </div>
 
 </div>

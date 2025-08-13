@@ -59,7 +59,7 @@ class Quotation(CustomBase):
         ]
         ordering = ["-created_at"]
     def __str__(self):
-        return f"Quotation #{self.invoice_number}-{self.id}"
+        return f"{self.invoice_number}"
     @property
     def to_json(self):
         return {
@@ -121,7 +121,7 @@ class QuotationItem(CustomBase):  # Singular name is conventional
             ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.product.name} (x{self.quantity})"
+        return f"{self.product.name}-status={self.is_deleted}"
     @property
     def to_json(self):
         return {
