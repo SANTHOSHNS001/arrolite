@@ -37,7 +37,6 @@ class ProductListView(View):
         }
         return render(request, self.template, context)
     def post(self, request):
-     
         form = ProductCreateForm(request.POST)
         if form.is_valid():
             form.save()
@@ -52,9 +51,10 @@ class ProductListView(View):
 class ProductEditView(View):
    def post(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
+        print("Form Data,",request.POST)
         form = ProductCreateForm(request.POST, instance=product)
         if form.is_valid():
-            updated_category = form.save()
+            form.save() 
             return JsonResponse({
                 'success': True,
                 'message': 'Product updated successfully.',
@@ -64,7 +64,32 @@ class ProductEditView(View):
         return JsonResponse({
             'success': False,
             'errors': form.errors
-        }, status=400)        
+        }, status=400)   
+from django.db import transaction     
+class ProductDelete(View):
+    def post(self, request, pk):
+        product = get_object_or_404(Product, pk=pk)
+
+        try:
+            with transaction.atomic():
+                product.delete(user=request.user)  # soft delete using your CustomBase method
+            return JsonResponse({
+                'success': True,
+                'message': 'Product deleted successfully.'
+            }, status=200)
+
+        except ValueError as e:
+            # Raised when there are related non-deleted objects
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f"An unexpected error occurred: {str(e)}"
+            }, status=500)
                 
  
     

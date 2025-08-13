@@ -3,7 +3,7 @@ from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
 from app.forms.category.category_form import CategoryCreateForm
 from app.models.category.category_model import Category
- 
+from django.db import transaction   
 
 class CategoryListView(View):
     template="pages/category/category_view.html"
@@ -54,3 +54,28 @@ class CategoryEditView(View):
         }, status=400)
 
  
+   
+class CategoryDelete(View):
+    def post(self, request, pk):
+        category = get_object_or_404(Category, pk=pk)
+
+        try:
+            with transaction.atomic():
+                category.delete(user=request.user)  # soft delete using your CustomBase method
+            return JsonResponse({
+                'success': True,
+                'message': 'Category deleted successfully.'
+            }, status=200)
+
+        except ValueError as e:
+            # Raised when there are related non-deleted objects
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f"An unexpected error occurred: {str(e)}"
+            }, status=500)

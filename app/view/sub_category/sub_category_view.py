@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
-
+from django.db import transaction  
 from app.forms.sub_category.sub_category_form import SubCategoryCreateForm
 from app.models.category.category_model import Category
 from app.models.sub_category.sub_category_model import SubCategory
@@ -52,4 +52,27 @@ class SubCategoryEditView(View):
             'errors': form.errors
         }, status=400)
 
- 
+class SubCategoryDelete(View):
+    def post(self, request, pk):
+        subCategory = get_object_or_404(SubCategory, pk=pk)
+
+        try:
+            with transaction.atomic():
+                subCategory.delete(user=request.user)  # soft delete using your CustomBase method
+            return JsonResponse({
+                'success': True,
+                'message': 'SubCategory deleted successfully.'
+            }, status=200)
+
+        except ValueError as e:
+            # Raised when there are related non-deleted objects
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f"An unexpected error occurred: {str(e)}"
+            }, status=500)

@@ -18,6 +18,8 @@
     <link href="{% static 'assets/advanced-datatable/media/css/demo_page.css'%}" rel="stylesheet" />
     <link href="{% static 'assets/advanced-datatable/media/css/demo_table.css'%}" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'assets/data-tables/DT_bootstrap.css'%}" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 {% endblock %}
 {% block body_content %} 
  <div class="wrapper">
@@ -40,24 +42,36 @@
                        <table class="display table table-bordered" id="hidden-table-info">
                             <thead>
                                <tr>
+                                    <th>S.NO</th>
                                     <th>Product Name</th>
                                     <th>Category</th>
                                     <th class="hidden-phone">Sub-Category</th>
                                     <th class="hidden-phone">Unit</th>
+                                    <th class="hidden-phone">Price</th>
                                     <th class="hidden-phone">Width</th>
                                     <th class="hidden-phone">Height</th>
+                                    <th class="hidden-phone">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                           
                                 {%for product in Products %}
                                 <tr class="gradeX">
+                                    <td>{{ forloop.counter }}</td>  
                                     <td>{{product.name}}</td>
                                     <td>{{product.category.name}}</td>
                                     <td>{{product.subcategory.name}}</td>
                                     <td>{{product.unit.symbol}}</td>
+                                    <td>{{product.price}}</td>
                                     <td>{{product.width}}</td>
                                     <td>{{product.height}}</td>
+                                    <td>
+                                        <button id ="edit-product-btn" data-toggle="modal"  href="#project-edit-model" class="btn btn-primary btn-sm edit-category-btn" data-id="{{product.id}}"
+                                         data-name="{{product.name}}" data-categorie="{{product.category.id}}" data-subcategory="{{product.subcategory.id}}" 
+                                         data-unit="{{product.unit.id}}"  data-description="{{product.description}}"  data-price="{{product.price}}" 
+                                         data-width="{{product.width}}"  data-height="{{product.height}}"  ><i class="fa fa-pencil"></i></button>
+                                        <button class="btn btn-danger btn-sm" onclick="confirmDeletedUpdate('{% url 'product_delete' product.id%}')"><i class="fa fa-trash-o "></i></button>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                                
@@ -70,7 +84,7 @@
                     <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="myModal2">Product-Add</h5>
+                                <h5 class="modal-title" id="myModal2">Add</h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
@@ -136,7 +150,7 @@
                                          <div class="form-group row ">
                                             <label for="description" class="control-label col-lg-2">Price</label>
                                             <div class="col-lg-10"> 
-                                                <input type="number" class="form-control" name="price" id="height" />
+                                                <input type="number" class="form-control" name="price" id="price" />
                                             </div>
                                         </div>
                                         <div class="form-group row ">
@@ -155,81 +169,175 @@
                     </div>
                 </div>
                <!--add project Model End-->
+
+            <!--add Project Edit Model Start-->
+                <div class="modal fade" id="project-edit-model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="myModal2">Edit</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form class="cmxform form-horizontal tasi-form" id="project-edit-form" method="post" action="#">
+                                    {% csrf_token %}
+                                        <div class="form-group row">
+                                            <label for="name" class="control-label col-lg-2">Product Name</label>
+                                            <div class="col-lg-10">
+                                                <input class=" form-control" id="name" name="name" type="text" />
+                                            </div>
+                                        </div>
+                                        
+                                         
+                                        <div class="form-group row">
+                                            <label for="name" class="control-label col-lg-2">Category Name</label>
+                                            <div class="col-lg-10">
+                                                <select class="form-control" id="category" name="category">
+                                                    {% for category in categories %}
+                                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                                    {% empty %}
+                                                        <option disabled>No categories available</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                         <div class="form-group row">
+                                            <label for="name" class="control-label col-lg-2">Sub-Category Name</label>
+                                            <div class="col-lg-10">
+                                                <select class="form-control" id="subcategory" name="subcategory">
+                                                     <option value="">--</option>
+                                                    {% for category in subcategories %}
+                                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                                    {% empty %}
+                                                        <option disabled>No Sub-categories available</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                                <label for="width" class="control-label col-lg-2">Width</label>
+                                                <div class="col-lg-2">
+                                                    <input type="number" class="form-control " name="width" id="width" min="1" step="any" />
+                                                </div>
+
+                                                <label for="height" class="control-label col-lg-2">Height</label>
+                                                <div class="col-lg-2">
+                                                    <input type="number" class="form-control" name="height" id="height" />
+                                                </div>
+                                                <label for="unit" class="control-label col-lg-2">Unit</label>
+                                                <div class="col-lg-2">
+                                                   
+                                                    <select class="form-control" id="unit" name="unit">
+                                                        {% for unit in units %}
+                                                            <option value="{{ unit.id }}">{{ unit.symbol }}</option>
+                                                        {% empty %}
+                                                            <option disabled>No Unit available</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                         <div class="form-group row ">
+                                            <label for="description" class="control-label col-lg-2">Price</label>
+                                            <div class="col-lg-10"> 
+                                                <input type="number" class="form-control" name="price" id="price" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group row ">
+                                            <label for="description" class="control-label col-lg-2">Description</label>
+                                            <div class="col-lg-10"> 
+                                                <textarea class=" form-control"  name="description" id="description"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                            <button type="button" id="category-edit-submit" class="btn btn-primary">Save</button>
+                                        </div>
+                                    </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+               <!--add project Edit Model End-->
 			</section>
 	    </div>
     </div>
 </div>
 {% endblock %}
 {% block js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <!--dynamic table initialization -->
+    <script>
+          
+     //Search  -Filter
+         $('#hidden-table-info').dataTable( {
     
-      <script>
-            function fnFormatDetails ( oTable, nTr )
-            {
-                var aData = oTable.fnGetData( nTr );
-                var sOut = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">';
-                sOut += '<tr><td>Rendering engine:</td><td>'+aData[1]+' '+aData[4]+'</td></tr>';
-                sOut += '<tr><td>Link to source:</td><td>Could provide a link here</td></tr>';
-                sOut += '<tr><td>Extra info:</td><td>And any further details here (img etc)</td></tr>';
-                sOut += '</table>';
-
-                return sOut;
-            }
-
-     $(document).ready(function() {
-
-        $('#dynamic-table').dataTable( {
-            "aaSorting": [[ 4, "desc" ]]
         } );
-        const plusIcon = `<i class="fa fa-plus-square  text-success" style="font-size:22px;"></i>`;
-        const minusIconClass = "fa-minus-square";
-        const plusIconClass = "fa-plus-square";
-        var nCloneTh = document.createElement( 'th' );
-        var nCloneTd = document.createElement( 'td' );
-        nCloneTd.innerHTML = plusIcon;
-        nCloneTd.className = "center";
+$(function () {
+    const modal = $("#project-edit-model");
+    const form = $("#project-edit-form");
+   debugger
+    // Populate modal form
+    $(".edit-category-btn").click(function () {
+        const btn = $(this);
+        debugger;
+        const categoryId = btn.data("categorie");
+        const subcategoryId = btn.data("subcategory");
+        const unitId = btn.data("unit");
+        form.attr("data-id", btn.data("id"));
+        form.find("#name").val(btn.data("name"));
+        form.find("#width").val(btn.data("width")|| '');
+        form.find("#height").val(btn.data("height") || '');
+     
 
-        $('#hidden-table-info thead tr').each( function () {
-            this.insertBefore( nCloneTh, this.childNodes[0] );
-        } );
 
-        $('#hidden-table-info tbody tr').each( function () {
-            this.insertBefore(  nCloneTd.cloneNode( true ), this.childNodes[0] );
-        } );
+        form.find("#price").val(btn.data("price") || '');
 
-        /*
-        * Initialse DataTables, with no sorting on the 'details' column
-        */
-        var oTable = $('#hidden-table-info').dataTable( {
-            "aoColumnDefs": [
-                { "bSortable": false, "aTargets": [ 0 ] }
-            ],
-            "aaSorting": [[1, 'asc']]
-        });
+         
+         form.find("#category").val(categoryId);
+         form.find("#subcategory").val(subcategoryId);
 
-        /* Add event listener for opening and closing details
-        * Note that the indicator for showing which row is open is not controlled by DataTables,
-        * rather it is done here
-        */
-        $(document).on('click', '#hidden-table-info tbody td i ', function () {
-            const tr = $(this).closest('tr')[0];
+         form.find("#unit").val(unitId);
 
-            if (oTable.fnIsOpen(tr)) {
-                // Close row
-                oTable.fnClose(tr);
-                $(this)
-                    .removeClass(minusIconClass + ' text-danger')
-                    .addClass(plusIconClass + ' text-success');
-            } else {
-                // Open row
-                oTable.fnOpen(tr, fnFormatDetails(oTable, tr), 'details');
-                $(this)
-                    .removeClass(plusIconClass + ' text-success')
-                    .addClass(minusIconClass + ' text-danger');
+
+        form.find("#description").val(btn.data("description") || '');
+ 
+    });
+
+    // Submit updated form via AJAX
+    $("#category-edit-submit").click(function () {
+        const id = form.attr("data-id");
+        const url = "{% url 'product_edit' 0 %}".replace("0", id);
+        debugger;
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: form.serialize(),
+            headers: {
+                "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+            },
+            success: function (res) {
+                if (res.success) {
+                    modal.modal("hide");
+                    DisplayAlert(true,res.message)
+                     
+                } else {
+                    DisplayAlert(false,"Validation error")
+                    console.log(res.errors);
+                }
+            },
+            error: function (err) {
+                 
+                DisplayAlert(false,"Server error")
+                console.error(err.responseText);
             }
         });
-    } );
-      </script>
+    });
+});
+</script>
+     
   
  
 

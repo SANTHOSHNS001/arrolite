@@ -4,40 +4,37 @@
 {% block title %}Category {% endblock %}
 
 {% block style %}
-<style>
-.card-custom-header {
-    display: flex;
-    align-content: center;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 18px;
-    font-weight: 800;
-}
-</style>
+ 
 {% endblock %}
 {% block body_content %} 
 <div class="wrapper">
+     <div class="wrapper-title">
+    <div class="wrapper-content">Sub-Category List</div>
+    <div class="wrapper-actions">
+         <a class="btn btn-primary" data-toggle="modal" href="#category-model"><i class="fa fa-plus"></i> Add</a>
+         
+        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  back</button>
+    </div>
+   </div>
     <div class="row mt-2">
         <div class="col-lg-12">
             <section class="card">
-                <header class="card-header card-custom-header">
-                     Sub-Category List
-                     <input type="text" id ="search-filter" class="form-control search" placeholder="Search">
-                     <a class="btn btn-primary" data-toggle="modal" href="#category-model"><i class="fa fa-plus"></i> Add</a>                  
-                </header>
-                <table class="table table-striped table-advance table-hover">
+                
+                <table class="table table-striped table-advance table-hover" id="sub-category-table">
                     <thead>
                     <tr>
+                        <th>S.NO</th>
                         <th><i class="fa fa-bullhorn"></i>Sub-Category</th>
                         <th><i class="fa fa-bars" aria-hidden="true"></i> Category</th>
                         <th class="hidden-phone"><i class="fa fa-question-circle"></i> Descrition</th>
                         <th><i class="fa fa-edit"></i> Status</th>
-                        <th></th>
+                        <th>Action</th>
                     </tr>
                     </thead>
                     <tbody>
                           {% for subcategorie in subcategories %}
                     <tr>
+                        <td><a href="#">{{forloop.counter}}</a></td>
                         <td><a href="#">{{subcategorie.name}}</a></td>
                         <td><a href="#">{{subcategorie.category.name}}</a></td>
                         <td class="hidden-phone">{{subcategorie.description}}</td>
@@ -49,17 +46,13 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button id ="edit-category-btn" class="btn btn-primary btn-sm edit-category-btn" data-id="{{subcategorie.id}}" data-name="{{subcategorie.name}}" data-categorie="{{subcategorie.category.id}}" data-description="{{subcategorie.description}}"><i class="fa fa-pencil"></i></button>
-                            <button class="btn btn-danger btn-sm"><i class="fa fa-trash-o "></i></button>
+                            <button id ="edit-category-btn" data-toggle="modal"  href="#category-model-edit" class="btn btn-primary btn-sm edit-category-btn" data-id="{{subcategorie.id}}" data-name="{{subcategorie.name}}" data-categorie="{{subcategorie.category.id}}" data-description="{{subcategorie.description}}"><i class="fa fa-pencil"></i></button>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDeletedUpdate('{% url 'sub_category_delete' subcategorie.id %}')"><i class="fa fa-trash-o "></i></button>
                         </td>
                     </tr>
-                    {%empty%}
-                     <tr><td colspan="5">No Subcategories found.</td></tr>
+                  
                     {%endfor%}
-                        <!-- Hidden placeholder row for "no results found" -->
-                        <tr id="no-results" style="display:none;">
-                            <td colspan="4" class="text-center text-danger">No matching Subcategories found.</td>
-                        </tr>
+                      
                     
                     </tbody>
                 </table>
@@ -72,7 +65,7 @@
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="myModal2">Subcategory-Add</h5>
+                        <h5 class="modal-title" id="myModal2">Add</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -119,7 +112,7 @@
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="myModal2">category-Add</h5>
+                        <h5 class="modal-title" id="myModal2">Edit</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -168,27 +161,10 @@
 {% endblock %}
 {% block js %}
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-  const searchInput = document.getElementById("search-filter");
-  
-  const tableRows = document.querySelectorAll("table tbody tr:not(#no-results)");
-  const noResultsRow = document.getElementById("no-results");
-
-  searchInput.addEventListener("keyup", function () {
-    const query = this.value.toLowerCase();
-    let visibleCount = 0;
-
-    tableRows.forEach(function (row) {
-      const rowText = row.textContent.toLowerCase();
-      const match = rowText.includes(query);
-      row.style.display = match ? "" : "none";
-      if (match) visibleCount++;
-    });
-
-    // Show "No results" row if nothing is visible
-    noResultsRow.style.display = visibleCount === 0 ? "" : "none";
-  });
-});
+ 
+   $('#sub-category-table').dataTable( {
+             
+        } );
 //Search  -Filter
 $(function () {
     const modal = $("#category-model-edit");
@@ -205,7 +181,7 @@ $(function () {
          form.find("#category").val(categoryId);
 
         form.find("#description").val(btn.data("description"));
-        modal.modal("show");
+ 
     });
 
     // Submit updated form via AJAX
@@ -223,14 +199,18 @@ $(function () {
             success: function (res) {
                 if (res.success) {
                     modal.modal("hide");
-                    location.reload();  // OR update DOM without reload
+                    DisplayAlert(true,res.message)
+                    setTimeout(function () {
+                        location.reload();
+                    }, 1000)
                 } else {
-                    alert("Validation error");
+                    DisplayAlert(false,"Validation error")
                     console.log(res.errors);
                 }
             },
             error: function (err) {
-                alert("Server error");
+                 
+                DisplayAlert(false,"Server error")
                 console.error(err.responseText);
             }
         });
