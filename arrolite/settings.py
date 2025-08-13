@@ -12,25 +12,23 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-from dotenv import load_dotenv
-
+SETTINGS_DIR = Path(__file__).resolve().parent
 # =============================
 # Environment Variable Loading
+dotenv_path = SETTINGS_DIR / ".env"
+load_dotenv(dotenv_path)
 # =============================
 DB_HOST = os.environ.get("DB_HOST", "localhost")
 DB_PORT = os.environ.get("DB_PORT", "3309")
 DATABASE_NAME = os.environ.get("DATABASE_NAME")
+ 
 DATABASE_USER = os.environ.get("DATABASE_USER")
 DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 
-dotenv_path = os.path.join(os.path.dirname(__file__), ".env")
-
-load_dotenv(dotenv_path)
- 
- 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
@@ -84,23 +82,15 @@ WSGI_APPLICATION = 'arrolite.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "HOST": 'localhost',
-        "PORT": 3306,
-        "NAME": 'arrolite',
-        "USER": 'root',
-        "PASSWORD": 'root',
+        "HOST": DB_HOST,
+        "PORT": DB_PORT,
+        "NAME": DATABASE_NAME,
+        "USER":DATABASE_USER,
+        "PASSWORD": DATABASE_PASSWORD,
     }
 }
 AUTH_USER_MODEL = 'app.CustomUser'
  
-# DATABASE_NAME='arrolite'
-# DATABASE_USER='root'
-# DATABASE_PASSWORD='root'
-# DB_PORT= 3306
-# DB_HOST = 'localhost'
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

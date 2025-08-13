@@ -1,7 +1,7 @@
 import json
 
 from django.http import JsonResponse
-from app.forms.customer.customer_form import CustomerRegisterFrom, CustomerUserRegisterFrom
+from app.forms.customer.customer_form import CustomerRegisterFrom, CustomerUserRegisterForm
 from app.models.customer_model.customer_model import CustomUser, Customer
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse, reverse_lazy
@@ -23,14 +23,10 @@ class Login(View):  # ✅ inherit from View
     def post(self, request):
         email = request.POST.get("email")
         password = request.POST.get("password")
-
         if not email or not password:
             messages.error(request, "Email and password are required.")
             return render(request, self.template_name)
-     
-
         user = authenticate(request, username=email, password=password)
-
         if user is not None:
             if user.is_active:
                 login(request, user)
@@ -39,8 +35,7 @@ class Login(View):  # ✅ inherit from View
             else:
                 messages.error(request, "Account is inactive. Contact admin.")
         else:
-            messages.error(request, "Invalid login credentials.")
-            
+            messages.error(request, "Invalid login credentials.")            
         return render(request, self.template_name)
 
 class UserLogoutView(LoginRequiredMixin, View):
@@ -50,11 +45,11 @@ class UserLogoutView(LoginRequiredMixin, View):
         request.session.flush()
         for cookie in request.COOKIES:
             response.delete_cookie(cookie)
-
         return response
+    
 class CustomUserRegister(LoginRequiredMixin, CreateView):
     model = CustomUser
-    form_class = CustomerUserRegisterFrom
+    form_class = CustomerUserRegisterForm
     template_name = "pages/customer/customer_register.html"
     success_url = reverse_lazy("home")
 
@@ -65,7 +60,7 @@ class CustomUserRegister(LoginRequiredMixin, CreateView):
         return context
 
     def form_invalid(self, form):
-        print("Form is invalid. Errors:", form.errors)
+         
         messages.error(self.request, form.errors)
         return super().form_invalid(form)
 
@@ -75,12 +70,9 @@ class CustomUserRegister(LoginRequiredMixin, CreateView):
 
         if raw_password:
             user.set_password(raw_password)  # ensures password is hashed
-
         user.save()
-
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
-
         messages.success(
             self.request,
             f'User {form.cleaned_data["email"]} has been added successfully',
@@ -93,12 +85,28 @@ class CustomUserRegister(LoginRequiredMixin, CreateView):
 # Edit user
 class CustomUserUpdate(LoginRequiredMixin, UpdateView):
     model = CustomUser
-    form_class = CustomerUserRegisterFrom
+    form_class = CustomerUserRegisterForm
     template_name = "pages/customer/customer_register.html"
+
     def form_invalid(self, form):
         print("Form is invalid. Errors:", form.errors)
         messages.error(self.request, form.errors)
         return super().form_invalid(form)
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        raw_password = form.cleaned_data.get("password")
+        if raw_password and len(raw_password) < 3:  
+            # only hash & update if changing password
+            print("as")
+            user.set_password(raw_password)
+        user.save()
+        form.save_m2m()
+        messages.success(
+            self.request,
+            f'User {form.cleaned_data["email"]} has been updated successfully',
+        )
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

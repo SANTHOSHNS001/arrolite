@@ -18,11 +18,11 @@ class ISOSizeListView(View):
         return render(request, self.template, context)
     def post(self, request):
         print(request.POST)
-        form = IsoSizeCreateForm(request.POST)
+        post_data = request.POST.copy()
+        post_data['status'] = True
+        form = IsoSizeCreateForm(post_data)
         if form.is_valid():
-            units = form.save(commit=False)
-            units.status = True              # Set status here
-            units.save()
+            units = form.save()
             return redirect('iso_list')  # name of this view in your URLconf
         # If not valid, re-render with errors
         isosizes = ISOSize.active_objects.all()

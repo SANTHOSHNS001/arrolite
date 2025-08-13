@@ -48,7 +48,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <button id ="edit-category-btn" class="btn btn-primary btn-sm edit-category-btn" data-id="{{category.id}}" data-name="{{category.name}}"data-description="{{category.description}}" data-status ="{{category.status}}"><i class="fa fa-pencil"></i></button>
+                                <button id ="edit-category-btn"   data-target=".category-model" class="btn btn-primary btn-sm edit-category-btn" data-id="{{category.id}}" data-name="{{category.name}}"data-description="{{category.description}}" data-status ="{{category.status}}"><i class="fa fa-pencil"></i></button>
                                 <button class="btn btn-danger btn-sm"><i class="fa fa-trash-o "></i></button>
                             </td>
                         </tr>
@@ -70,11 +70,11 @@
         </div>
    
         <!-- Model Add Category Add Part-->
-        <div class="modal fade" id="category-model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="category-model modal fade" id="category-model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="myModal2">category-Add</h5>
+                        <h5 class="modal-title" id="myModal2">Add</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -105,12 +105,12 @@
             </div>
         </div>
         <!-- Model Add Category Add Part-->
-        <!-- Model Add Category Edit Part-->
+
         <div class="modal fade" id="category-model-edit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="myModal2">category-Add</h5>
+                        <h5 class="modal-title" id="myModal2">Add</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -224,6 +224,7 @@
 $(function () {
     const modal = $("#category-model-edit");
     const form = $("#category-edit-form");
+   
    debugger
     // Populate modal form
     $(".edit-category-btn").click(function () {

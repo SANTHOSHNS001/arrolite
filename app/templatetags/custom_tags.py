@@ -6,7 +6,7 @@ def get_sidebar_menu():
     
     return [
         {"url": "home", "name": "Dashboard", "icon": "home"},  
-        {"url": "user_list", "name": "users-list", "icon": "manage_accounts", "perm": "app.can_manage_isosize"},
+        {"url": "user_list", "name": "Users", "icon": "manage_accounts", "perm": "app.can_manage_isosize"},
         {"url": "category_list", "name": "Category", "icon": "category", "perm": "app.manage_category"},
         {"url": "sub_category_list", "name": "Sub-Category", "icon": "interests", "perm": "app.manage_subcategory"},
         {"url": "product_list", "name": "Product", "icon": "inventory_2", "perm": "app.can_manage_product"},
@@ -16,7 +16,7 @@ def get_sidebar_menu():
         {"url": "permission_setting", "name": "Permission", "icon": "admin_panel_settings", "perm": "app.can_assign_approver_quotation"},
         {"url": "unit_list", "name": "Unit", "icon": "ac_unit", "perm": "app.manage_unit"},
         {"url": "iso_list", "name": "ISO-Size", "icon": "apps", "perm": "app.can_manage_isosize"},
-        {"url": "logout", "name": "Logout", "icon": "logout"},  
+        # {"url": "logout", "name": "Logout", "icon": "logout"},  
         
         # {"url": "Sheet", "name": "Sheet-Size", "icon": "user", "perm": "app.can_manage_isosize"},
         

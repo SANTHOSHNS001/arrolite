@@ -63,11 +63,17 @@
 {% block body_content %} 
 
 <div class="wrapper">
+    
+<div class="wrapper-title">
+    <div class="wrapper-content">  Quotation Form</div>
+    <div class="wrapper-actions">
+         
+        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  back</button>
+    </div>
+   </div>
 
        <div class="card">
-        <header class="card-header card-custom-header" >
-                    Quotation Form
-               </header>
+       
                     <form  class="cmxform form-horizontal tasi-form" id="project-add-form" method="post" action="#">
                         {% csrf_token %}
                         <div class=" ">
