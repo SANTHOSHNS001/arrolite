@@ -2,15 +2,14 @@ from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.models import Group, Permission
 from app.models.customer_model.customer_model import CustomUser
-from app.models.product.quotation_model import Quotation, QuotationItem
 from app.templatetags.custom_tags import get_sidebar_menu
 from django.contrib import messages
 from django.urls import reverse
 from django.db.models import Count
+
 class PermissionSetting(View):
     template = "pages/permission/permission.html"
     
- 
     def get(self, request):  
          
         groups_list = Group.objects.annotate(user_count=Count("user"))
@@ -102,11 +101,10 @@ class GroupUserAddorUpdateView(View):
         return render(request, self.template_name, context)
 
     def post(self, request, pk):
+        
         group = get_object_or_404(Group, pk=pk)
         selected_add_user_ids = request.POST.getlist("add_user_ids")
-        print("selected_add_user_ids",selected_add_user_ids)
         selected_remove_user_ids = request.POST.getlist("remove_user_ids")
-        print("selected_remove_user_ids",selected_remove_user_ids)
 
         # Add selected users to the group
         for user_id in selected_add_user_ids:

@@ -30,22 +30,22 @@
         <div class="col-lg-12">
             <section class="card">
                  
-                <table class="table table-striped table-advance table-hover" id ="category-table">
+                <table class="table table-striped table-advance table-hover" id ="iso_table">
                     <thead>
                     <tr>
-                        <th></th>
+                        <th>S.No</th>
                         <th><i class="fa fa-bullhorn"></i> Name</th>
                         <th class="hidden-phone"><i class="fa fa-question-circle"></i>Series</th>
                         <th>Height</th>
                         <th>Width</th>
                         <th><i class="fa fa-edit"></i> Status</th>
-                        <th></th>
+                        <th>Action</th>
                     </tr>
                     </thead>
                     <tbody id ="category-tbody">
                         {% for isosize in isosizes %}
                         <tr>
-                             <td></td>
+                            <td>{{forloop.counter}}</td>
                             <td><a href="#">{{isosize.name}}</a></td>
                             <td>{{isosize.get_series_display }}</td>
                             <td>{{isosize.height_mm}}</td>
@@ -60,23 +60,15 @@
                             </td>
                             <td>
                                 <button id ="edit-category-btn" class="btn btn-primary btn-sm edit-category-btn" data-id="{{isosize.id}}" data-name="{{isosize.name}}"data-series="{{isosize.series}}"  data-height ="{{isosize.height_mm}}"  data-width ="{{isosize.width_mm}}" data-status ="{{isosize.status}}"><i class="fa fa-pencil"></i></button>
-                                <button class="btn btn-danger btn-sm"><i class="fa fa-trash-o "></i></button>
+                                <button class="btn btn-danger btn-sm" onclick="confirmDeletedUpdate('{% url 'iso_delete' isosize.id %}')"><i class="fa fa-trash-o "></i></button>
                             </td>
                         </tr>
-                        {%empty%}
-                        <tr>
-                            <td colspan="5">No Unit found.</td>
-                        </tr>
+                         
                         {%endfor%}
-                            <!-- Hidden placeholder row for "no results found" -->
-                            <tr id="no-results" style="display:none;">
-                                <td colspan="4" class="text-center text-danger">No matching Unit found.</td>
-                            </tr>
+                            
                     </tbody>
                 </table>
-                <nav style="margin: 0px 9px;display: flex;justify-content: flex-end;">
-                    <ul class="pagination" id="pagination"></ul>
-                </nav>
+                 
             </section>
         </div>
    
@@ -196,75 +188,10 @@
 
 {% endblock %}
 {% block js %}
-<script>
-    const rowsPerPage = 5;
-    let currentPage = 1;
-
-    function paginateTable() {
-        const table = document.getElementById("category-table");
-        const tbody = document.getElementById("category-tbody");
-        const rows = tbody.querySelectorAll("tr");
-        const totalPages = Math.ceil(rows.length / rowsPerPage);
-        const pagination = document.getElementById("pagination");
-
-        rows.forEach((row, index) => {
-            row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? "" : "none";
-            if (row.style.display !== "none") {
-                row.querySelector("td").textContent = index + 1;
-            }
-        });
-
-        pagination.innerHTML = "";
-        for (let i = 1; i <= totalPages; i++) {
-            const li = document.createElement("li");
-            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
-            li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-            li.addEventListener("click", function (e) {
-                e.preventDefault();
-                currentPage = i;
-                paginateTable();
-            });
-            pagination.appendChild(li);
-        }
-    }
-
-    function filterTable() {
-        const search = document.getElementById("search-filter").value.toLowerCase();
-        const rows = document.getElementById("category-tbody").querySelectorAll("tr");
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(search) ? "" : "none";
-        });
-        currentPage = 1;
-        paginateTable();
-    }
-
-    document.getElementById("search-filter").addEventListener("input", filterTable);
-
-    document.addEventListener("DOMContentLoaded", paginateTable);
-</script>
+ 
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-  const searchInput = document.getElementById("search-filter");
-  const tableRows = document.querySelectorAll("table tbody tr:not(#no-results)");
-  const noResultsRow = document.getElementById("no-results");
-
-  searchInput.addEventListener("keyup", function () {
-    const query = this.value.toLowerCase();
-    let visibleCount = 0;
-
-    tableRows.forEach(function (row) {
-      const rowText = row.textContent.toLowerCase();
-      const match = rowText.includes(query);
-      row.style.display = match ? "" : "none";
-      if (match) visibleCount++;
-    });
-
-    // Show "No results" row if nothing is visible
-    noResultsRow.style.display = visibleCount === 0 ? "" : "none";
-  });
-});
+ $('#iso_table').DataTable({})
 //Search  -Filter
 $(function () {
     const modal = $("#category-model-edit");

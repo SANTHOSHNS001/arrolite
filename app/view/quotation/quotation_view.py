@@ -5,7 +5,6 @@ from app.models.product.product_model import Product
 from app.models.product.quotation_model import Quotation, QuotationItem
 from app.models.unit.unit_model import Unit
 from django.contrib import messages
-
  
 class QuotationView(View):
     template = "pages/product/quotationitems.html"
@@ -78,9 +77,6 @@ class QuotationRequestView(View):
             return self.render_with_context(request)
 
         user = get_object_or_404(Customer.active_objects, id=user_id)
-
-        # ✅ Validate that at least one item is added
-        print(request.POST)
         items = self.extract_valid_items(request.POST)
 
         if not items:

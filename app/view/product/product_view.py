@@ -1,4 +1,3 @@
-import datetime
 from django.http import FileResponse, JsonResponse
 from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
@@ -11,9 +10,8 @@ from app.models.unit.unit_model import Unit
 from django.contrib import messages
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.styles import ParagraphStyle 
 from reportlab.lib.units import cm
-from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import (
     BaseDocTemplate, Frame, PageTemplate, Paragraph, Spacer,
     Table, TableStyle, Image,KeepTogether
@@ -21,6 +19,9 @@ from reportlab.platypus import (
 import io
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+import os
+from django.conf import settings
+import json
 
 class ProductListView(View):
     template="pages/product/product.html"
@@ -92,11 +93,7 @@ class ProductDelete(View):
             }, status=500)
                 
  
-    
 
-import os
-from django.conf import settings
-import json
 class QuotationReportPdfView(View):
     def __init__(self, **kwargs):
         self.company_name = "ARROLITE"

@@ -3,7 +3,7 @@ from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
 from app.models.category.category_model import Category
 from django import forms
-
+from django.db import transaction 
 from app.models.unit.unit_model import Unit
  
 class UnitListView(View):
@@ -54,7 +54,29 @@ class UnitEditView(View):
         }, status=400)
         
         
-        
+class UnitDelete(View):
+    def post(self, request, pk):
+        unit = get_object_or_404(Unit, pk=pk)
+        try:
+            with transaction.atomic():
+                unit.delete(user=request.user)  # soft delete using your CustomBase method
+            return JsonResponse({
+                'success': True,
+                'message': 'Unit deleted successfully.'
+            }, status=200)
+
+        except ValueError as e:
+            # Raised when there are related non-deleted objects
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f"An unexpected error occurred: {str(e)}"
+            }, status=500)
 
 class UnitCreateForm(forms.ModelForm):
     class Meta:

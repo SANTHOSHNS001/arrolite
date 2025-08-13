@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
 from django import forms
-
+from django.db import transaction
 from app.models.iso_series.iso_series_model import ISOSize
  
  
@@ -17,7 +17,6 @@ class ISOSizeListView(View):
         }
         return render(request, self.template, context)
     def post(self, request):
-        print(request.POST)
         post_data = request.POST.copy()
         post_data['status'] = True
         form = IsoSizeCreateForm(post_data)
@@ -50,7 +49,30 @@ class ISOSizeEditView(View):
         }, status=400)
         
         
-        
+class ISOSizeDelete(View):
+    def post(self, request, pk):
+        iso_size = get_object_or_404(ISOSize, pk=pk)
+
+        try:
+            with transaction.atomic():
+                iso_size.delete(user=request.user)  # soft delete using your CustomBase method
+            return JsonResponse({
+                'success': True,
+                'message': 'ISOSize deleted successfully.'
+            }, status=200)
+
+        except ValueError as e:
+            # Raised when there are related non-deleted objects
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f"An unexpected error occurred: {str(e)}"
+            }, status=500)     
 
 class IsoSizeCreateForm(forms.ModelForm):
     class Meta:
