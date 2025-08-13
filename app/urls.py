@@ -55,6 +55,7 @@ urlpatterns = [
                 path("iso-list", ISOSizeListView.as_view(), name="iso_list"),
                 path("iso-edit/<int:pk>", ISOSizeEditView.as_view(), name="iso_edit"),
                 path("iso-delete/<int:pk>", ISOSizeDelete.as_view(), name="iso_delete"),
+                    
                          
               ]  
 if settings.DEBUG:
