@@ -127,6 +127,7 @@ class CustomerRegister(LoginRequiredMixin, CreateView):
 
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
+ 
 
         form = self.form_class(data)
 

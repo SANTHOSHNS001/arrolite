@@ -129,6 +129,7 @@ class Customer(CustomBase):
     phone_prefix = models.CharField(max_length=5, blank=True, null=True)
     name = models.CharField(max_length=30, verbose_name="Name", blank=True, null=True)
     gst_number = models.CharField(max_length=15, unique=True, null=True, blank=True)
+    address = models.TextField(verbose_name="Address", blank=True, null=True)
     active =  models.BooleanField(default=True)
 
     def __str__(self):

@@ -20,7 +20,7 @@
     <div class="wrapper-title">
     <div class="wrapper-content">Permission</div>
     <div class="wrapper-actions">
-        <a class="btn btn-success"  href="{%url 'permission_add'%}"><i class="fa fa-plus "></i> Add</a> 
+        <a class="btn btn-info"  href="{%url 'permission_add'%}"><i class="fa fa-plus "></i> Add</a> 
         <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
    </div> 
@@ -43,7 +43,7 @@
                             <span class="badge badge-info">{{ group.user_count}}</span>
                             </td>
                         <td>
-                            <a href="{% url 'permission_update' group.id %}" class="bg-success text-white cm-btn">
+                            <a href="{% url 'permission_update' group.id %}" class="bg-info text-white cm-btn">
                             <i class="material-icons">edit</i>
                             </a>
                             <a href="{% url 'group_user_add' group.id %}" class="bg-primary text-white cm-btn">

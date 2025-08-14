@@ -53,6 +53,6 @@ class CustomerRegisterFrom(forms.ModelForm):
      
     class Meta:
         model = Customer
-        fields = ['email', 'phone_number', 'phone_prefix', 'name', 'gst_number']
+        fields = ['email', 'phone_number', 'phone_prefix', 'name', 'address']
 
   
