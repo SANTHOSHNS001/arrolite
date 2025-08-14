@@ -28,6 +28,42 @@
     border-radius: 56%;
     /* font-size: 7px; */
 }
+@media print {
+    body * {
+        visibility: hidden; /* Hide everything */
+    }
+    #printSection, #printSection * {
+        visibility: visible; /* Show only the section */
+    }
+    #printSection {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    /* Ensure colors show when printing */
+    * {
+        -webkit-print-color-adjust: exact !important; /* Chrome/Edge/Safari */
+        color-adjust: exact !important; /* Firefox */
+    }
+
+    table, th, td {
+        border: 1px solid #000 !important;
+        border-collapse: collapse;
+    }
+
+    th {
+        background-color: #007bff !important; /* Blue header */
+        color: white !important;
+    }
+
+    .badge-info {
+        background-color: #17a2b8 !important;
+        color: white !important;
+        padding: 5px 10px;
+        border-radius: 4px;
+    }
+}
 </style>
  <div class="wrapper">
     <div class="wrapper-title">
@@ -65,93 +101,89 @@
         </div>
            {%endif%} 
 </div>
-  <div class="card">
-    <table id ="quotation-table" class="display table table-bordered">
-        <thead>
-            <tr>
-                <th>SNO</th>
-                <th>Product</th>
-                <th>Customer</th>
-                <th>Unit Price</th>
-                <th>Quantity</th>
-                <th>Unit</th>
-                <th>Width</th>
-                <th>Height</th>
-                <th>Status</th>
-                <th>Total</th>
+  <div class="card" id="printSection">
+        <table id ="quotation-table" class="display table table-bordered">
+            <thead>
+                <tr>
+                    <th>SNO</th>
+                    <th>Product</th>
+                    <th>Customer</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th>Unit</th>
+                    <th>Width</th>
+                    <th>Height</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
                 
-
-             
-            </tr>
-        </thead>
-        <tbody>
-             
-            {% for quotationsitem in quotationsitems %}
+                {% for quotationsitem in quotationsitems %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ quotationsitem.product.name }}</td>
+                    <td>{{ quotationsitem.product.name }}</td>
+                    <td>${{ quotationsitem.product.price }}</td>
+                    <td>{{ quotationsitem.quantity }}</td>
+                    <td>{{ quotationsitem.unit.symbol }}</td>
+                    <td>{{ quotationsitem.width }}</td>
+                    <td>{{ quotationsitem.height }}</td>
+                    <td> 
+                        <span class="badge badge-info">{{quotation.approver_status}}</span>
+                    </td>
+                    <td>${{ quotationsitem.unit_cost }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9">No items available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
             <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ quotationsitem.product.name }}</td>
-                <td>{{ quotationsitem.product.name }}</td>
-                <td>${{ quotationsitem.product.price }}</td>
-                <td>{{ quotationsitem.quantity }}</td>
-                <td>{{ quotationsitem.unit.symbol }}</td>
-                <td>{{ quotationsitem.width }}</td>
-                <td>{{ quotationsitem.height }}</td>
-                <td> 
-                    <span class="badge badge-info">{{quotation.approver_status}}</span>
-                </td>
-                <td>${{ quotationsitem.unit_cost }}</td>
-                
-                   
+                <th colspan="9" style="text-align:right">Subtotal:</th>
+                    <th colspan="1"style="text-align:left">$ {{ quotation.total_cost|floatformat:2 }}</th>
+                </tr>
+                <tr>
+                    <th colspan="9" style="text-align:right">
+                        Discount{% if quotation.discount %} ({{ quotation.discount }}%){% endif %}:
+                    </th>
+                    <th colspan="1"style="text-align:left">$ {{ quotation.discount_amount|floatformat:2 }}</th>
+                </tr>
+                <tr>
+                    <th colspan="9" style="text-align:right"><strong>Total :</strong></th>
+                    <th colspan="1"style="text-align:left"><strong>$ {{ quotation.payable_total|floatformat:2 }}</strong></th>
+                </tr>
+            </tfoot>
+        </table>
+       {%if quotation.approver_status == "pending" %}
+        <div class="card-fooder">
+            <form method="post"  >
+                {% csrf_token %}
+                                <div class="action-btn mt-2" style="display: flex;justify-content: space-around;">
+                                    <label><b>Action:</b></label>
+                                    <select class="form-control d-inline-block" id="action" name="status" style="width: 150px;">
+                                        <option value="">--Select--</option>
+                                        <option value="approved">Approve</option>
+                                        <option value="rejected">Reject</option>
+                                        <option value="cancelled">Cancel</option>
+                                    </select>
 
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="9">No items available.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-          <tfoot>
-        <tr>
-            <th colspan="9" style="text-align:right">Subtotal:</th>
-                <th colspan="1"style="text-align:left">$ {{ quotation.total_cost|floatformat:2 }}</th>
-            </tr>
-            <tr>
-                <th colspan="9" style="text-align:right">
-                    Discount{% if quotation.discount %} ({{ quotation.discount }}%){% endif %}:
-                </th>
-                <th colspan="1"style="text-align:left">$ {{ quotation.discount_amount|floatformat:2 }}</th>
-            </tr>
-            <tr>
-                <th colspan="9" style="text-align:right"><strong>Total :</strong></th>
-                <th colspan="1"style="text-align:left"><strong>$ {{ quotation.payable_total|floatformat:2 }}</strong></th>
-            </tr>
-        </tfoot>
-    </table>
-   {%if quotation.approver_status == "pending" %}
-    <div class="card-fooder">
-        <form method="post"  >
-              {% csrf_token %}
-                            <div class="action-btn mt-2" style="display: flex;justify-content: space-around;">
-                                 <label><b>Action:</b></label>
-                                <select class="form-control d-inline-block" id="action" name="status" style="width: 150px;">
-                                    <option value="">--Select--</option>
-                                    <option value="approved">Approve</option>
-                                    <option value="rejected">Reject</option>
-                                    <option value="cancelled">Cancel</option>
-                                </select>
+                                    <label class="ml-3"><b>Discount (%):</b></label>
+                                    <input type="number" class="form-control d-inline-block" id="discount" min="0" max="100" name="discount" style="width: 100px;" placeholder="0">
 
-                                <label class="ml-3"><b>Discount (%):</b></label>
-                                <input type="number" class="form-control d-inline-block" id="discount" min="0" max="100" name="discount" style="width: 100px;" placeholder="0">
-
-                                <button type="submit" class="btn btn-primary ml-2"  >
-                                    Submit
-                                </button>
-                            </div>
-        </form>
-    </div>
-    {%endif%}
- 
-</div>
+                                    <button type="submit" class="btn btn-primary ml-2"  >
+                                        Submit
+                                    </button>
+                                </div>
+            </form>
+        </div>
+        {%endif%}
+        <div>
+        <button type="button" class="btn btn-info"   onclick="printPart()"><i class="fa fa-print"></i> Print </button>
+        </div>
+  </div>
 
 </div>
 
@@ -159,7 +191,15 @@
 {% block js %}
 <script>
      
-
+function printPart() {
+    var content = document.getElementById("printSection").innerHTML;
+    var printWindow = window.open('', '', 'height=600,width=800');
+    printWindow.document.write('<html><head><title>Print</title></head><body>');
+    printWindow.document.write(content);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+}
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -239,13 +279,23 @@ function quotation_pdf_download(id) {
         if (!response.ok) {
             throw new Error("Network response was not ok");
         }
-        return response.blob();
+        debugger;
+        const disposition = response.headers.get("Content-Disposition");
+        let filename = "quotation.pdf";
+        if (disposition && disposition.includes("filename=")) {
+          filename = disposition
+              .split("filename=")[1]
+              .split(";")[0]
+              .replace(/"/g, ""); // remove quotes if present
+      }
+        return response.blob().then(blob => ({ blob, filename }));
     })
-    .then(blob => {
+  .then(({ blob, filename }) => {
+    debugger
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "quotation.pdf";  // desired filename
+        a.download = filename; // <-- filename from Django
         document.body.appendChild(a);
         a.click();
         a.remove();

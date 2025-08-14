@@ -76,6 +76,8 @@ class QuotationRequestView(View):
         requite_date = request.POST.get("requite_date")
         user_id = request.POST.get("user")
         description = request.POST.get("description")
+        iso_size = request.POST.get("iso_size")
+        
         
         if not requite_date or not user_id:
             messages.error(request, "Request date and user are required.")
@@ -94,7 +96,8 @@ class QuotationRequestView(View):
             request_date=requite_date,
             approver_status ="pending",
             approver = self.request.user,
-            description=description
+            description=description,
+            isosize = iso_size
         
         )
         quotation.customer.add(user)

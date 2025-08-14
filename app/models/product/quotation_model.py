@@ -3,6 +3,7 @@ from django.db import models
 from app.models.base_model.basemodel import CustomBase
 from app.models.category.category_model import Category
 from app.models.customer_model.customer_model import CustomUser
+from app.models.iso_series.iso_series_model import ISOSize
 from app.models.product.path import product_image_upload_path
 from app.models.product.product_model import Product
 from app.models.unit.unit_model import Unit
@@ -49,6 +50,7 @@ class Quotation(CustomBase):
         blank=True,
         help_text="Discount amount or percentage to apply"
     )
+    isosize = models.ForeignKey("ISOSize", on_delete=models.SET_NULL, null=True, blank=True)
     class Meta:
         verbose_name = "Quotation"
         verbose_name_plural = "Quotations"
