@@ -232,7 +232,7 @@
         const productId = selectedOption.val();
         const product = PRODUCTS_DATA[productId];
         const widthRow = row.find('.dimension-row');
-        debugger;
+  
         if (!product || !product.price) {
             row.find('.total-cost').val("Invalid");
             widthRow.hide()
@@ -292,8 +292,7 @@
     // Add new row
     $(document).on('click', '#add-request-btn', function (e) {
         e.preventDefault();
-        
-        debugger;
+ 
          const productCount = Object.keys(PRODUCTS_DATA).length;
             if (counter >= productCount) {
         DisplayAlert(false,"Only " + productCount + " unique product rows allowed.");
@@ -394,7 +393,7 @@ function getCookie(name) {
 }
         $('#submit-customer').click(function (e) {
         e.preventDefault();
-        debugger;
+ 
         const data = {
             name: $('#name').val(),
             email: $('#inputEmail3').val(),

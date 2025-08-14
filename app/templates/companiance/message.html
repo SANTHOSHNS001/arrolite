@@ -207,7 +207,6 @@ function confirmDeletedUpdate(url) {
         cancelButtonText: 'Cancel'
     }).then((result) => {
         if (result.isConfirmed) {
-          debugger;
             fetch(url, {
                 method: 'POST',  // use POST for delete
                 headers: {

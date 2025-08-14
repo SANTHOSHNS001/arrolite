@@ -150,7 +150,7 @@ $(function () {
     const modal = $("#category-model-edit");
     const form = $("#category-edit-form");
    
-   debugger
+ 
     // Populate modal form
    $(".edit-category-btn").click(function () {
     const btn = $(this);
@@ -174,7 +174,6 @@ $('#category-model-edit').on('hidden.bs.modal', function () {
     $("#category-edit-submit").click(function () {
         const id = form.attr("data-id");
         const url = "{% url 'category_edit' 0 %}".replace("0", id);
-        debugger;
         $.ajax({
             url: url,
             type: "POST",

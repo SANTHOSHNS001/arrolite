@@ -159,10 +159,10 @@
 $(function () {
     const modal = $("#category-model-edit");
     const form = $("#category-edit-form");
-   debugger
+ 
     // Populate modal form
     $(".edit-category-btn").click(function () {
-        debugger;
+ 
         const btn = $(this);
         form.attr("data-id", btn.data("id"));
         form.find("#name").val(btn.data("name"));
@@ -176,7 +176,7 @@ $(function () {
     $("#category-edit-submit").click(function () {
         const id = form.attr("data-id");
         const url = "{% url 'unit_edit' 0 %}".replace("0", id);
-        debugger;
+ 
         $.ajax({
             url: url,
             type: "POST",

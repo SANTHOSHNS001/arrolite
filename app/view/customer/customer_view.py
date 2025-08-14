@@ -67,7 +67,6 @@ class CustomUserRegister(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         user = form.save(commit=False)
         raw_password = form.cleaned_data.get("password")
-
         if raw_password:
             user.set_password(raw_password)  # ensures password is hashed
         user.save()
@@ -85,11 +84,10 @@ class CustomUserRegister(LoginRequiredMixin, CreateView):
 # Edit user
 class CustomUserUpdate(LoginRequiredMixin, UpdateView):
     model = CustomUser
-    form_class = CustomerUserRegisterForm
+    form_class = CustomerUserRegisterForm 
     template_name = "pages/customer/customer_register.html"
 
     def form_invalid(self, form):
-        print("Form is invalid. Errors:", form.errors)
         messages.error(self.request, form.errors)
         return super().form_invalid(form)
 
@@ -98,7 +96,7 @@ class CustomUserUpdate(LoginRequiredMixin, UpdateView):
         raw_password = form.cleaned_data.get("password")
         if raw_password and len(raw_password) < 3:  
             # only hash & update if changing password
-            print("as")
+          
             user.set_password(raw_password)
         user.save()
         form.save_m2m()
@@ -117,9 +115,6 @@ class CustomUserUpdate(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse("user_list")
    
-   
-   
-    
 @method_decorator(csrf_exempt, name='dispatch')  
 class CustomerRegister(LoginRequiredMixin, CreateView):
     model = Customer
@@ -127,8 +122,6 @@ class CustomerRegister(LoginRequiredMixin, CreateView):
 
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
- 
-
         form = self.form_class(data)
 
         if form.is_valid():

@@ -13,7 +13,7 @@ class QuotationView(View):
     def get(self, request,pk):
         quotation = get_object_or_404(Quotation.active_objects, id=pk)
         quotation_items = QuotationItem.active_objects.filter(quotation=quotation)     
-        print("O",quotation_items)
+    
         context = {
             'quotation':quotation,
             'quotationsitems': quotation_items,
@@ -84,6 +84,7 @@ class QuotationRequestView(View):
             return self.render_with_context(request)
 
         user = get_object_or_404(Customer.active_objects, id=user_id)
+        iso_size = get_object_or_404(ISOSize.active_objects, id=iso_size)
         items = self.extract_valid_items(request.POST)
 
         if not items:
@@ -232,9 +233,6 @@ class QuotationInvoiceView(View):
     template = "pages/quotation/quotation_approval_list.html"
     def get(self, request):
         quotation = Quotation.active_objects.filter(approver = self.request.user,approver_status__in =['Approved','approved'])  
-        context = {
-            'quotations':quotation,
-  
-        }
+        context = {'quotations':quotation} 
         return render(request, self.template, context)    
     

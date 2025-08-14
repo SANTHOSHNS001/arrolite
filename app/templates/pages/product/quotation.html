@@ -514,7 +514,6 @@ function getCookie(name) {
     return cookieValue;
 }
 function Apitest(id) {
-    debugger;
     const url = "{% url 'quotation_test' %}";  // Make sure this is your Django view URL
 
     fetch(url, {
@@ -549,7 +548,6 @@ function Apitest(id) {
 
     $('#submit-customer').click(function (e) {
         e.preventDefault();
-        debugger;
         const data = {
             name: $('#name').val(),
             email: $('#inputEmail3').val(),

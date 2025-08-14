@@ -52,7 +52,7 @@ class ProductListView(View):
 class ProductEditView(View):
    def post(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
-        print("Form Data,",request.POST)
+   
         form = ProductCreateForm(request.POST, instance=product)
         if form.is_valid():
             form.save() 
@@ -126,7 +126,7 @@ class QuotationReportPdfView(View):
             return FileResponse(buf, as_attachment=True, filename=f"{qns.invoice_number}.pdf", content_type="application/pdf")
 
         except Exception as e:
-            print(f"{e}")
+          
             return JsonResponse({"error": str(e)}, status=400) 
  
     def header(self, canvas, doc, quotation):

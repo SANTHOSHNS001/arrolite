@@ -5,7 +5,6 @@ from django import forms
 from django.db import transaction
 from app.models.iso_series.iso_series_model import ISOSize
  
- 
 class ISOSizeListView(View):
     template="pages/iso_series/iso_size_view.html"
     def get(self, request):
