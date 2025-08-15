@@ -236,5 +236,140 @@ class QuotationInvoiceView(View):
             'quotations':quotation,
   
         }
-        return render(request, self.template, context)    
+        return render(request, self.template, context)   
+
+
+from django.views import View
+from django.http import JsonResponse
+from datetime import datetime
+from django.db import DatabaseError
+ 
+class QuotationReportView(View):
+    template = "pages/quotation/quotation_report.html"
+    def get(self, request):
+        quotations = Quotation.active_objects.all()
+
+        # Distinct approvers from quotations
+        approvers = (
+            Quotation.active_objects
+            .filter(approver__isnull=False)
+            .select_related("approver")
+            .values("approver__id", "approver__first_name", "approver__last_name")
+            .distinct()
+        )
+
+        # Distinct customers from quotations
+        customers = (
+            Quotation.active_objects
+            .filter(customer__isnull=False)
+            .prefetch_related("customer")
+            .values("customer__id", "customer__name")
+            .distinct()
+        )
+        print("approvers",approvers)
+        print("customers",customers)
+
+
+        context = {
+            'quotations': quotations,
+            'approvers': approvers,
+            'customers': customers,
+        }
+        return render(request, self.template, context)
+      
+
+    def post(self, request):
+        try:
+
+            filters = {}
+            approver_ids = request.POST.getlist("approver")
+            status_list = request.POST.getlist("status")
+            customer_ids = request.POST.getlist("customer")
+            quotation_ids = request.POST.getlist("quotation")
+
+            
+            request_date_str = request.POST.getlist("request_date")
+            if quotation_ids:
+                quotation_ids = quotation_ids
+        
+                filters["id__in"] = quotation_ids
+
+            if approver_ids:
+                filters["approver__id__in"] = approver_ids
+            if status_list:
+                filters["approver_status"] = status_list
+            if customer_ids:
+                filters["customer__id__in"] = customer_ids
+
+            if request_date_str:
+                try:
+                    if "to" in request_date_str:
+                        start_str, end_str = [d.strip() for d in request_date_str.split("to")]
+                        filters["request_date__date__range"] = (
+                            datetime.strptime(start_str, "%d-%m-%Y").date(),
+                            datetime.strptime(end_str, "%d-%m-%Y").date()
+                        )
+                    else:
+                        filters["request_date__date"] = datetime.strptime(request_date_str.strip(), "%d-%m-%Y").date()
+                except ValueError:
+                    return JsonResponse({"error": "Invalid date format. Use DD-MM-YYYY"}, status=400)
+
+            # Query database
+            quotations_qs = (
+                Quotation.active_objects
+                .filter(**filters)
+                .select_related("approver", "isosize")
+                .prefetch_related("customer")
+                .distinct()
+                .values(
+                    "id",
+                    "invoice_number",
+                    "description",
+                    "approver_id",
+                    "approver__first_name",
+                    "approver__last_name",
+                    "approver_status",
+                    "discount",
+                    "request_date",
+                    "isosize_id",
+                    "customer__id",
+                    "customer__name"  # assuming 'name' exists
+                )
+            )
+
+            # Format for JSON
+            data = [
+                {
+                    "id": q["id"],
+                    "invoice_number": q["invoice_number"],
+                    "description": q["description"],
+                    "approver": q["approver_id"],
+                    "approver_name": (
+                        f"{q['approver__first_name']} {q['approver__last_name']}".strip()
+                        if q["approver_id"] else None
+                    ),
+                    "status": q["approver_status"],
+                    "discount": float(q["discount"]) if q["discount"] is not None else None,
+                    "request_date": q["request_date"].strftime("%d-%m-%Y") if q["request_date"] else None,
+                    "customer": {
+                        "id": q["customer__id"],
+                        "name": q["customer__name"]
+                    } if q["customer__id"] else None,
+                    "isosize": q["isosize_id"]
+                }
+                for q in quotations_qs
+            ]
+
+            return JsonResponse({
+                "message": "Quotations fetched successfully",
+                "count": len(data),
+                "data": data
+            })
+
+        except DatabaseError as db_err:
+            return JsonResponse({"error": f"Database error: {str(db_err)}"}, status=500)
+
+        except Exception as e:
+            return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
+
     
