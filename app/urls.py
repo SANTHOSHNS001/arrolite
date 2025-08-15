@@ -6,7 +6,7 @@ from app.view.home import HomePageView
 from app.view.iso_series.iso_view import ISOSizeDelete, ISOSizeEditView, ISOSizeListView
 from app.view.permission.permission import GroupUpdateView, GroupUserAddorUpdateView, PermissionAdd, PermissionSetting
 from app.view.product.product_view import ProductDelete, ProductEditView, ProductListView, QuotationReportPdfView
-from app.view.quotation.quotation_view import QuotationApprovalView, QuotationInvoiceView, QuotationListView, QuotationRequestView, QuotationView,QuotationApprove
+from app.view.quotation.quotation_view import QuotationApprovalView, QuotationInvoiceView, QuotationListView, QuotationReportView, QuotationRequestView, QuotationView,QuotationApprove
 from app.view.sub_category.sub_category_view import SubCategoryDelete, SubCategoryEditView, SubCategoryListView
 from app.view.category.category_view import CategoryDelete, CategoryEditView, CategoryListView
 from app.view.customer.customer_view import CustomUserRegister, CustomUserUpdate, CustomerRegister, CustomuserList, Login, UserLogoutView
@@ -41,6 +41,9 @@ urlpatterns = [
                 path("quotation-test/", QuotationReportPdfView.as_view(), name="quotation_test"),
                 path("quotation-items/<int:pk>/", QuotationView.as_view(), name="quotation_items"), 
                 path("quotaion-approval/<int:pk>/", QuotationApprove.as_view(), name="quotaion_approval") , 
+                path("quotaion-report/", QuotationReportView.as_view(), name="quotaion_report") , 
+
+                
                 # Permission Path
                 path("permission-setting", PermissionSetting.as_view(), name="permission_setting"),
                 path("permission-add", PermissionAdd.as_view(), name="permission_add"), 

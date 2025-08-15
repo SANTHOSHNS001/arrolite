@@ -216,7 +216,7 @@ function getCookie(name) {
     return cookieValue;
 }
 function submitQuotationAction(id) {
-    debugger;
+ 
     const action = document.querySelector(`#action`).value;
     const discount = document.querySelector(`#discount`).value;
 
@@ -264,7 +264,7 @@ function submitQuotationAction(id) {
     });
 }
 function quotation_pdf_download(id) {
-    debugger;
+ 
     const url = "{% url 'quotation_test' %}";  // Make sure this is your Django view URL
 
     fetch(url, {
@@ -279,7 +279,7 @@ function quotation_pdf_download(id) {
         if (!response.ok) {
             throw new Error("Network response was not ok");
         }
-        debugger;
+ 
         const disposition = response.headers.get("Content-Disposition");
         let filename = "quotation.pdf";
         if (disposition && disposition.includes("filename=")) {
@@ -291,7 +291,7 @@ function quotation_pdf_download(id) {
         return response.blob().then(blob => ({ blob, filename }));
     })
   .then(({ blob, filename }) => {
-    debugger
+ 
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;

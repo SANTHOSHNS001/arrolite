@@ -14,7 +14,7 @@ class CategoryListView(View):
         }
         return render(request, self.template, context)
     def post(self, request):
-        print(request.POST)
+
         form = CategoryCreateForm(request.POST)
         if form.is_valid():
             category = form.save(commit=False)

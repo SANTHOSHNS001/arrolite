@@ -277,11 +277,11 @@
 $(function () {
     const modal = $("#project-edit-model");
     const form = $("#project-edit-form");
-   debugger
+ 
     // Populate modal form
     $(".edit-category-btn").click(function () {
         const btn = $(this);
-        debugger;
+ 
         const categoryId = btn.data("categorie");
         const subcategoryId = btn.data("subcategory");
         const unitId = btn.data("unit");
@@ -309,7 +309,7 @@ $(function () {
     $("#category-edit-submit").click(function () {
         const id = form.attr("data-id");
         const url = "{% url 'product_edit' 0 %}".replace("0", id);
-        debugger;
+ 
         $.ajax({
             url: url,
             type: "POST",

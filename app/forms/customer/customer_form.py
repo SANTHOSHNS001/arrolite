@@ -26,7 +26,7 @@ class CustomerUserRegisterForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get("password")
-        print("cleaned_data",cleaned_data)
+
         confirm_password = cleaned_data.get("confirm_password")
 
         if self.instance.pk is None:  # Creating new user

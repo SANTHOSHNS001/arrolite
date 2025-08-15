@@ -1,0 +1,190 @@
+
+{% extends 'base/container.html' %}
+{% load static %}
+{% block title %}Report Quotation {% endblock %}
+
+{% block style %}
+<style>
+    label {
+    display: unset; 
+    margin-bottom: .5rem;
+}
+.class-filter {
+    display: flex;
+    align-items: flex-end;
+}
+</style>
+
+
+{% endblock %}
+{% block body_content %} 
+
+
+ <div class="wrapper">
+   <div class="wrapper-title">
+    <div class="wrapper-content">Quotation Report List</div>
+    <div class="wrapper-actions">
+        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
+    </div>
+   </div> 
+ 
+    <div class="card ">
+    <!--Qoutaion Report List Table Start-->
+    
+     
+        <div class="adv-table">   
+            <div class="class-filter row">
+                <div class="col-2">
+                  
+                     <label cfor ="quotation">Quotation</lable>
+                     <select class="form-control select2" name="quotation" id ="quotation" multiple="multiple" placeholder="select">
+                         {% for quotation in quotations%}
+                         <option value="{{quotation.id}}">{{quotation}}</option>
+                        {% endfor%}
+                     </select>
+                  
+                </div>
+                <div class="col-2">
+                    <label class="form-lable" for ="customers">Customers</lable>
+                    <select class="form-control select2" name="customer" id="customer" multiple="multiple">
+                         {% for customer in customers%}
+                       <option value="{{customer.customer__id}}">{{customer.customer__name}}</option>
+                         {% endfor%}
+                     </select>
+                </div>
+                <div class="col-2">
+                    <label class="form-lable" for ="approver">Approvers</lable>
+                    <select class="form-control select2" name="approver" id="approver" multiple="multiple">
+                         {% for approver in approvers%}
+                       <option value="{{approver.approver__id}}">{{approver.approver__first_name}}</option>
+                          {% endfor%}
+                     </select>
+                </div>
+                <div class="col-2">
+                    <label class="form-lable" for ="status">Status</lable>
+                    <select class="form-control select2" name="status" id ="status">           
+                       <option value="pending">Pending</option>
+                       <option value="approved">Approved</option>
+                       <option value="rejected">Rejected</option>                         
+                     </select>
+                </div>
+                <div class="col-2">
+                    <label class="form-lable" for ="approver">Request date</lable>
+                    <input type="date" class="form-control" id="request_date" name="request_date">
+                </div>
+                <div class="col-2">
+                     
+                     <button class="btn btn-secondary" type="button"  onclick="fetchQuotations()">Filter</button>
+                </div>
+               
+             
+            </div>
+            <table id="quotationTable" class="display table table-bordered ">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Invoice</th>
+                        <th>Description</th>
+                        <th>Approver</th>
+                        <th>Status</th>
+                        <th>Discount</th>
+                        <th>Request Date</th>
+                        <th>Customer</th>
+                        <th>ISO Size</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+        </div>
+   </div>
+ </div>
+
+
+{% endblock %}
+{% block js %}
+
+<script>
+     $('#quotationTable').dataTable( {
+    
+        } );
+        fetchQuotations()
+    function fetchQuotations() {
+    const formData = new FormData();
+    debugger;
+    // Get multiple selected values for quotation, customer, approver
+    let quotationVals = Array.from(document.getElementById("quotation").selectedOptions).map(opt => opt.value);
+    debugger;
+    console.log(quotationVals)
+    let customerVals = Array.from(document.getElementById("customer").selectedOptions).map(opt => opt.value);
+    let approverVals = Array.from(document.getElementById("approver").selectedOptions).map(opt => opt.value);
+
+    // Get single values
+    let statusVal = document.getElementById("status").value;
+    let requestDateVal = document.getElementById("request_date").value;
+
+    // Append multiple values
+    quotationVals.forEach(val => formData.append("quotation", val));
+    customerVals.forEach(val => formData.append("customer", val));
+    approverVals.forEach(val => formData.append("approver", val));
+
+    // Append single values
+    if (statusVal) formData.append("status", statusVal);
+    if (requestDateVal) formData.append("request_date", requestDateVal);
+
+    fetch(window.location.href, {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRFToken": getCookie("csrftoken")
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const tbody = document.querySelector("#quotationTable tbody");
+        tbody.innerHTML = "";
+
+        if (data.data && data.data.length > 0) {
+            data.data.forEach(q => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${q.id}</td>
+                        <td>${q.invoice_number}</td>
+                        <td>${q.description || ""}</td>
+                        <td>${q.approver_name || ""}</td>
+                        <td>${q.status || ""}</td>
+                        <td>${q.discount !== null ? q.discount : ""}</td>
+                        <td>${q.request_date || ""}</td>
+                        <td>${q.customer ? q.customer.name : ""}</td>
+                        <td>${q.isosize || ""}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="9">No records found</td></tr>`;
+        }
+    })
+    .catch(err => {
+        console.error("Error:", err);
+    });
+}
+
+// CSRF helper for Django POST
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+{% endblock %}

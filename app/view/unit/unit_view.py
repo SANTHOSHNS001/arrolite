@@ -16,7 +16,7 @@ class UnitListView(View):
         }
         return render(request, self.template, context)
     def post(self, request):
-        print(request.POST)
+   
         form = UnitCreateForm(request.POST)
         if form.is_valid():
             units = form.save(commit=False)
