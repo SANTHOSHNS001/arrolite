@@ -21,9 +21,11 @@ class Quotation(CustomBase):
             ("accepted_by_customer", "Accepted by Customer"),
             ("expired", "Expired"),
         ]
-    customer = models.ManyToManyField(
+    customer = models.ForeignKey(
         "Customer",
         related_name="quotation_customers",
+         on_delete=models.CASCADE,
+        null=True,
         blank=True,
     )
 

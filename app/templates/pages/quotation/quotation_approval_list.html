@@ -90,7 +90,7 @@
                                 <tr class="gradeX">
                                     <th style="display:none" data-id="{{quotation.id}}" data-user="{{quotation.approver.id}}" data-status="{{quotation.approver_status}}" >{{quotation.id}}</th>
                                     <td onclick="window.location.href='{% url 'quotaion_approval' quotation.id %}'">{{quotation.invoice_number}}</td>
-                                    <td onclick="window.location.href='{% url 'quotaion_approval' quotation.id %}'">{{quotation.customer.last.name}}</td>
+                                    <td onclick="window.location.href='{% url 'quotaion_approval' quotation.id %}'">{{quotation.customer.name}}</td>
                                     <td onclick="window.location.href='{% url 'quotaion_approval' quotation.id %}'">{{ quotation.request_date|date:"d M Y" }}</td>
                                     <td onclick="window.location.href='{% url 'quotaion_approval' quotation.id %}'">
                                     {%if quotation.approver_status == 'approved'%}

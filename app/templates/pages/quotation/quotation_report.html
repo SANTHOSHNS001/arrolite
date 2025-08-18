@@ -62,7 +62,8 @@
                 </div>
                 <div class="col-2">
                     <label class="form-lable" for ="status">Status</lable>
-                    <select class="form-control select2" name="status" id ="status">           
+                    <select class="form-control select2" name="status" id ="status">
+                        <option value="">All</option>           
                        <option value="pending">Pending</option>
                        <option value="approved">Approved</option>
                        <option value="rejected">Rejected</option>                         
@@ -74,7 +75,7 @@
                 </div>
                 <div class="col-2">
                      
-                     <button class="btn btn-secondary" type="button"  onclick="fetchQuotations()">Filter</button>
+                     <button class="btn btn-warning" type="button"  onclick="fetchQuotations()">Filter</button>
                 </div>
                
              
@@ -84,13 +85,14 @@
                     <tr>
                         <th>ID</th>
                         <th>Invoice</th>
-                        <th>Description</th>
                         <th>Approver</th>
+                        <th>Price</th>
+                        
                         <th>Status</th>
                         <th>Discount</th>
                         <th>Request Date</th>
                         <th>Customer</th>
-                        <th>ISO Size</th>
+                      
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -148,16 +150,17 @@
         if (data.data && data.data.length > 0) {
             data.data.forEach(q => {
                 tbody.innerHTML += `
-                    <tr>
+                   
+                   <tr>
                         <td>${q.id}</td>
                         <td>${q.invoice_number}</td>
-                        <td>${q.description || ""}</td>
-                        <td>${q.approver_name || ""}</td>
+                        <td>${q.approver ? q.approver.name : ""}</td>
+                        <td>${q.price}$</td>
                         <td>${q.status || ""}</td>
-                        <td>${q.discount !== null ? q.discount : ""}</td>
+                        <td>${q.discount !== null ? q.discount : ""}%</td>
                         <td>${q.request_date || ""}</td>
                         <td>${q.customer ? q.customer.name : ""}</td>
-                        <td>${q.isosize || ""}</td>
+                     
                     </tr>
                 `;
             });

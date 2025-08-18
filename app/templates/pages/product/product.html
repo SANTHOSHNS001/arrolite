@@ -25,7 +25,7 @@
     <div class="wrapper-title">
     <div class="wrapper-content">Products List</div>
     <div class="wrapper-actions">
-         <a class="btn btn-primary" data-toggle="modal" href="#project-model"><i class="fa fa-plus"></i> Add</a>
+         <a class="btn btn-add" data-toggle="modal" href="#project-model"><i class="fa fa-plus"></i> Add</a>
          
         <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
@@ -65,11 +65,11 @@
                                     <td>{{product.width}}</td>
                                     <td>{{product.height}}</td>
                                     <td>
-                                        <button id ="edit-product-btn" data-toggle="modal"  href="#project-edit-model" class="btn btn-primary btn-sm edit-category-btn" data-id="{{product.id}}"
+                                        <button id ="edit-product-btn" data-toggle="m odal"  href="#project-edit-model" class="btn btn-edi btn-sm edit-category-btn" data-id="{{product.id}}"
                                          data-name="{{product.name}}" data-categorie="{{product.category.id}}" data-subcategory="{{product.subcategory.id}}" 
                                          data-unit="{{product.unit.id}}"  data-description="{{product.description}}"  data-price="{{product.price}}" 
                                          data-width="{{product.width}}"  data-height="{{product.height}}"  ><i class="fa fa-pencil"></i></button>
-                                        <button class="btn btn-danger btn-sm" onclick="confirmDeletedUpdate('{% url 'product_delete' product.id%}')"><i class="fa fa-trash-o "></i></button>
+                                        <button class="btn btn-del btn-sm" onclick="confirmDeletedUpdate('{% url 'product_delete' product.id%}')"><i class="fa fa-trash-o "></i></button>
                                     </td>
                                 </tr>
                                 {% endfor %}

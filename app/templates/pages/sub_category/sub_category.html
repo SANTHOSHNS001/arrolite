@@ -11,7 +11,7 @@
      <div class="wrapper-title">
     <div class="wrapper-content">Sub-Category List</div>
     <div class="wrapper-actions">
-         <a class="btn btn-primary" data-toggle="modal" href="#category-model"><i class="fa fa-plus"></i> Add</a>
+         <a class="btn btn-add" data-toggle="modal" href="#category-model"><i class="fa fa-plus"></i> Add</a>
          
         <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
@@ -40,14 +40,14 @@
                             <td class="hidden-phone">{{subcategorie.description}}</td>
                             <td>
                                 {%if subcategorie.status%}
-                                <span class="badge badge-info label-mini">Active</span>
+                                <span class="badge btn-act label-mini">Active</span>
                                 {% else %}
                                 <span class="badge badge-danger label-mini">De-Active</span>
                                 {% endif %}
                             </td>
                             <td>
-                                <button id ="edit-category-btn" data-toggle="modal"  href="#category-model-edit" class="btn btn-primary btn-sm edit-category-btn" data-id="{{subcategorie.id}}" data-name="{{subcategorie.name}}" data-categorie="{{subcategorie.category.id}}" data-description="{{subcategorie.description}}"><i class="fa fa-pencil"></i></button>
-                                <button class="btn btn-danger btn-sm" onclick="confirmDeletedUpdate('{% url 'sub_category_delete' subcategorie.id %}')"><i class="fa fa-trash-o "></i></button>
+                                <button id ="edit-category-btn" data-toggle="modal"  href="#category-model-edit" class="btn btn-edi btn-sm edit-category-btn" data-id="{{subcategorie.id}}" data-name="{{subcategorie.name}}" data-categorie="{{subcategorie.category.id}}" data-description="{{subcategorie.description}}"><i class="fa fa-pencil"></i></button>
+                                <button class="btn btn-del btn-sm" onclick="confirmDeletedUpdate('{% url 'sub_category_delete' subcategorie.id %}')"><i class="fa fa-trash-o "></i></button>
                             </td>
                         </tr>
                     
@@ -83,7 +83,7 @@
                                 <div class="form-group row">
                                     <label for="name" class="control-label col-lg-2">Category Name</label>
                                     <div class="col-lg-10">
-                                        <select class="form-control" id="category" name="category">
+                                        <select class="form-control select2" id="category" name="category">
                                             {% for category in categories %}
                                                 <option value="{{ category.id }}">{{ category.name }}</option>
                                             {% empty %}
@@ -130,7 +130,7 @@
                                  <div class="form-group row">
                                     <label for="name" class="control-label col-lg-2">Category Name</label>
                                     <div class="col-lg-10">
-                                        <select class="form-control" id="category" name="category">
+                                        <select class="form-control select2" id="category" name="category">
                                             {% for category in categories %}
                                                 <option value="{{ category.id }}">{{ category.name }}</option>
                                             {% empty %}
@@ -166,6 +166,10 @@
    $('#sub-category-table').dataTable( {
              
         } );
+        $('.select2').select2({
+         dropdownParent: $('#category-model-edit')
+    
+       });
 //Search  -Filter
 $(function () {
     const modal = $("#category-model-edit");
@@ -179,8 +183,8 @@ $(function () {
         form.attr("data-id", btn.data("id"));
         form.find("#name").val(btn.data("name"));
          
-         form.find("#category").val(categoryId);
-
+         
+        form.find("#category").val(categoryId).trigger('change');
         form.find("#description").val(btn.data("description"));
  
     });

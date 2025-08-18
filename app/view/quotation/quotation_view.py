@@ -5,20 +5,21 @@ from app.models.iso_series.iso_series_model import ISOSize
 from app.models.product.product_model import Product
 from app.models.product.quotation_model import Quotation, QuotationItem
 from app.models.unit.unit_model import Unit
-from django.contrib import messages
- 
+from django.contrib import messages 
+from django.http import JsonResponse
+from datetime import datetime
+from django.db import DatabaseError
+
 class QuotationView(View):
     template = "pages/product/quotationitems.html"
 
     def get(self, request,pk):
         quotation = get_object_or_404(Quotation.active_objects, id=pk)
         quotation_items = QuotationItem.active_objects.filter(quotation=quotation)     
-    
         context = {
             'quotation':quotation,
             'quotationsitems': quotation_items,
         }
- 
         return render(request, self.template, context)
     
 class QuotationApprovalView(View):
@@ -27,8 +28,8 @@ class QuotationApprovalView(View):
         quotation = Quotation.active_objects.filter(approver = self.request.user,approver_status__in =['Pending','pending'])  
         context = {
             'quotations':quotation,
-  
         }
+        
         return render(request, self.template, context)
  
 class QuotationListView(View):
@@ -38,12 +39,10 @@ class QuotationListView(View):
         if request.user.is_superuser:
             quotations = Quotation.active_objects.all().order_by('-created_at')
         else :
-            quotations = Quotation.active_objects.filter(approver = request.user).order_by('-created_at')
-            
+            quotations = Quotation.active_objects.filter(approver = request.user).order_by('-created_at')      
         products = Product.active_objects.all()
         units = Unit.active_objects.all()
         customer = Customer.active_objects.all()
-        
         context = {
             'quotations': quotations,
             'products': products,
@@ -98,10 +97,11 @@ class QuotationRequestView(View):
             approver_status ="pending",
             approver = self.request.user,
             description=description,
-            isosize = iso_size
+            isosize = iso_size,
+            customer=user
         
         )
-        quotation.customer.add(user)
+        
 
         # ✅ Save valid items
         for item in items:
@@ -132,8 +132,7 @@ class QuotationRequestView(View):
                 width = float(post_data.get(f'width_{counter}', 0) or 0)
                 height = float(post_data.get(f'height_{counter}', 0) or 0)
                 unit_cost = float(post_data.get(f'unit_cost_{counter}', 0) or 0)
-                unit_id = post_data.get(f'unit_{counter}')
-                 
+                unit_id = post_data.get(f'unit_{counter}')    
                 unit = Unit.active_objects.get(id=unit_id) if unit_id else None
 
                 if qty > 0:
@@ -172,7 +171,6 @@ class QuotationApprove(View):
     def get(self, request, pk):
         quotation = get_object_or_404(Quotation.active_objects, id=pk)
         quotation_items = QuotationItem.active_objects.filter(quotation=quotation)
-        
         context = {
             'quotation': quotation,
             'quotationsitems': quotation_items,
@@ -238,12 +236,6 @@ class QuotationInvoiceView(View):
   
         }
         return render(request, self.template, context)   
-
-
-from django.views import View
-from django.http import JsonResponse
-from datetime import datetime
-from django.db import DatabaseError
  
 class QuotationReportView(View):
     template = "pages/quotation/quotation_report.html"
@@ -251,26 +243,20 @@ class QuotationReportView(View):
         quotations = Quotation.active_objects.all()
 
         # Distinct approvers from quotations
-        approvers = (
-            Quotation.active_objects
-            .filter(approver__isnull=False)
-            .select_related("approver")
-            .values("approver__id", "approver__first_name", "approver__last_name")
-            .distinct()
-        )
-
+        
+        approvers=(
+                quotations
+                .filter(approver__isnull=False)
+                .order_by("approver__id")  
+                .values("approver__id", "approver__first_name","approver__last_name").distinct()
+            )
         # Distinct customers from quotations
-        customers = (
-            Quotation.active_objects
-            .filter(customer__isnull=False)
-            .prefetch_related("customer")
-            .values("customer__id", "customer__name")
-            .distinct()
-        )
-        print("approvers",approvers)
-        print("customers",customers)
-
-
+        customers =(
+                quotations
+                .filter(customer__isnull=False)
+                .order_by("customer__id")  
+                .values("customer__id", "customer__name").distinct()   
+            )
         context = {
             'quotations': quotations,
             'approvers': approvers,
@@ -281,20 +267,16 @@ class QuotationReportView(View):
 
     def post(self, request):
         try:
-
             filters = {}
             approver_ids = request.POST.getlist("approver")
-            status_list = request.POST.getlist("status")
+            status_list = request.POST.get("status")
             customer_ids = request.POST.getlist("customer")
             quotation_ids = request.POST.getlist("quotation")
-
-            
             request_date_str = request.POST.getlist("request_date")
             if quotation_ids:
                 quotation_ids = quotation_ids
-        
                 filters["id__in"] = quotation_ids
-
+                
             if approver_ids:
                 filters["approver__id__in"] = approver_ids
             if status_list:
@@ -317,50 +299,26 @@ class QuotationReportView(View):
 
             # Query database
             quotations_qs = (
-                Quotation.active_objects
-                .filter(**filters)
-                .select_related("approver", "isosize")
-                .prefetch_related("customer")
-                .distinct()
-                .values(
-                    "id",
-                    "invoice_number",
-                    "description",
-                    "approver_id",
-                    "approver__first_name",
-                    "approver__last_name",
-                    "approver_status",
-                    "discount",
-                    "request_date",
-                    "isosize_id",
-                    "customer__id",
-                    "customer__name"  # assuming 'name' exists
-                )
-            )
-
-            # Format for JSON
+                        Quotation.active_objects.filter(**filters).select_related("approver", "isosize").prefetch_related("customer", "items") )                         
             data = [
-                {
-                    "id": q["id"],
-                    "invoice_number": q["invoice_number"],
-                    "description": q["description"],
-                    "approver": q["approver_id"],
-                    "approver_name": (
-                        f"{q['approver__first_name']} {q['approver__last_name']}".strip()
-                        if q["approver_id"] else None
-                    ),
-                    "status": q["approver_status"],
-                    "discount": float(q["discount"]) if q["discount"] is not None else None,
-                    "request_date": q["request_date"].strftime("%d-%m-%Y") if q["request_date"] else None,
-                    "customer": {
-                        "id": q["customer__id"],
-                        "name": q["customer__name"]
-                    } if q["customer__id"] else None,
-                    "isosize": q["isosize_id"]
-                }
-                for q in quotations_qs
+                    {
+                        "id": q.id,
+                        "invoice_number": q.invoice_number,
+                        "price": float(q.total_cost),  # property, not callable
+                        "approver": {
+                            "id": q.approver.id,
+                            "name": f"{q.approver.first_name} {q.approver.last_name}".strip()
+                        } if q.approver else None,
+                        "status": q.get_approver_status_display(),
+                        "discount": float(q.discount) if q.discount is not None else None,
+                        "request_date": q.request_date.strftime("%d-%m-%Y") if q.request_date else None,
+                        "customer": {
+                            "id": q.customer.id,
+                            "name": f"{q.customer.name} "
+                        } if q.customer else None,
+                    }
+                        for q in quotations_qs
             ]
-
             return JsonResponse({
                 "message": "Quotations fetched successfully",
                 "count": len(data),
@@ -369,8 +327,6 @@ class QuotationReportView(View):
 
         except DatabaseError as db_err:
             return JsonResponse({"error": f"Database error: {str(db_err)}"}, status=500)
-
+        
         except Exception as e:
             return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
-
-    

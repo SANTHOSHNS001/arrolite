@@ -91,7 +91,7 @@
                                     <th style="display:none" data-id="{{quotation.id}}" data-user="{{quotation.approver.id}}" data-status="{{quotation.approver_status}}" >{{quotation.id}}</th>
                                     <td onclick="window.location.href='{% url 'quotation_items' quotation.id %}'">{{quotation.invoice_number}}</td>
                                     <td onclick="window.location.href='{% url 'quotation_items' quotation.id %}'">{{ quotation.approver}}</td>
-                                    <td onclick="window.location.href='{% url 'quotation_items' quotation.id %}'">{{quotation.customer.last.name}}</td>
+                                    <td onclick="window.location.href='{% url 'quotation_items' quotation.id %}'">{{quotation.customer.name}}</td>
                                     <td onclick="window.location.href='{% url 'quotation_items' quotation.id %}'">{{ quotation.request_date|date:"d-m-Y" }}</td>
                                     <td onclick="window.location.href='{% url 'quotation_items' quotation.id %}'">
                                         {%if quotation.approver_status == 'approved'%}
@@ -218,24 +218,7 @@
 
                 sOut += '</tbody></table>';
                 // select create from select approved,reject,cancel input discount table add 
-                if (approvestatus === 'pending' && approver === parseInt('{{ request.user.id }}')) {
-                        sOut += `
-                            <div class="action-btn mt-2">
-                                <label><b>Action:</b></label>
-                                <select class="form-control d-inline-block" id="action-${quotationId}" style="width: 150px;">
-                                    <option value="">--Select--</option>
-                                    <option value="approved">Approve</option>
-                                    <option value="rejected">Reject</option>
-                                    <option value="cancelled">Cancel</option>
-                                </select>
-
-                                <label class="ml-3"><b>Discount (%):</b></label>
-                                <input type="number" class="form-control d-inline-block" id="discount-${quotationId}" min="0" max="100" style="width: 100px;" placeholder="0">
-
-                                <button class="btn btn-primary ml-2" onclick="submitQuotationAction(${quotationId})">Submit</button>
-                            </div>
-                        `;
-                    }
+               
                  
                 return sOut;
             }
