@@ -163,13 +163,15 @@
 {% block js %}
 <script>
  
-   $('#sub-category-table').dataTable( {
+   $('#sub-category-table').dataTable({});
              
-        } );
-        $('.select2').select2({
-         dropdownParent: $('#category-model-edit')
-    
-       });
+    $('.select2').select2({
+        dropdownParent: $('#category-model-edit')
+
+    });
+    $('.select2').select2({
+        dropdownParent: $('#category-model')
+    });
 //Search  -Filter
 $(function () {
     const modal = $("#category-model-edit");
