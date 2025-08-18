@@ -164,14 +164,20 @@
 <script>
  
    $('#sub-category-table').dataTable({});
-             
-    $('.select2').select2({
-        dropdownParent: $('#category-model-edit')
+   function initSelect2(modalId) {
+    $(`${modalId} .select2`).select2({
+        dropdownParent: $(modalId)
+    });
+}
 
-    });
-    $('.select2').select2({
-        dropdownParent: $('#category-model')
-    });
+// init when modals are shown
+$('#category-model-edit').on('shown.bs.modal', function () {
+    initSelect2('#category-model-edit');
+});
+
+$('#category-model').on('shown.bs.modal', function () {
+    initSelect2('#category-model');
+});
 //Search  -Filter
 $(function () {
     const modal = $("#category-model-edit");
