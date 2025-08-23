@@ -187,44 +187,22 @@ a, a:hover, a:focus {
 #sidebar .sub-menu > .sub li:last-child {
     padding-bottom: 10px;
 }
+ 
 
-/*LEFT NAVIGATION ICON*/
-/*.dcjq-icon {*/
-/*    height:17px;*/
-/*    width:17px;*/
-/*    display:inline-block;*/
-/*    background: url(../img/nav-expand.png) no-repeat top;*/
-/*    border-radius:3px;*/
-/*    -moz-border-radius:3px;*/
-/*    -webkit-border-radius:3px;*/
-/*    position:absolute;*/
-/*    right:10px;*/
-/*    top:15px;*/
-/*}*/
-/*.active .dcjq-icon {*/
-/*    background: url(../img/nav-expand.png) no-repeat bottom;*/
-/*    border-radius:3px;*/
-/*    -moz-border-radius:3px;*/
-/*    -webkit-border-radius:3px;*/
-/*}*/
+.dcjq-icon {
+        position: relative;
+        top: -13px;
 
-.dcjq-icon
-{
-    position: relative;
-    top: -13px;
-
-    float: right;
-}
+        float: right;
+    }
 .dcjq-icon:before
 {
     font-family: fontawesome;
     font-size: 12px;
     font-weight: bold;
-
     position: absolute;
     top: 14px;
     right: 1rem;
-
     content: '\f107';
     -webkit-transition: all .3s ease;
     transition: all .3s ease;
@@ -392,11 +370,6 @@ ul.sidebar-menu li a.active i {
     margin: 0px auto;
     padding:80px 15px 15px 15px;
     max-width: 1200px;
-
-    /*display: inline-block;*/
-    /*width: 100%;*/
-    /*margin-top: 60px;*/
-    /*padding: 15px;*/
 }
 
 a.logo {

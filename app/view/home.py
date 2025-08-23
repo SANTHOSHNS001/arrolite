@@ -3,6 +3,7 @@ from django.shortcuts import render
 
 from app.models.category.category_model import Category
 from app.models.customer_model.customer_model import Customer
+from app.models.invoice_model.invoice_model import Invoice
 from app.models.product.product_model import Product
 from app.models.product.quotation_model import Quotation
 from app.models.sub_category.sub_category_model import SubCategory
@@ -15,16 +16,29 @@ class HomePageView(View):
         Products = Product.active_objects.all()
         Customers=Customer.active_objects.all()
         quotations = Quotation.active_objects.all() 
+        Invoices = Invoice.active_objects.all() 
+        
         if not request.user.is_superuser:
             quotations = quotations.filter(approver =request.user)
         else:
             quotations = quotations
+            
+        if not request.user.is_superuser:
+            Invoices = Invoices.filter(approver =request.user)
+        else:
+            Invoices = Invoices
 
         qus={
             "list_quotations":quotations.count(),
             "quotations_invoice":quotations.filter(approver_status="approved").count(),
             "quotations_reject":quotations.filter(approver_status="rejected").count(),
             "quotations_pending":quotations.filter(approver_status="pending").count(),
+        }
+        Ins={
+            "list_invoice":Invoices.count(),
+            "pending_invoice":Invoices.filter(approver_status="pending").count(),
+            "payment_pending_invoice":Invoices.filter(approver_status="pending_payment").count(),
+            "paid_invoives":Invoices.filter(approver_status="paid").count(),
         }
         context = {
             'categories' :categories,
@@ -35,7 +49,8 @@ class HomePageView(View):
             'Products_total':Products.count(),
             'customers':Customers,
             'customers_total':Customers.count(),
-            'qus':qus
+            'qus':qus,
+            'invoice':Ins
         }
         return render(request, self.template_name,context)
 

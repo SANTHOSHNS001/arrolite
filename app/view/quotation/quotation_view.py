@@ -1,6 +1,7 @@
 from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
 from app.models.customer_model.customer_model import CustomUser, Customer
+from app.models.invoice_model.invoice_model import Invoice
 from app.models.iso_series.iso_series_model import ISOSize
 from app.models.product.product_model import Product
 from app.models.product.quotation_model import Quotation, QuotationItem
@@ -25,7 +26,7 @@ class QuotationView(View):
 class QuotationApprovalView(View):
     template = "pages/quotation/quotation_approval_list.html"
     def get(self, request):
-        quotation = Quotation.active_objects.filter(approver = self.request.user,approver_status__in =['Pending','pending'])  
+        quotation = Quotation.active_objects.all()
         context = {
             'quotations':quotation,
         }
@@ -52,6 +53,7 @@ class QuotationListView(View):
  
         return render(request, self.template, context)
  
+from django.db import transaction
     
 class QuotationRequestView(View):
     template = "pages/quotation/quotation_form.html"
@@ -111,13 +113,14 @@ class QuotationRequestView(View):
         return redirect('quotation_list')
 
     def generate_quotation_number(self):
-        last_quotation = Quotation.active_objects.order_by('-id').first()
-        if last_quotation and last_quotation.invoice_number:
-            last_number = int(last_quotation.invoice_number.replace('#Q', ''))
-            new_number = last_number + 1
-        else:
-            new_number = 1
-        return f"#Q{new_number:04d}"
+        with transaction.atomic():
+            last_quotation = Quotation.objects.select_for_update().order_by('-id').first()
+            if last_quotation and last_quotation.invoice_number:
+                last_number = int(last_quotation.invoice_number.replace('Q', ''))
+                new_number = last_number + 1
+            else:
+                new_number = 1
+            return f"Q{new_number:04d}"
 
     def extract_valid_items(self, post_data):
         items = []
@@ -227,15 +230,7 @@ class QuotationApprove(View):
         return render(request, self.template, context)
     
     
-class QuotationInvoiceView(View):
-    template = "pages/quotation/quotation_approval_list.html"
-    def get(self, request):
-        quotation = Quotation.active_objects.filter(approver = self.request.user,approver_status__in =['Approved','approved'])  
-        context = {
-            'quotations':quotation,
   
-        }
-        return render(request, self.template, context)   
  
 class QuotationReportView(View):
     template = "pages/quotation/quotation_report.html"

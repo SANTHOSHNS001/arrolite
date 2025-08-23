@@ -1,0 +1,59 @@
+{% extends 'base/container.html' %}
+{% load static %}
+{% block title %}Customer-List {% endblock %}
+
+{% block style %}
+{% endblock %}
+{% block body_content %} 
+<div class="wrapper">
+      <div class="wrapper-title">
+    <div class="wrapper-content">Customer List</div>
+    <div class="wrapper-actions">
+        
+        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  Back</button>
+    </div>
+        </div>
+    <div class="card">
+               <div class="adv-table">
+              <table  class="display table table-bordered table-striped" id="dynamic-table">
+              <thead>
+              <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Gst Number</th>
+              </tr>
+              </thead>
+              <tbody>
+                {% for customer in customers%}
+              <tr class="gradeX">
+                  <td>{{customer.name}}</td>
+                  <td >{{customer.email}}</td> 
+                  <td>{{customer.phone_number}}</td>
+                  <td >{{customer.gst_number}}</td>                 
+              </tr>
+              {%endfor%}
+             
+               
+            
+              </tbody>
+              
+              </table>
+              </div>
+    </div>
+    </div>
+ 
+
+
+{% endblock %}
+
+{% block js %}
+<script>
+  $('#dynamic-table').dataTable( {
+            "aaSorting": [[ 4, "desc" ]]
+        } );
+</script>
+
+
+
+{% endblock%}

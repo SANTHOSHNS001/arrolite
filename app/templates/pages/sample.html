@@ -1,108 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoice → PDF Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent: #e11d48; --ink:#111827; --muted:#6b7280; --line:#e5e7eb; }
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; color:var(--ink); }
+    .page {
+      max-width: 800px; /* ~A4 width in px at 96dpi */
+      margin: 32px auto; background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+    header { display:flex; justify-content:space-between; gap:24px; padding:28px 32px; align-items:flex-start; background:linear-gradient(0deg,#fff, #fff 60%, #fff0 60%), radial-gradient(1200px 200px at 0% 0%, #fff 30%, #fff0 70%);
+      border-bottom:1px solid var(--line);
+    }
+    .brand h1 { margin:0; font-size:44px; line-height:1; color:var(--accent); font-weight:800; letter-spacing:-0.02em; }
+    .brand p { margin:6px 0 0; color:var(--muted); }
+    .addr { text-align:right; }
+    .addr .logo { font-weight:700; font-size:18px; letter-spacing:0.06em; }
+    .addr .small { color:var(--muted); font-size:12px; }
 
-{% extends 'base/container.html' %}
-{% load static %}
-{% block title %}Sample-Page {% endblock %}
+    .info { display:grid; grid-template-columns: 1fr 1fr; gap:16px; padding:18px 32px; border-bottom:1px solid var(--line); }
+    .info .card { border:1px solid var(--line); border-radius:14px; padding:14px 16px; }
+    .label { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:0.08em; }
+    .value { font-weight:600; margin-top:2px; }
 
-{% block style %}
-{% endblock %}
-{% block body_content %}
-<section class="wrapper site-min-height">
-              <!-- page start-->
-              <section class="card">
-                  <header class="card-header">
-                      Editable Table
-                  </header>
-                  <div class="card-body">
-                      <!-- Editable table -->
-                      <div class="card">
-                          <div class="card-body">
-                              <div id="table" class="table-editable">
-                                <span class="table-add float-right mb-3 mr-2"><a href="#!" class="text-success"><i class="fa fa-plus fa-2x"
-                                                                                         aria-hidden="true"></i></a></span>
-                                  <table class="table table-bordered table-responsive-md table-striped text-center">
-                                      <tr>
-                                          <th class="text-center">Person Name</th>
-                                          <th class="text-center">Age</th>
-                                          <th class="text-center">Company Name</th>
-                                          <th class="text-center">Country</th>
-                                          <th class="text-center">City</th>
-                                          <th class="text-center">Sort</th>
-                                          <th class="text-center">Remove</th>
-                                      </tr>
-                                      <tr>
-                                          <td class="pt-3-half" contenteditable="true">Aurelia Vega</td>
-                                          <td class="pt-3-half" contenteditable="true">30</td>
-                                          <td class="pt-3-half" contenteditable="true">Deepends</td>
-                                          <td class="pt-3-half" contenteditable="true">Spain</td>
-                                          <td class="pt-3-half" contenteditable="true">Madrid</td>
-                                          <td class="pt-3-half">
-                                              <span class="table-up"><a href="#!" class="indigo-text"><i class="fa fa-long-arrow-up" aria-hidden="true"></i></a></span>
-                                              <span class="table-down"><a href="#!" class="indigo-text"><i class="fa fa-long-arrow-down"
-                                                                                                           aria-hidden="true"></i></a></span>
-                                          </td>
-                                          <td>
-                                              <span class="table-remove"><button type="button" class="btn btn-danger btn-rounded btn-sm my-0">Remove</button></span>
-                                          </td>
-                                      </tr>
-                                      <!-- This is our clonable table line -->
-                                      <tr>
-                                          <td class="pt-3-half" contenteditable="true">Guerra Cortez</td>
-                                          <td class="pt-3-half" contenteditable="true">45</td>
-                                          <td class="pt-3-half" contenteditable="true">Insectus</td>
-                                          <td class="pt-3-half" contenteditable="true">USA</td>
-                                          <td class="pt-3-half" contenteditable="true">San Francisco</td>
-                                          <td class="pt-3-half">
-                                              <span class="table-up"><a href="#!" class="indigo-text"><i class="fa fa-long-arrow-up" aria-hidden="true"></i></a></span>
-                                              <span class="table-down"><a href="#!" class="indigo-text"><i class="fa fa-long-arrow-down"
-                                                                                                           aria-hidden="true"></i></a></span>
-                                          </td>
-                                          <td>
-                                              <span class="table-remove"><button type="button" class="btn btn-danger btn-rounded btn-sm my-0">Remove</button></span>
-                                          </td>
-                                      </tr>
-                                      <!-- This is our clonable table line -->
-                                      <tr>
-                                          <td class="pt-3-half" contenteditable="true">Guadalupe House</td>
-                                          <td class="pt-3-half" contenteditable="true">26</td>
-                                          <td class="pt-3-half" contenteditable="true">Isotronic</td>
-                                          <td class="pt-3-half" contenteditable="true">Germany</td>
-                                          <td class="pt-3-half" contenteditable="true">Frankfurt am Main</td>
-                                          <td class="pt-3-half">
-                                              <span class="table-up"><a href="#!" class="indigo-text"><i class="fa fa-long-arrow-up" aria-hidden="true"></i></a></span>
-                                              <span class="table-down"><a href="#!" class="indigo-text"><i class="fa fa-long-arrow-down"
-                                                                                                           aria-hidden="true"></i></a></span>
-                                          </td>
-                                          <td>
-                                              <span class="table-remove"><button type="button" class="btn btn-danger btn-rounded btn-sm my-0">Remove</button></span>
-                                          </td>
-                                      </tr>
-                                      <!-- This is our clonable table line -->
-                                      <tr class="hide">
-                                          <td class="pt-3-half" contenteditable="true">Elisa Gallagher</td>
-                                          <td class="pt-3-half" contenteditable="true">31</td>
-                                          <td class="pt-3-half" contenteditable="true">Portica</td>
-                                          <td class="pt-3-half" contenteditable="true">United Kingdom</td>
-                                          <td class="pt-3-half" contenteditable="true">London</td>
-                                          <td class="pt-3-half">
-                                              <span class="table-up"><a href="#!" class="indigo-text"><i class="fa fa-long-arrow-up" aria-hidden="true"></i></a></span>
-                                              <span class="table-down"><a href="#!" class="indigo-text"><i class="fa fa-long-arrow-down"
-                                                                                                           aria-hidden="true"></i></a></span>
-                                          </td>
-                                          <td>
-                                              <span class="table-remove"><button type="button" class="btn btn-danger btn-rounded btn-sm my-0">Remove</button></span>
-                                          </td>
-                                      </tr>
-                                  </table>
-                              </div>
-                          </div>
-                      </div>
-                      <!-- Editable table -->
+    .items { padding: 10px 32px 24px; }
+    table { width:100%; border-collapse:collapse; }
+    thead th { text-align:left; font-size:12px; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; padding:10px 12px; border-bottom:1px solid var(--line); }
+    tbody td { padding:12px; border-bottom:1px solid var(--line); vertical-align:top; }
+    tfoot td { padding:6px 12px; }
+    .right { text-align:right; }
 
-                  </div>
-              </section>
-              <!-- page end-->
-          </section>
-{% endblock %}
+    .totals { padding: 8px 32px 28px; display:grid; grid-template-columns: 1fr 320px; gap:16px; align-items:end; }
+    .notes { color:var(--muted); font-size:12px; }
+    .summary { border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+    .summary-row { display:flex; justify-content:space-between; padding:10px 14px; border-bottom:1px solid var(--line); }
+    .summary-row:last-child { border-bottom:none; }
+    .grand { background:#0b13241a; font-weight:800; font-size:18px; }
 
-{% block js %}
-{% endblock %}
+    footer { padding:18px 32px 28px; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .thanks { color:var(--accent); font-weight:800; font-size:20px; }
+    .pay { font-size:12px; color:var(--muted); }
+
+    .toolbar { position:sticky; top:0; z-index:10; background:#0b1324; color:#fff; padding:10px 16px; display:flex; gap:8px; justify-content:center; }
+    .toolbar button { appearance:none; border:0; padding:10px 14px; border-radius:12px; background:#ffffff; color:#0b1324; font-weight:700; cursor:pointer; }
+    .toolbar button.secondary { background:#111827; color:#fff; }
+
+    @media print { body { background:#fff; } .page { border:none; box-shadow:none; margin:0; max-width:auto; } .toolbar{ display:none; } }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button id="btn-download">Download PDF</button>
+    <button class="secondary" id="btn-print">Print</button>
+  </div>
+
+  <div id="invoice" class="page">
+    <header>
+      <div class="brand">
+        <h1>hello</h1>
+        <p>This is your quotation</p>
+      </div>
+      <div class="addr">
+        <div class="logo">ARROLITE</div>
+        <div class="small">123 Red Street, Singapore 000000<br/>+65 1234 5678 • info@arrolite.com</div>
+      </div>
+    </header>
+
+    <section class="info">
+      <div class="card">
+        <div class="label">Invoice No.</div>
+        <div class="value" id="inv-no">INV-2025-001</div>
+        <div class="label" style="margin-top:8px">Date</div>
+        <div class="value" id="inv-date"></div>
+      </div>
+      <div class="card">
+        <div class="label">Bill To</div>
+        <div class="value" id="bill-to">John Appleseed<br/><span class="small">john@example.com</span></div>
+      </div>
+    </section>
+
+    <section class="items">
+      <table id="items-table">
+        <thead>
+          <tr>
+            <th style="width:44%">Item</th>
+            <th>Description</th>
+            <th class="right" style="width:10%">Qty</th>
+            <th class="right" style="width:18%">Unit</th>
+            <th class="right" style="width:18%">Amount</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="totals">
+      <div class="notes">
+        <strong>Notes</strong><br/>
+        Prices valid for 30 days. Delivery within 7–10 working days upon confirmation.
+      </div>
+      <div class="summary" id="summary">
+        <div class="summary-row"><div>Subtotal</div><div id="subtotal" class="right"></div></div>
+        <div class="summary-row" id="discount-row" style="display:none"><div>Discount</div><div id="discount" class="right"></div></div>
+        <div class="summary-row"><div>Tax (8%)</div><div id="tax" class="right"></div></div>
+        <div class="summary-row grand"><div>Total</div><div id="grand" class="right"></div></div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="thanks">thank you!</div>
+      <div class="pay">OCBC • Account 123-456-789 • PayNow UEN: 201234567Z</div>
+    </footer>
+  </div>
+
+  <!-- html2pdf bundle (html2canvas + jsPDF) -->
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+  <script>
+    // ===== Example dynamic data (could come from Django template context) =====
+    const data = {
+      invoiceNo: 'INV-2025-001',
+      date: new Date().toLocaleDateString(),
+      billToHtml: 'John Appleseed<br/><span class="small">john@example.com</span>',
+      items: [
+        { name: 'Acrylic Panel', description: '600mm x 400mm x 4mm', qty: 2, unit: 120.00 },
+        { name: 'LED Strip', description: 'Warm white, 5m', qty: 1, unit: 45.50 },
+        { name: 'Installation', description: 'On-site labor', qty: 1, unit: 80.00 },
+      ],
+      discountAmount: 25.00, // set to 0 to hide
+      taxRate: 0.08,
+      currency: 'SGD'
+    };
+
+    // ===== Render invoice =====
+    function money(n, currency='SGD') { return new Intl.NumberFormat(undefined, { style:'currency', currency }).format(n); }
+
+    function renderInvoice(d) {
+      document.getElementById('inv-no').textContent = d.invoiceNo;
+      document.getElementById('inv-date').textContent = d.date;
+      document.getElementById('bill-to').innerHTML = d.billToHtml;
+
+      const tbody = document.querySelector('#items-table tbody');
+      tbody.innerHTML = '';
+      let subtotal = 0;
+
+      d.items.forEach(item => {
+        const amount = item.qty * item.unit;
+        subtotal += amount;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${item.name}</strong></td>
+          <td>${item.description || ''}</td>
+          <td class="right">${item.qty}</td>
+          <td class="right">${money(item.unit, d.currency)}</td>
+          <td class="right">${money(amount, d.currency)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const discount = (d.discountAmount || 0);
+      const tax = (subtotal - discount) * (d.taxRate || 0);
+      const grand = subtotal - discount + tax;
+
+      document.getElementById('subtotal').textContent = money(subtotal, d.currency);
+      if (discount > 0) {
+        document.getElementById('discount').textContent = '-' + money(discount, d.currency);
+        document.getElementById('discount-row').style.display = '';
+      } else {
+        document.getElementById('discount-row').style.display = 'none';
+      }
+      document.getElementById('tax').textContent = money(tax, d.currency);
+      document.getElementById('grand').textContent = money(grand, d.currency);
+    }
+
+    renderInvoice(data);
+
+    // ===== PDF download & print =====
+    async function downloadPDF() {
+      const element = document.getElementById('invoice');
+      const opt = {
+        margin: [10, 10, 10, 10], // top, left, bottom, right (in mm when unit=mm)
+        filename: `${document.getElementById('inv-no').textContent}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+      await html2pdf().set(opt).from(element).save();
+    }
+
+    document.getElementById('btn-download').addEventListener('click', downloadPDF);
+    document.getElementById('btn-print').addEventListener('click', () => window.print());
+
+    // ===== Example: hook for Django checkbox is_discount =====
+    // If you render a checkbox in your template and post back `is_discount`,
+    // you can toggle the discount here before rendering/saving.
+    // Example:
+    // const is_discount = {{ is_discount|yesno:"true,false" }}; // Django boolean
+    // if (!is_discount) { data.discountAmount = 0; renderInvoice(data); }
+  </script>
+</body>
+</html>

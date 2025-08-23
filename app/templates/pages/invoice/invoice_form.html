@@ -1,0 +1,424 @@
+
+{% extends 'base/container.html' %}
+{% load static %}
+{% block title %}Product {% endblock %}
+
+{% block style %}
+
+<style>
+ .card-custom-header {
+    display: flex;
+    align-content: center;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 800;
+}
+.custom-row-data {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding: 0px 10px 0px 12px;
+}
+.form-body {
+    padding: 12px;
+    background-color: #f4f4f4;
+    border-radius: 5px;
+}
+.group-icon-f{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.group-icon-f i {
+    background-color: #94939300;
+    font-size: 25px;
+}
+.har-row{
+ 
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: space-between;
+ 
+}
+.action-btn {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+}
+</style>
+    <link href="{% static 'assets/advanced-datatable/media/css/demo_page.css'%}" rel="stylesheet" />
+    <link href="{% static 'assets/advanced-datatable/media/css/demo_table.css'%}" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'assets/data-tables/DT_bootstrap.css'%}" />
+    <!-- Bootstrap JS (v5.x) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% endblock %}
+{% block body_content %} 
+
+<div class="wrapper">
+    
+<div class="wrapper-title">
+    <div class="wrapper-content">  Invoice Form</div>
+    <div class="wrapper-actions">
+        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
+    </div>
+   </div>
+       <div class="card">
+            <form  class="cmxform form-horizontal tasi-form" id="project-add-form" method="post" action="#">
+                {% csrf_token %}
+                <div class=" ">
+                    <div class="row">
+                        <div class="col-4">
+                            <label class="" for="inlineFormInput">Customer</label>
+                            <div class="group-icon-f">
+                            <select class="form-control select2" id="category" name="user">
+                                    {% for user in users %}
+                                        <option value="{{ user.id }}">{{ user }}</option>
+                                    {% empty %}
+                                        <option disabled>No user available</option>
+                                    {% endfor %}
+                            </select>
+                            <a href=""  href="#" data-toggle="modal" data-target="#add-customer">
+                                <i class="fa fa-user"></i></a>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <label for="requite_date" class="control-label ">Request Date</label>
+                            <input type="date" class="form-control" name="requite_date" required/>
+                        </div>  
+                            <div class="col-4">
+                            <label for="requite_date" class="control-label ">Sheet Size</label>
+                            <select class="form-control select2" id="iso_size" name="iso_size">
+                                    {% for iso_size in iso_sizes %}
+                                        <option value="{{ iso_size.id }}">{{ iso_size.name }}</option>
+                                    {% empty %}
+                                        <option disabled>No Sheet available</option>
+                                    {% endfor %}
+                                </select>
+                        </div>  
+                        
+                    </div>   
+                    <div class="row mt-2">               
+                </div>
+                    <div id="add-requests" class="form-body mt-2">
+                    <div class="msg-content" style="
+                        text-align: center;
+                        font-size: larger;
+                        font-weight: 900;
+                    ">  <a href="#" id="add-request-btn" class="add-request-btn">Add Product
+                        <i class="fa fa-plus text-success"  > </i></a></div>
+                    </div>
+                    <div  class="mt-2 mb-2">
+                            <textarea name="description" id="" class="form-control" placeholder="Enter the text..." ></textarea>
+                            </div>
+                    </div>
+                <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" id="category-submit" class="btn btn-primary">Save</button>
+                    </div>
+            </form>
+        </div> 
+                
+                     <!--Add user Model Start-->
+                <div class="modal fade" id="add-customer" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Add  </h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form class="" id="customer-form">
+                                {% csrf_token %}
+                                    <div class="form-group row">
+                                        <label for="inputEmail3" class="col-sm-2 col-form-label">Name</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" class="form-control" id="name" name="name" placeholder="Name" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="inputEmail3" class="col-sm-2 col-form-label">Email</label>
+                                        <div class="col-sm-10">
+                                            <input type="email" class="form-control" name="email" id="inputEmail3" placeholder="Email" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="phonenumber" class="col-sm-2 col-form-label">Phone Number</label>
+                                        <div class="col-sm-10">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" name="phone_prefix" id="phone_prefix"
+                                                placeholder="+65" maxlength="5" style="max-width: 80px;" required>
+                                            <input type="tel" class="form-control" name="phone_number" id="phone_number"
+                                                placeholder="Enter phone number" pattern="[0-9]{10}" maxlength="10" required>
+                                        </div>                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="gstnumber" class="col-sm-2 col-form-label">GST Number</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" class="form-control"name="gst_number" id="gstnumber" placeholder="GST Number" required>
+                                        </div>
+                                    </div>  
+                                    <div class="form-group row">
+                                        <label for="gstnumber" class="col-sm-2 col-form-label">Address</label>
+                                        <div class="col-sm-10">
+                                           <textarea class="form-control" name="address" id="address" placeholder="Enter Address" rows="2"  ></textarea>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-primary" id ="submit-customer">Add</button>
+                                    </div>
+                                </form>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+                <!--Add User model End-->
+</div>
+{% endblock %}
+{% block js %}
+<script>
+
+
+    $(document).ready(function () {
+    let counter = 0;
+
+    const unitMap = {
+        '1': 'mm', '2': 'cm', '3': 'm', '4': 'in', '5': 'ft',
+        '6': 'mm²', '7': 'cm²', '8': 'm²', '9': 'in²', '10': 'ft²'
+    };
+
+    const PRODUCTS_DATA = {
+        {% for product in products %}
+        "{{ product.id }}": {
+            name: "{{ product.name|escapejs }}",
+            width: {{ product.width|default:"null" }},
+            height: {{ product.height|default:"null" }},
+            price: {{ product.price|default:0 }},
+            unit: "{{ product.unit.symbol|default:'mm' }}"
+        },
+        {% endfor %}
+    };
+
+    function convertToMM(value, unitSymbol) {
+        const conversionRates = {
+            'mm': 1, 'cm': 10, 'm': 1000, 'in': 25.4, 'ft': 304.8,
+            'mm²': 1, 'cm²': 100, 'm²': 1000000, 'in²': 645.16, 'ft²': 92903.04
+        };
+        return value * (conversionRates[unitSymbol.toLowerCase()] || 1);
+    }
+
+    function calculateTotal(row) {
+        const qty = parseFloat(row.find('.qty-input').val()) || 0;
+        const selectedOption = row.find('.product-select option:selected');
+        const productId = selectedOption.val();
+        const product = PRODUCTS_DATA[productId];
+        const widthRow = row.find('.dimension-row');
+  
+        if (!product || !product.price) {
+            row.find('.total-cost').val("Invalid");
+            widthRow.hide()
+            return;
+        }
+
+        const hasDimensions = product.width && product.height;
+
+        if (hasDimensions) {
+            widthRow.show(); // Sh
+            const width = parseFloat(row.find('input[name^="width_"]').val()) || 0;
+            const height = parseFloat(row.find('input[name^="height_"]').val()) || 0;
+
+            const inputUnit = row.find('.unit-select').val() || '1';
+            const selectedUnitName = unitMap[inputUnit] || 'mm';
+            const productUnitName = product.unit || 'mm';
+
+            const widthInMM = convertToMM(width, selectedUnitName);
+            const heightInMM = convertToMM(height, selectedUnitName);
+            const productWidthInMM = convertToMM(product.width, productUnitName);
+            const productHeightInMM = convertToMM(product.height, productUnitName);
+
+            const productArea = productWidthInMM * productHeightInMM || 1;
+            const requestedArea = widthInMM * heightInMM;
+
+            const scale = requestedArea / productArea;
+            const total = qty * product.price * scale;
+
+            row.find('.total-cost').val(total.toFixed(2));
+        } else {
+             widthRow.hide(); // Hide dimension inputs
+            const total = qty * product.price;
+            row.find('.total-cost').val(total.toFixed(2));
+        }
+    }
+
+    function updateProductDropdowns() {
+        const selectedValues = $('.product-select').map(function () {
+            return $(this).val();
+        }).get();
+
+        $('.product-select').each(function () {
+            const currentSelect = $(this);
+            const currentVal = currentSelect.val();
+
+            currentSelect.find('option').each(function () {
+                const val = $(this).val();
+                if (val === "" || val === currentVal) {
+                    $(this).prop('disabled', false);
+                } else {
+                    $(this).prop('disabled', selectedValues.includes(val));
+                }
+            });
+        });
+    }
+
+    // Add new row
+    $(document).on('click', '#add-request-btn', function (e) {
+        e.preventDefault();
+ 
+         const productCount = Object.keys(PRODUCTS_DATA).length;
+            if (counter >= productCount) {
+        DisplayAlert(false,"Only " + productCount + " unique product rows allowed.");
+        return;
+    }
+        counter++;
+        // Remove existing add buttons to prevent duplicates
+        $('.add-request-btn').remove();
+
+        const html = `
+        <div class="form-group request-row custom-row-data mb-0" data-index="${counter}">
+            <select name="product_${counter}" class="select2 form-control product-select select2 ">
+                <option value="">Select Product</option>
+                {% for product in products %}
+                    <option value="{{ product.id }}" data-price="{{ product.price }}">{{ product.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" class="form-control qty-input" name="qty_${counter}" placeholder="Qty" min="1" value="1" />
+            <div class="dimension-row" style="display: contents;">
+                <input type="number" class="form-control" name="width_${counter}" placeholder="Width" />
+               <input type="number" class="form-control" name="height_${counter}" placeholder="Height" />
+               <select class="form-control unit-select select2" name="unit_${counter}">
+                {% for unit in units %}
+                    <option value="{{ unit.id }}">{{ unit.symbol }}</option>
+                {% empty %}
+                    <option disabled>No Unit available</option>
+                {% endfor %}
+            </select>
+            </div>
+            
+             
+              
+            <input type="text" class="form-control total-cost" name="unit_cost_${counter}" readonly placeholder="Total" />
+            <a class="btn-sm remove-row"><i class="text-danger fa fa-minus-square"></i></a>
+             
+        </div>
+        `;
+
+        $('#add-requests').append(html);
+
+        // Always re-append the "+" to the first row
+        const firstRow = $('.request-row').last();
+        if (firstRow.length > 0) {
+            firstRow.append(`
+                <a href="#" class="btn-sm add-request-btn" id="add-request-btn">
+                    <i class="text-success fa fa-plus-square"></i>
+                </a>
+            `);
+        }
+    });
+
+    // Remove row
+    $(document).on('click', '.remove-row', function () {
+        const row = $(this).closest('.request-row');
+        const hadAddButton = row.find('#add-request-btn').length > 0;
+        row.remove();
+
+        if (hadAddButton) {
+            const firstRow = $('.request-row').first();
+            if (firstRow.length > 0) {
+                // Re-append the "+" button to the first row
+                firstRow.append(`
+                    <a href="#" class="btn-sm add-request-btn" id="add-request-btn">
+                        <i class="text-success fa fa-plus-square"></i>
+                    </a>
+                `);
+            }
+        }
+    });
+
+    // Prevent duplicate product selections
+    $(document).on('change', '.product-select', function () {
+        updateProductDropdowns();
+        calculateTotal($(this).closest('.request-row'));
+    });
+
+    // On quantity/width/height/unit input change, recalculate
+    $(document).on('input change', '.qty-input, .unit-select, input[name^="width_"], input[name^="height_"]', function () {
+        calculateTotal($(this).closest('.request-row'));
+    });
+});
+     
+// Utility to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Check cookie name
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+        $('#submit-customer').click(function (e) {
+        e.preventDefault();
+ 
+        const data = {
+            name: $('#name').val(),
+            email: $('#inputEmail3').val(),
+            phone_prefix: $('#phone_prefix').val(),
+            phone_number: $('#phone_number').val(),
+            gst_number: $('#gstnumber').val(), // if using GST field
+            address: $('#address').val()
+    
+        };
+
+        $.ajax({
+            url: "{% url 'register-customer' %}",  // 🔁 Replace with your actual URL
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (response) {
+     
+               
+                DisplayAlert(true,response.message)
+                $('#customer-form')[0].reset();
+                $('#add-customer').removeClass('show').removeAttr('style').attr('aria-hidden', 'true');
+                $('.modal-backdrop').remove(); 
+                $('body').removeClass('modal-open');  
+                location.reload()
+            },
+            error: function (xhr) {
+                const res = xhr.responseJSON;
+                DisplayAlert(false, formatErrors(res.errors));
+                
+            }
+        });
+    });
+</script>
+
+{% endblock %}

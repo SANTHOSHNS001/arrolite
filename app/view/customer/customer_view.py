@@ -149,3 +149,10 @@ class CustomuserList(View):
         users = CustomUser.active_objects.all()
         return render(request, self.template_name, {'users': users})
     
+    
+class CustomerList(View):
+    template_name = "pages/customer/customer_list.html"
+    def get(self, request):
+        customers = Customer.active_objects.all()
+        return render(request, self.template_name, {'customers': customers})
+    

@@ -19,6 +19,9 @@ def get_sidebar_menu():
         
         {"url": "unit_list", "name": "Unit", "icon": "ac_unit", "perm": "app.manage_unit"},
         {"url": "iso_list", "name": "ISO-Size", "icon": "apps", "perm": "app.can_manage_isosize"},
+        {"url": "customer_list", "name": "Customer-List", "icon": "person_search", "perm": "app.can_manage_quotaion"},
+        
+      
         # {"url": "logout", "name": "Logout", "icon": "logout"},  
         
         # {"url": "Sheet", "name": "Sheet-Size", "icon": "user", "perm": "app.can_manage_isosize"},

@@ -63,7 +63,7 @@
 
  <div class="wrapper">
 <div class="wrapper-title">
-    <div class="wrapper-content">Quotation  List</div>
+    <div class="wrapper-content">Invoice  List</div>
     <div class="wrapper-actions">
         <a class="btn btn-add"  href="{%url 'invoice_request'%}"><i class="fa fa-plus"></i> Add</a> 
         <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
@@ -77,7 +77,8 @@
                                <tr>  
                                     <th style="display:none">Id</th>
                                     <th>Invoice Number</th>
-                                    <th>Customer</th>
+                                    <th>Request By</th>
+                                    <th>Customer</th>                                  
                                     <th>Request Date</th>
                                     <th>Status</th>
                                     <th style="display:none">Item-json</th>    
@@ -89,17 +90,20 @@
                               
                                 <tr class="gradeX">
                                     <th style="display:none" data-id="{{quotation.id}}" data-user="{{quotation.approver.id}}" data-status="{{quotation.approver_status}}" >{{quotation.id}}</th>
-                                    <td onclick="window.location.href='{% url 'quotaion_approval' quotation.id %}'">{{quotation.invoice_number}}</td>
-                                    <td onclick="window.location.href='{% url 'quotaion_approval' quotation.id %}'">{{quotation.customer.name}}</td>
-                                    <td onclick="window.location.href='{% url 'quotaion_approval' quotation.id %}'">{{ quotation.request_date|date:"d M Y" }}</td>
-                                    <td onclick="window.location.href='{% url 'quotaion_approval' quotation.id %}'">
-                                    {%if quotation.approver_status == 'approved'%}
+                                    <td onclick="window.location.href='{% url 'invoice_details' quotation.id %}'">{{quotation.invoice_number}}</td>
+                                    <td onclick="window.location.href='{% url 'invoice_details' quotation.id %}'">{{quotation.approver.get_full_name}}</td>
+                                    <td onclick="window.location.href='{% url 'invoice_details' quotation.id %}'">{{quotation.customer.name}}</td>
+                                    <td onclick="window.location.href='{% url 'invoice_details' quotation.id %}'">{{ quotation.request_date|date:"d M Y" }}</td>
+                                    <td onclick="window.location.href='{% url 'invoice_details' quotation.id %}'">
+                                    {%if quotation.approver_status == 'paid'%}
                                         <span class="badge badge-success" >{{ quotation.get_approver_status_display  }}</span>
-                                        {%else%}
+                                  {% elif quotation.approver_status == 'pending_payment'%}
+                                  <span class="badge badge-warning" >{{ quotation.get_approver_status_display  }}</span>
+                                           {%else%}
                                         <span class="badge badge-danger" >{{ quotation.get_approver_status_display  }}</span>
-                                        {%endif%}
+                                    {%endif%}
                                     </td>
-                                    <td style="display:none">{{ quotation.items_to_json|safe }}</td>
+                                    
                                 </tr> 
                                 
                                 {% endfor%}
@@ -160,114 +164,12 @@
 {% endblock %}
 {% block js %}
        <script>
-              function fnFormatDetails(oTable, nTr) {
-                const data = oTable.fnGetData(nTr);
-                let itemData = [];
-                const dataitems = data;
-                const quotationId = $(nTr).find("th[data-id]").data("id");
-                const approver = $(nTr).find("th[data-user]").data("user");
-                const approvestatus = $(nTr).find("th[data-status]").data("status");
-
-                console.log(dataitems)
-                try {
-                    const htmlContent = $('<div>').html(data[6]).text();
-
-                    const fixedContent = htmlContent
-                        .replace(/'/g, '"')
-                        .replace(/None/g, 'null')
-                        .replace(/True/g, 'true')
-                        .replace(/False/g, 'false');
-
-                    itemData = JSON.parse(fixedContent);
-
-                } catch (e) {
-                    console.error("Error parsing JSON:", e);
-                    return '<div style="color:red;">Failed to load item data</div>';
-                }
-
-                if (!itemData.items || itemData.items.length === 0) {
-                    return '<div>No items available</div>';
-                }
-                let sOut =``
-                
-                
-
-                sOut += '<table cellpadding="5" cellspacing="0"   style="width:100%;">';
-                sOut += '<thead><tr style="color:#fff8f8;font-size:12px;background-color: #6acc6a;"><th>Product Name</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Total</th></tr></thead><tbody>';
-
-                itemData.items.forEach(item => {
-                    sOut += `<tr >
-                    <td>${item.product_name || ''}</td>
-                    <td>${item.quantity || 0}</td>
-                    <td>${item.unit || ''}</td>
-                    <td>${item.unit_cost || 0}</td>
-                    <td>${item.total_cost || 0}</td>
-                  
-                    </tr>`;
-                });
-
-                sOut += '</tbody></table>';
-                
-                 
-                return sOut;
-            }
-
-
-            $(document).ready(function() {
-              
-                $('#dynamic-table').dataTable( {
-                    "aaSorting": [[ 4, "desc" ]]
-                } );
-                $('#approve-table').dataTable({
+               
+ $('#approve-table').dataTable({
                     "aaSorting": [[2, "asc"]]  // Example
                 });
-                const plusIcon = `<i class="fa fa-plus-square  text-success" style="font-size:22px;"></i>`;
-                const minusIconClass = "fa-minus-square";
-                const plusIconClass = "fa-plus-square";
-                var nCloneTh = document.createElement( 'th' );
-                var nCloneTd = document.createElement( 'td' );
-                nCloneTd.innerHTML = plusIcon;
-                nCloneTd.className = "center";
 
-                $('#hidden-table-info thead tr').each( function () {
-                    this.insertBefore( nCloneTh, this.childNodes[0] );
-                } );
-
-                $('#hidden-table-info tbody tr').each( function () {
-                    this.insertBefore(  nCloneTd.cloneNode( true ), this.childNodes[0] );
-                } );
-
-                /*
-                * Initialse DataTables, with no sorting on the 'details' column
-                */
-                var oTable = $('#hidden-table-info').dataTable( {
-                    "aoColumnDefs": [
-                        { "bSortable": false, "aTargets": [ 0 ] }
-                    ],
-                    "aaSorting": [[1, 'asc']]
-                });
-
-                /* Add event listener for opening and closing details
-                * Note that the indicator for showing which row is open is not controlled by DataTables,
-                * rather it is done here
-                */
-            $(document).on('click', '#hidden-table-info tbody td i', function () {
-            const tr = $(this).closest('tr')[0];
-
-            if (oTable.fnIsOpen(tr)) {
-                oTable.fnClose(tr);
-                $(this)
-                .removeClass(minusIconClass + ' text-danger')
-                .addClass(plusIconClass + ' text-success');
-            } else {
-                const sOut = fnFormatDetails(oTable, tr);
-                oTable.fnOpen(tr, sOut, 'details');
-                $(this)
-                .removeClass(plusIconClass + ' text-success')
-                .addClass(minusIconClass + ' text-danger');
-            }
-            });
-    } );
+            
       </script>
  <script>
 

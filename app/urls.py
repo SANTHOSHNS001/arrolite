@@ -3,13 +3,14 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from app.view.home import HomePageView
+from app.view.invoices.invoice_view import InvoiceDetails, InvoiceListView, InvoiceReportPdfView, InvoiceRequestView
 from app.view.iso_series.iso_view import ISOSizeDelete, ISOSizeEditView, ISOSizeListView
 from app.view.permission.permission import GroupUpdateView, GroupUserAddorUpdateView, PermissionAdd, PermissionSetting
 from app.view.product.product_view import ProductDelete, ProductEditView, ProductListView, QuotationReportPdfView
-from app.view.quotation.quotation_view import QuotationApprovalView, QuotationInvoiceView, QuotationListView, QuotationReportView, QuotationRequestView, QuotationView,QuotationApprove
+from app.view.quotation.quotation_view import QuotationApprovalView,   QuotationListView, QuotationReportView, QuotationRequestView, QuotationView,QuotationApprove
 from app.view.sub_category.sub_category_view import SubCategoryDelete, SubCategoryEditView, SubCategoryListView
 from app.view.category.category_view import CategoryDelete, CategoryEditView, CategoryListView
-from app.view.customer.customer_view import CustomUserRegister, CustomUserUpdate, CustomerRegister, CustomuserList, Login, UserLogoutView
+from app.view.customer.customer_view import CustomUserRegister, CustomUserUpdate, CustomerList, CustomerRegister, CustomuserList, Login, UserLogoutView
 from app.view.unit.unit_view import UnitDelete, UnitEditView, UnitListView
  
 urlpatterns = [
@@ -37,11 +38,24 @@ urlpatterns = [
                 path("quotation-list/", QuotationListView.as_view(), name="quotation_list"),
                 path("quotation-awaiting/", QuotationApprovalView.as_view(), name="quotation_waiting"),
                 path("quotation-request/", QuotationRequestView.as_view(), name="quotation_request"),
-                path("quotation-invoice/", QuotationInvoiceView.as_view(), name="quotation_invoice"),  
+                
                 path("quotation-test/", QuotationReportPdfView.as_view(), name="quotation_test"),
                 path("quotation-items/<int:pk>/", QuotationView.as_view(), name="quotation_items"), 
                 path("quotaion-approval/<int:pk>/", QuotationApprove.as_view(), name="quotaion_approval") , 
                 path("quotaion-report/", QuotationReportView.as_view(), name="quotaion_report") , 
+                # Customer Path
+                path("customer-list/", CustomerList.as_view(), name="customer_list") , 
+                # Invoice List
+                path("invoice-list/", InvoiceListView.as_view(), name="quotation_invoice"),  
+                path("invoice-request/", InvoiceRequestView.as_view(), name="invoice_request"),
+                path("invoice-details/<int:pk>", InvoiceDetails.as_view(), name="invoice_details"),
+                path("invoice-invoice_bill/", InvoiceReportPdfView.as_view(), name="invoice_bill"),
+                
+                
+                
+                
+                
+                
 
                 
                 # Permission Path

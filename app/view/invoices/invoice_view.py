@@ -1,13 +1,18 @@
-from django.http import FileResponse, JsonResponse
+ 
+
+from decimal import Decimal
 from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
-from app.forms.product.product_form import ProductCreateForm
-from app.models.category.category_model import Category
+from app.models.customer_model.customer_model import CustomUser, Customer
+from app.models.invoice_model.invoice_model import Invoice, InvoiceItem
+from app.models.iso_series.iso_series_model import ISOSize
 from app.models.product.product_model import Product
-from app.models.product.quotation_model import Quotation
-from app.models.sub_category.sub_category_model import SubCategory
+from app.models.product.quotation_model import Quotation, QuotationItem
 from app.models.unit.unit_model import Unit
-from django.contrib import messages
+from django.contrib import messages 
+from django.http import FileResponse, JsonResponse
+import json
+ 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle 
@@ -21,92 +26,256 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import os
 from django.conf import settings
-import json
+ 
+from decimal import Decimal, InvalidOperation
 
-class ProductListView(View):
-    template="pages/product/product.html"
+class InvoiceListView(View):
+  
+    template = "pages/invoice/invoice_list.html"
     def get(self, request):
-        subcategories = SubCategory.active_objects.all()
-        categories = Category.active_objects.all()
-        Products = Product.active_objects.all()
-        units = Unit.active_objects.all()
+        quotation = Invoice.active_objects.all()  
         context = {
-            'subcategories': subcategories,
-            'categories' :categories,
-            'Products':Products,
-            'units':units
+            'quotations':quotation,
+  
+        }
+        return render(request, self.template, context) 
+
+class InvoiceRequestView(View):
+ 
+    template = "pages/invoice/invoice_form.html"
+    def get(self, request):
+        products = Product.active_objects.all()
+        units = Unit.active_objects.all()
+        customer = Customer.active_objects.all() 
+        iso_sizes = ISOSize.active_objects.all() 
+        
+        context = {
+             
+            'products': products,
+            'units': units,
+            'users': customer,
+            "iso_sizes":iso_sizes
+        }
+ 
+        return render(request, self.template, context)
+
+    def post(self, request):
+        requite_date = request.POST.get("requite_date")
+        user_id = request.POST.get("user")
+        description = request.POST.get("description")
+        iso_size = request.POST.get("iso_size")
+           
+        if not requite_date or not user_id:
+            messages.error(request, "Request date and user are required.")
+            return self.render_with_context(request)
+
+        user = get_object_or_404(Customer.active_objects, id=user_id)
+        iso_size = get_object_or_404(ISOSize.active_objects, id=iso_size)
+        items = self.extract_valid_items(request.POST)
+
+        if not items:
+            messages.error(request, "At least one product must be added to create a Products.")
+            return self.render_with_context(request)
+
+        # ✅ Create quotation
+        invoice = Invoice.objects.create(
+            invoice_number=self.generate_quotation_number(),
+            request_date=requite_date,
+            approver_status ="pending",
+            approver = self.request.user,
+            description=description,
+            isosize = iso_size,
+            customer=user
+        )
+    
+        # ✅ Save valid items
+        print("items--099",items)
+        for item in items:
+            InvoiceItem.objects.create(invoice=invoice, **item)
+
+        messages.success(request, "Invoice created successfully.")
+        return redirect('quotation_invoice')
+
+    def generate_quotation_number(self):
+        last_quotation = Invoice.active_objects.order_by('-id').first()
+        if last_quotation and last_quotation.invoice_number:
+            last_number = int(last_quotation.invoice_number.replace('Q', ''))
+            new_number = last_number + 1
+        else:
+            new_number = 1
+        return f"Q{new_number:04d}"
+
+    def extract_valid_items(self, post_data):
+        items = []
+        counter = 1
+        while True:
+            product_id = post_data.get(f'product_{counter}')
+            if not product_id:
+                break
+            try:
+                product = Product.objects.get(id=product_id)
+                qty = float(post_data.get(f'qty_{counter}', 0))
+                width = float(post_data.get(f'width_{counter}', 0) or 0)
+                height = float(post_data.get(f'height_{counter}', 0) or 0)
+                unit_cost = float(post_data.get(f'unit_cost_{counter}', 0) or 0)
+                unit_id = post_data.get(f'unit_{counter}')    
+                unit = Unit.active_objects.get(id=unit_id) if unit_id else None
+
+                if qty > 0:
+                    items.append({
+                        'product': product,
+                        'quantity': qty,
+                        'width': width,
+                        'height': height,
+                        'unit_cost': unit_cost,
+                        'unit': unit,
+                         
+                    })
+            except (Product.DoesNotExist, Unit.DoesNotExist, ValueError):
+                pass  # skip this row if anything is invalid
+
+            counter += 1
+        return items
+
+    def render_with_context(self, request):
+        quotations = Quotation.active_objects.all()
+        products = Product.active_objects.all()
+        units = Unit.active_objects.all()
+        users = CustomUser.active_objects.all()
+        context = {
+            'quotations': quotations,
+            'products': products,
+            'units': units,
+            'users': users
         }
         return render(request, self.template, context)
-    def post(self, request):
-        form = ProductCreateForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('product_list')  # name of this view in your URLconf
-        # If not valid, re-render with errors
-        sub_categories = Product.active_objects.all()
-        return render(request, self.template, {
-            'form': form,
-            'subcategories': sub_categories
-        })
- 
-class ProductEditView(View):
-   def post(self, request, pk):
-        product = get_object_or_404(Product, pk=pk)
-   
-        form = ProductCreateForm(request.POST, instance=product)
-        if form.is_valid():
-            form.save() 
-            return JsonResponse({
-                'success': True,
-                'message': 'Product updated successfully.',
-                'data': {}
-                }, status=200)
+    
+class InvoiceDetails(View):
+    template = "pages/invoice/invoice_details.html"
 
-        return JsonResponse({
-            'success': False,
-            'errors': form.errors
-        }, status=400)   
-from django.db import transaction     
-class ProductDelete(View):
+    def get(self, request, pk):
+        invoice = get_object_or_404(Invoice.active_objects, id=pk)
+        quotation_items = InvoiceItem.active_objects.filter(invoice=invoice)
+        context = {
+            'quotation': invoice,
+            'quotationsitems': quotation_items,
+        }
+        return render(request, self.template, context)
+
     def post(self, request, pk):
-        product = get_object_or_404(Product, pk=pk)
+        quotation = get_object_or_404(Invoice, id=pk)
+        print("request.POST", request.POST)
 
+        # Read inputs
+        status_str   = request.POST.get('status')
+        discount_str = request.POST.get('discount')
+        deposit_str  = request.POST.get('deposit')
+        is_disc_flag = request.POST.get('is_discount', 'off') == 'on'
+
+        # Validate status present
+        if not status_str:
+            quotation_items = InvoiceItem.objects.filter(invoice=quotation)  # <-- FIXED: use invoice=
+            return render(request, self.template, {
+                'quotation': quotation,
+                'quotationsitems': quotation_items,
+                'error': 'Status is required.',
+            })
+
+        # Parse numbers safely as Decimal
         try:
-            with transaction.atomic():
-                product.delete(user=request.user)  # soft delete using your CustomBase method
-            return JsonResponse({
-                'success': True,
-                'message': 'Product deleted successfully.'
-            }, status=200)
+            advance = Decimal(str(deposit_str or 0))
+        except (InvalidOperation, TypeError, ValueError):
+            quotation_items = InvoiceItem.objects.filter(invoice=quotation)
+            return render(request, self.template, {
+                'quotation': quotation,
+                'quotationsitems': quotation_items,
+                'error': 'Invalid deposit amount.',
+            })
 
-        except ValueError as e:
-            # Raised when there are related non-deleted objects
-            return JsonResponse({
-                'success': False,
-                'message': str(e)
-            }, status=400)
+        # Handle discount (optional)
+        if discount_str not in (None, ""):
+            try:
+                discount_val = Decimal(str(discount_str))
+            except (InvalidOperation, TypeError, ValueError):
+                quotation_items = InvoiceItem.objects.filter(invoice=quotation)
+                return render(request, self.template, {
+                    'quotation': quotation,
+                    'quotationsitems': quotation_items,
+                    'error': 'Invalid discount format.',
+                })
 
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': f"An unexpected error occurred: {str(e)}"
-            }, status=500)
-                
- 
+            # Validate discount bounds
+            if is_disc_flag:
+                if not (Decimal("0") <= discount_val <= Decimal("100")):
+                    quotation_items = InvoiceItem.objects.filter(invoice=quotation)
+                    return render(request, self.template, {
+                        'quotation': quotation,
+                        'quotationsitems': quotation_items,
+                        'error': 'Percentage discount must be between 0 and 100.',
+                    })
+            else:
+                if discount_val < 0:
+                    quotation_items = InvoiceItem.objects.filter(invoice=quotation)
+                    return render(request, self.template, {
+                        'quotation': quotation,
+                        'quotationsitems': quotation_items,
+                        'error': 'Fixed discount must be 0 or higher.',
+                    })
 
-class QuotationReportPdfView(View):
+            quotation.discount = discount_val
+            quotation.is_percentage = is_disc_flag
+
+        # --- Add new deposit (CRITICAL: do NOT overwrite; accumulate) ---
+        if advance > 0:
+            quotation.advance_amount = (quotation.advance_amount or Decimal("0.00")) + advance
+            quotation.save(update_fields=["advance_amount", "discount", "is_percentage"])
+            quotation.refresh_from_db()
+
+        # Recompute after any changes
+        balance_due = quotation.balance_due
+        print("quotation.balance_due", balance_due)
+        print("advance just received", advance)
+        print("total paid so far", quotation.total_paid)
+
+        # --- Status logic ---
+        # If user set "paid":
+        if status_str == 'paid':
+            if balance_due <= 0:
+                quotation.approver_status = 'paid'
+            else:
+                quotation.approver_status = 'pending_payment'
+        else:
+            # Otherwise accept requested status as-is
+            quotation.approver_status = status_str
+
+        # Optional: protect against unauthorized edits
+        if not (quotation.approver == request.user and quotation.approver_status in ['pending', 'pending_payment', 'paid', status_str]):
+            quotation_items = InvoiceItem.objects.filter(invoice=quotation)
+            return render(request, self.template, {
+                'quotation': quotation,
+                'quotationsitems': quotation_items,
+                'error': 'You are not allowed to update this quotation.',
+            })
+
+        quotation.save(update_fields=["approver_status", "discount", "is_percentage"])
+        return redirect('quotation_invoice')
+    
+    
+    
+    
+    
+class InvoiceReportPdfView(View):
     def __init__(self, **kwargs):
         self.company_name = "ARROLITE"
         super().__init__(**kwargs)
     def post(self, request):
         try:      
-            # discount = request.POST.get('discount')
-            # qns = Quotation.active_objects.get(id=17,approver_status = "approved")
+ 
             data = json.loads(request.body)
             document_id = data.get("document_id")
-            qns = Quotation.active_objects.get(id=document_id)
+            qns = Invoice.active_objects.get(id=document_id)
             data = []
-            for qs in qns.items.all():
+            for qs in qns.invoiceitems.all():
                 data.append({
                     "product": qs.product.name,
                     "quantity": qs.quantity,
@@ -150,7 +319,7 @@ class QuotationReportPdfView(View):
             "title", fontName="Gotham-Bold", fontSize=90, textColor=colors.red, leading=87
         )
         subtitle_style = ParagraphStyle(
-            "subtitle", fontName="GothamLight", fontSize=23, textColor=colors.black, backColor=colors.white, leading=30
+            "subtitle", fontName="GothamLight", fontSize=25, textColor=colors.black, backColor=colors.white, leading=30
         )
         label_style = ParagraphStyle(
             "label", fontName="GothamBold", fontSize=8, textColor=colors.black
@@ -164,7 +333,7 @@ class QuotationReportPdfView(View):
 
         # Left Block (hello + subtitle)
         hello = Paragraph("<b>hello</b>", title_style)
-        subtitle = Paragraph('this is your <font color="red"><b>quotation</b></font>', subtitle_style)
+        subtitle = Paragraph('this is your <font color="red"><b> invoice</b></font>', subtitle_style)
 
         left_block = Table([[hello], [subtitle]], colWidths=[12 * cm], style=[
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
@@ -188,8 +357,8 @@ class QuotationReportPdfView(View):
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-             ("TOPPADDING", (0, 0), (-1, -1), 0),
-            #  ("BACKGROUND", (0, 0), (-1, -1), colors.blue),  # ✅ background color
+            ("TOPPADDING", (0, 0), (-1, -1), 0),
+           
         ])
 
         # Top row (hello + logo block)
@@ -197,8 +366,7 @@ class QuotationReportPdfView(View):
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-            ("TOPPADDING", (0, 0), (-1, -1), 0),
-            
+            ("TOPPADDING", (0, 0), (-1, -1), 0),     
         ])
 
         def make_info_table(data):
@@ -263,8 +431,8 @@ class QuotationReportPdfView(View):
         for_style = ParagraphStyle("ForLabel", fontName="Helvetica-Bold", fontSize=10, textColor=colors.red)
         company_style = ParagraphStyle("CompanyName", fontName="Helvetica-Bold", fontSize=12, textColor=colors.HexColor("#7B6F6F"))
         address_style = ParagraphStyle("Address", fontName="Helvetica", fontSize=10, textColor=colors.HexColor("#666666"), leading=10)
-        total_label_style = ParagraphStyle("TotalLabel", fontName="Helvetica-Bold", fontSize=9, textColor=colors.whitesmoke)
-        total_value_style = ParagraphStyle("TotalValue", fontName="Helvetica-Bold", fontSize=12, textColor=colors.whitesmoke, alignment=2)
+        total_label_style = ParagraphStyle("TotalLabel", fontName="Helvetica-Bold", fontSize=6, textColor=colors.whitesmoke)
+        total_value_style = ParagraphStyle("TotalValue", fontName="Helvetica-Bold", fontSize=7, textColor=colors.whitesmoke, alignment=2)
 
         # === Left (FOR) ===
         customer_add="39 Woodlands closeMEGA@woodlands #08-84 \n Singapore 737856"
@@ -275,16 +443,27 @@ class QuotationReportPdfView(View):
             Paragraph(customer_add.replace("\n", "<br/>"), address_style),
         ]
 
-        # === Right (TOTAL) ===
-        right_cell = [
-            Paragraph("total", total_label_style),
-             Paragraph("total", total_label_style),
-              Paragraph("total", total_label_style),
-            Paragraph(f"${grand_total:,.2f}", total_value_style),
-        ]
+         # === Right (TOTAL / DEPOSIT / BALANCE) as 2-column inner table ===
+        right_inner_table = Table(
+            [
+                [Paragraph("total", total_label_style),   Paragraph(f"$ {quotation.total_cost:,.2f}", total_value_style)],
+                [Paragraph("deposit", total_label_style), Paragraph(f"${quotation.advance_amount:,.2f}", total_value_style)],
+                [Paragraph("balance", total_label_style), Paragraph(f"${quotation.balance_due:,.2f}", total_value_style)],
+            ],
+            colWidths=[2 * cm, 3 * cm],  # adjust widths to balance text/value
+            style=[
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (1, 0), (1, -1), "RIGHT"),  # right align values
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ],
+        )
 
+        # === Full summary table (Left: FOR, Right: Inner table) ===
         summary_table = Table(
-            [[left_cell, right_cell]],
+            [[left_cell, right_inner_table]],
             colWidths=[13.2 * cm, 6.3 * cm],
             style=[
                 ("BACKGROUND", (0, 0), (0, 0), colors.whitesmoke),
@@ -355,11 +534,7 @@ class QuotationReportPdfView(View):
         # Scan Me image
         scan_img_path = os.path.join(settings.BASE_DIR, 'static', 'ac-imgs', 'scan_me.png')
         canvas.drawImage(scan_img_path, doc.leftMargin + 14 * cm, 1.4 * cm, width=2* cm, height=1.6 * cm, mask='auto')
-
-        # QR code
-        # canvas.setFont("Helvetica-Bold", 8)
-        # canvas.setFillColor(colors.black)
-        # canvas.drawString(doc.leftMargin + 14 * cm, 1.7 * cm, "Scan me")
+ 
         qr_img_path = os.path.join(settings.BASE_DIR, 'static', 'ac-imgs', 'qr_img.jpeg')
         canvas.drawImage(qr_img_path, doc.leftMargin + 16 * cm, 0.6 * cm, width=3 * cm, height=3 * cm, mask='auto')
 
@@ -456,26 +631,8 @@ class QuotationReportPdfView(View):
             Paragraph("total", total_label_style),
             Paragraph(f"${grand_total:,.2f}", total_value_style)
         ]
-        desc_section = [
-            Paragraph("*DESIGN PROVIDED BY YOU", for_desc_style),
-        ]
-        desc_des_section = [
-            Paragraph("- 50% deposit require for order confirmation", for_desc_style),
-        ]
-        desc_table = Table([
-            [desc_section],
-        ], style=[
-            ("ALIGN", (1, 0), (1, -1), "LEFT"),
-            ("FONTSIZE", (0, 0), (-1, -1), 8),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#74666a")),
-        ])
-        desc_table2 = Table([
-            [desc_des_section],
-        ], style=[
-            ("ALIGN", (1, 0), (1, -1), "LEFT"),
-            ("FONTSIZE", (0, 0), (-1, -1), 8),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#74666a")),
-        ])
+         
+         
          
         summary_table = Table([
             [for_section, total_section]
@@ -492,10 +649,10 @@ class QuotationReportPdfView(View):
             Spacer(1, 6 * cm),
             body_table,
             Spacer(1, 0.5 * cm),
-            KeepTogether(total_table),
-            Spacer(1, 0.5 * cm),
-            desc_table,
-            desc_table2,
+            # KeepTogether(total_table),
+            # Spacer(1, 0.5 * cm),
+            # desc_table,
+            # desc_table2,
             Spacer(1, 1 * cm),
             # KeepTogether(summary_table),
         ]
@@ -503,4 +660,3 @@ class QuotationReportPdfView(View):
         doc.build(elements)
         buffer.seek(0)
         return buffer
- 

@@ -9,7 +9,7 @@ from app.models.product.product_model import Product
 from app.models.unit.unit_model import Unit
 
 
-class Quotation(CustomBase):
+class Invoice(CustomBase):
     STATUS_CHOICES = [
             ("draft", "Draft"),
             ("sent", "Sent to Customer"),
@@ -18,26 +18,32 @@ class Quotation(CustomBase):
             ("approved", "Approved"),
             ("rejected", "Rejected"),
             ("cancelled", "Cancelled"),
-            ("accepted_by_customer", "Accepted by Customer"),
             ("expired", "Expired"),
+            ("unpaid", "Unpaid"),
+            ("pending_payment", "Pending Payment"),
+            ("advance_paid", "Advance Paid"),   
+            ("partially_paid", "Partially Paid"),
+            ("paid", "Paid"),
+            ("overdue", "Overdue"),
+            ("refunded", "Refunded"),
+            ("payment_failed", "Payment Failed"),
         ]
     customer = models.ForeignKey(
         "Customer",
-        related_name="quotation_customers",
+        related_name="invoice_customers",
          on_delete=models.CASCADE,
         null=True,
         blank=True,
     )
-
     approver = models.ForeignKey(
         "CustomUser",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name='quotation_approvers'
+        related_name='invoice_approvers'
     )
     request_date = models.DateTimeField(null=True, blank=True)
-    invoice_number = models.CharField(max_length=20, unique=True,blank=True)
+    invoice_number = models.CharField(max_length=20, unique=True)
     description = models.TextField(null=True, blank=True)
     approver_status = models.CharField(
         max_length=30,
@@ -52,14 +58,19 @@ class Quotation(CustomBase):
         blank=True,
         help_text="Discount amount or percentage to apply"
     )
+    is_percentage = models.BooleanField(
+    default=False,
+    help_text="If true, discount_value is a percentage instead of a fixed amount"
+)
     isosize = models.ForeignKey("ISOSize", on_delete=models.SET_NULL, null=True, blank=True)
+    advance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     class Meta:
-        verbose_name = "Quotation"
-        verbose_name_plural = "Quotations"
+        verbose_name = "Invoice"
+        verbose_name_plural = "Invoices"
         permissions = [
-            ("can_approve_quotation", "Can approve quotation"),
-            ("can_assign_approver_quotation", "Can assign approver"),
-            ("can_manage_quotaion","Can manage Quotaions")
+            ("can_approve_invoice", "Can approve Invoice"),
+            ("can_manage_invoice","Can manage Invoice")
         ]
         ordering = ["-created_at"]
     def __str__(self):
@@ -72,45 +83,63 @@ class Quotation(CustomBase):
             "request_date": self.request_date.strftime("%Y-%m-%d %H:%M:%S") if self.request_date else None,
             "description": self.description,
             "customers": [user.name for user in self.customer.all()],
-            "items": [item.to_json for item in self.items.all()]
+            "items": [item.to_json for item in self.invoiceitems.all()]
         }
     @property
     def items_to_json(self):
         return {
-            "items": [item.to_json for item in self.items.all()]
+            "items": [item.to_json for item in self.invoiceitems.all()]
         }
 
     @property
     def total_cost(self):
-        """Sum of all item costs (before discount)"""
+        """
+        Sum of all item costs (before discount).
+        IMPORTANT: multiply unit_cost * quantity (this was missing before).
+        """
         return sum(
-            (item.unit_cost or Decimal("0.00")) 
-            for item in self.items.all()
-        )
+            (item.unit_cost or Decimal("0.00")) * Decimal(item.quantity or 0)
+            for item in self.invoiceitems.all()
+        ) or Decimal("0.00")
 
     @property
     def discount_amount(self):
+        """
+        If is_percentage == True: discount% of total
+        Else: fixed discount amount
+        """
         total = self.total_cost or Decimal("0.00")
         discount = Decimal(str(self.discount or 0))
-        return (discount / Decimal("100.00")) * total
-      
+        if self.is_percentage:
+            return (discount / Decimal("100.00")) * total
+        return discount
 
     @property
     def payable_total(self):
-        """Total after subtracting discount"""
-        return self.total_cost - self.discount_amount
+        """Total after discount (before payments)."""
+        total = self.total_cost or Decimal("0.00")
+        return total - (self.discount_amount or Decimal("0.00"))
+
+    @property
+    def total_paid(self):
+        """Total received from customer (advance + later payments)."""
+        return (self.advance_amount or Decimal("0.00")) + (self.amount_paid or Decimal("0.00"))
+
+    @property
+    def balance_due(self):
+        """Remaining amount customer still owes (can go negative if overpaid)."""
+        return (self.payable_total or Decimal("0.00")) - self.total_paid
         
             
-class QuotationItem(CustomBase):  # Singular name is conventional
-    quotation = models.ForeignKey(
-        Quotation, on_delete=models.CASCADE, related_name='items'
+class InvoiceItem(CustomBase):  # Singular name is conventional
+    invoice = models.ForeignKey(
+        "Invoice", on_delete=models.CASCADE, related_name='invoiceitems'
     )
     product = models.ForeignKey(  # changed from ManyToManyField to ForeignKey
         "Product",
         on_delete=models.CASCADE,
-        related_name="quotation_items"
+        related_name="invoice_items"
     )
-    request_date = models.DateTimeField(null=True, blank=True)
     quantity = models.PositiveIntegerField()
     unit_cost = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
     unit = models.ForeignKey("Unit", on_delete=models.SET_NULL, null=True, blank=True)
@@ -138,9 +167,3 @@ class QuotationItem(CustomBase):  # Singular name is conventional
             "description": self.description,
         }
         
-    
-     
-        
- 
-    
- 

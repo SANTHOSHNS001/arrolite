@@ -29,6 +29,9 @@ class Product(CustomBase):
         ordering = ["-created_at"]
     def __str__(self):
         return f"{self.name}"
+    @property
+    def price_cents(self):
+       return int(round(self.price * 100)) if self.price else 0
     
 class ProductImage(CustomBase):
     product = models.ForeignKey(
