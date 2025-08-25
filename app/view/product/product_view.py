@@ -270,15 +270,14 @@ class QuotationReportPdfView(View):
         customer_add="39 Woodlands closeMEGA@woodlands #08-84 \n Singapore 737856"
         left_cell = [
             Paragraph("for", for_style),
-            Paragraph("HN CONSTRUCTION PTE LTD", company_style),
+            Paragraph(f"{quotation.customer.name}", company_style),
             Spacer(1, 5),
-            Paragraph(customer_add.replace("\n", "<br/>"), address_style),
+            Paragraph(f"{quotation.customer.address}", address_style),
         ]
 
         # === Right (TOTAL) ===
         right_cell = [
-            Paragraph("total", total_label_style),
-             Paragraph("total", total_label_style),
+             
               Paragraph("total", total_label_style),
             Paragraph(f"${grand_total:,.2f}", total_value_style),
         ]

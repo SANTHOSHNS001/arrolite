@@ -104,7 +104,6 @@
                 <div class="detail-icon">  
                     <i class="material-icons" onclick="quotation_pdf_download({{ quotation.id }})">download</i>
                 </div>
-                
             </div>
         </div>
            {%endif%} 
@@ -149,55 +148,107 @@
                 {% endfor %}
             </tbody>
             <tfoot>
-            <tr>
-                <th colspan="8" style="text-align:right">Subtotal:</th>
-                    <th colspan="1"style="text-align:left">$ {{ quotation.total_cost|floatformat:2 }}</th>
+                <tr>
+                    <th colspan="8" style="text-align:right">Subtotal:</th>
+                    <th colspan="1" style="text-align:left" 
+                        id="subtotal-val" 
+                        data-value="{{ quotation.total_cost }}">
+                        $ {{ quotation.total_cost|floatformat:2 }}
+                    </th>
                 </tr>
                 <tr>
                     <th colspan="8" style="text-align:right">
-                        Discount{% if quotation.discount %} ({{ quotation.discount }}%){% endif %}:
+                        Discount{% if quotation.discount %} ({{ quotation.discount }}{% if quotation.is_percentage %}%{% endif %}){% endif %}:
                     </th>
-                    <th colspan="1"style="text-align:left">$ {{ quotation.discount_amount|floatformat:2 }}</th>
+                    <th colspan="1" style="text-align:left" id="discount-val">
+                        $ {{ quotation.discount_amount|floatformat:2 }}
+                    </th>
                 </tr>
                 <tr>
                     <th colspan="8" style="text-align:right"><strong>Total :</strong></th>
-                    <th colspan="1"style="text-align:left"><strong>$ {{ quotation.payable_total|floatformat:2 }}</strong></th>
+                    <th colspan="1" style="text-align:left" id="balance-val">
+                        <strong>$ {{ quotation.payable_total|floatformat:2 }}</strong>
+                    </th>
                 </tr>
-            </tfoot>
+           </tfoot>
+
         </table>
        {%if quotation.approver_status == "pending" %}
         <div class="card-fooder">
             <form method="post"  >
                 {% csrf_token %}
-                                <div class="action-btn mt-2" style="display: flex;justify-content: space-around;">
-                                    <label><b>Action:</b></label>
-                                    <select class="form-control d-inline-block" id="action" name="status" style="width: 150px;">
-                                        <option value="">--Select--</option>
-                                        <option value="approved">Approve</option>
-                                        <option value="rejected">Reject</option>
-                                        <option value="cancelled">Cancel</option>
-                                    </select>
+                <div class="action-btn mt-2" style="display: flex;justify-content: space-around;">
+                    <label><b>Action:</b></label>
+                    <select class="form-control d-inline-block" id="action" name="status" style="width: 150px;">
+                        <option value="">--Select--</option>
+                        <option value="approved">Approve</option>
+                        <option value="rejected">Reject</option>
+                        <option value="cancelled">Cancel</option>
+                    </select>
 
-                                    <label class="ml-3"><b>Discount (%):</b></label>
-                                    <input type="number" class="form-control d-inline-block" id="discount" min="0" max="100" name="discount" style="width: 100px;" placeholder="0">
+                        <div class="mb-3">
+                        <label class="ml-3" id="discount-label">
+                            <b>Discount:</b>
+                        </label>
+                        <input type="text" class="form-control d-inline-block" 
+                                id="discount" min="0" max="100" 
+                                name="discount" style="width: 100px;" placeholder="0">
+                        <input type="checkbox" id="check-valid" name="is_discount"> %
+                        </div>
+                        
 
-                                    <button type="submit" class="btn btn-primary ml-2"  >
-                                        Submit
-                                    </button>
-                                </div>
+                    <button type="submit" class="btn btn-primary ml-2"  >
+                        Submit
+                    </button>
+                </div>
             </form>
         </div>
         {%endif%}
         <div>
-        <button type="button" class="btn btn-info"   onclick="printPart()"><i class="fa fa-print"></i> Print </button>
+        {% comment %} <button type="button" class="btn btn-info"   onclick="printPart()"><i class="fa fa-print"></i> Print </button> {% endcomment %}
         </div>
   </div>
-
 </div>
 
 {% endblock %}
 {% block js %}
 <script>
+   document.addEventListener("DOMContentLoaded", function () {
+    const subtotalEl   = document.getElementById("subtotal-val");
+    const discountEl   = document.getElementById("discount-val");
+    const balanceEl    = document.getElementById("balance-val");
+
+    const discountInput  = document.getElementById("discount");
+    const discountCheck  = document.getElementById("check-valid");
+
+    // Initial subtotal (raw value from dataset)
+    const subtotal = parseFloat(subtotalEl.dataset.value) || 0;
+
+    function recalc() {
+        let discountNew = parseFloat(discountInput.value) || 0;
+        let isPercent   = discountCheck.checked;
+
+        // --- Discount calculation ---
+        let discountAmt = 0;
+        if (discountNew > 0) {
+            discountAmt = isPercent
+                ? subtotal * (discountNew / 100)   // % mode
+                : discountNew;                     // flat mode
+        }
+
+        // --- Balance due ---
+        let balance = subtotal - discountAmt;
+        if (balance < 0) balance = 0;
+
+        // --- Update DOM ---
+        discountEl.textContent = "$ " + discountAmt.toFixed(2);
+        balanceEl.textContent  = "$ " + balance.toFixed(2);
+    }
+
+    // --- Event bindings ---
+    discountInput.addEventListener("input", recalc);
+    discountCheck.addEventListener("change", recalc);
+});
      
 function printPart() {
     var content = document.getElementById("printSection").innerHTML;

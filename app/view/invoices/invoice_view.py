@@ -166,38 +166,52 @@ class InvoiceDetails(View):
         quotation = get_object_or_404(Invoice, id=pk)
         print("request.POST", request.POST)
 
-        # Read inputs
+        # --- Read inputs ---
         status_str   = request.POST.get('status')
         discount_str = request.POST.get('discount')
         deposit_str  = request.POST.get('deposit')
         is_disc_flag = request.POST.get('is_discount', 'off') == 'on'
 
-        # Validate status present
+        # --- Validate status ---
         if not status_str:
-            quotation_items = InvoiceItem.objects.filter(invoice=quotation)  # <-- FIXED: use invoice=
+            quotation_items = InvoiceItem.objects.filter(invoice=quotation)
+            messages.error(request, "Status is required.")
             return render(request, self.template, {
                 'quotation': quotation,
                 'quotationsitems': quotation_items,
                 'error': 'Status is required.',
             })
 
-        # Parse numbers safely as Decimal
+        # --- Parse deposit safely ---
         try:
             advance = Decimal(str(deposit_str or 0))
         except (InvalidOperation, TypeError, ValueError):
             quotation_items = InvoiceItem.objects.filter(invoice=quotation)
+            messages.error(request, "Invalid deposit amount")
             return render(request, self.template, {
                 'quotation': quotation,
                 'quotationsitems': quotation_items,
                 'error': 'Invalid deposit amount.',
             })
 
-        # Handle discount (optional)
+        # --- Prevent overpayment ---
+        balance_due = quotation.balance_due
+        if advance > balance_due:
+            quotation_items = InvoiceItem.objects.filter(invoice=quotation)
+            messages.error(request, f'Deposit ({advance}) cannot exceed balance due ({balance_due}).')
+            return render(request, self.template, {
+                'quotation': quotation,
+                'quotationsitems': quotation_items,
+                'error': f'Deposit ({advance}) cannot exceed balance due ({balance_due}).',
+            })
+
+        # --- Handle discount (optional) ---
         if discount_str not in (None, ""):
             try:
                 discount_val = Decimal(str(discount_str))
             except (InvalidOperation, TypeError, ValueError):
                 quotation_items = InvoiceItem.objects.filter(invoice=quotation)
+                messages.error(request, "Invalid discount format")
                 return render(request, self.template, {
                     'quotation': quotation,
                     'quotationsitems': quotation_items,
@@ -208,6 +222,7 @@ class InvoiceDetails(View):
             if is_disc_flag:
                 if not (Decimal("0") <= discount_val <= Decimal("100")):
                     quotation_items = InvoiceItem.objects.filter(invoice=quotation)
+                    messages.error(request, "Percentage discount must be between 0 and 100.")
                     return render(request, self.template, {
                         'quotation': quotation,
                         'quotationsitems': quotation_items,
@@ -225,31 +240,32 @@ class InvoiceDetails(View):
             quotation.discount = discount_val
             quotation.is_percentage = is_disc_flag
 
-        # --- Add new deposit (CRITICAL: do NOT overwrite; accumulate) ---
+        # --- Apply deposit ---
         if advance > 0:
             quotation.advance_amount = (quotation.advance_amount or Decimal("0.00")) + advance
             quotation.save(update_fields=["advance_amount", "discount", "is_percentage"])
             quotation.refresh_from_db()
 
-        # Recompute after any changes
+        # --- Recompute balance ---
         balance_due = quotation.balance_due
         print("quotation.balance_due", balance_due)
         print("advance just received", advance)
         print("total paid so far", quotation.total_paid)
 
         # --- Status logic ---
-        # If user set "paid":
         if status_str == 'paid':
             if balance_due <= 0:
                 quotation.approver_status = 'paid'
             else:
                 quotation.approver_status = 'pending_payment'
         else:
-            # Otherwise accept requested status as-is
             quotation.approver_status = status_str
 
-        # Optional: protect against unauthorized edits
-        if not (quotation.approver == request.user and quotation.approver_status in ['pending', 'pending_payment', 'paid', status_str]):
+        # --- Optional: protect against unauthorized edits ---
+        if not (
+            quotation.approver == request.user
+            and quotation.approver_status in ['pending', 'pending_payment', 'paid', status_str]
+        ):
             quotation_items = InvoiceItem.objects.filter(invoice=quotation)
             return render(request, self.template, {
                 'quotation': quotation,
@@ -257,6 +273,7 @@ class InvoiceDetails(View):
                 'error': 'You are not allowed to update this quotation.',
             })
 
+        # --- Save final state ---
         quotation.save(update_fields=["approver_status", "discount", "is_percentage"])
         return redirect('quotation_invoice')
     
@@ -438,10 +455,11 @@ class InvoiceReportPdfView(View):
         customer_add="39 Woodlands closeMEGA@woodlands #08-84 \n Singapore 737856"
         left_cell = [
             Paragraph("for", for_style),
-            Paragraph("HN CONSTRUCTION PTE LTD", company_style),
+            Paragraph(f"{quotation.customer.name}", company_style),
             Spacer(1, 5),
-            Paragraph(customer_add.replace("\n", "<br/>"), address_style),
+           Paragraph(f"{quotation.customer.address}", address_style),
         ]
+         
 
          # === Right (TOTAL / DEPOSIT / BALANCE) as 2-column inner table ===
         right_inner_table = Table(

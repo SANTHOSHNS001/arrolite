@@ -1,8 +1,7 @@
 
 {% extends 'base/container.html' %}
 {% load static %}
-{% block title %}Product {% endblock %}
-
+{% block title %}Invoice{% endblock %}
 {% block style %}
 
 <style>
@@ -72,16 +71,16 @@
     <div class="card ">
           <!--Qoutaion List Table Start-->
                  <div class="adv-table">
-                       <table class="display table table-bordered" id="hidden-table-info">
+                       <table class="display table table-bordered" id="invoice-table">
                             <thead>
                                <tr>  
-                                    <th style="display:none">Id</th>
+                                    <th>S.NO</th>
                                     <th>Invoice Number</th>
                                     <th>Request By</th>
                                     <th>Customer</th>                                  
                                     <th>Request Date</th>
                                     <th>Status</th>
-                                    <th style="display:none">Item-json</th>    
+                              
                                 </tr>
                             </thead>
                             <tbody>
@@ -89,7 +88,7 @@
                                 {% for quotation in quotations%}
                               
                                 <tr class="gradeX">
-                                    <th style="display:none" data-id="{{quotation.id}}" data-user="{{quotation.approver.id}}" data-status="{{quotation.approver_status}}" >{{quotation.id}}</th>
+                                    <td  >{{forloop.counter}}</td>
                                     <td onclick="window.location.href='{% url 'invoice_details' quotation.id %}'">{{quotation.invoice_number}}</td>
                                     <td onclick="window.location.href='{% url 'invoice_details' quotation.id %}'">{{quotation.approver.get_full_name}}</td>
                                     <td onclick="window.location.href='{% url 'invoice_details' quotation.id %}'">{{quotation.customer.name}}</td>
@@ -163,15 +162,14 @@
 </div>
 {% endblock %}
 {% block js %}
-       <script>
-               
- $('#approve-table').dataTable({
-                    "aaSorting": [[2, "asc"]]  // Example
-                });
-
-            
-      </script>
+     
  <script>
+   $(document).ready(function() {
+    $('#invoice-table').DataTable({
+            ordering: false,
+    order: [['all', 'asc']]   // 0 = first column, ascending +dec oder 
+    });
+});
 
 function Apitest(id) {
  

@@ -1,11 +1,10 @@
 
 {% extends 'base/container.html' %}
 {% load static %}
-{% block title %}Product {% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block style %}
  <style>
- 
     .custom-card {
         background: linear-gradient(82deg, #5a1c44, #ff55be);
         border-radius: 15px;
@@ -17,23 +16,23 @@
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         transition: transform 0.3s ease;
     }
-.custom-card.users {
-    background: linear-gradient(61deg, #181544, #8b9ff0);
-}
-/* Subcategories */
-.custom-card.card-subcategory {
-    background: linear-gradient(61deg, #8f7f08, #f8d020);
-}
+  .custom-card.users {
+      background: linear-gradient(61deg, #181544, #8b9ff0);
+  }
+  /* Subcategories */
+  .custom-card.card-subcategory {
+      background: linear-gradient(61deg, #8f7f08, #f8d020);
+  }
 
-/* Products */
-.custom-card.card-product {
-    background: linear-gradient(61deg, #08691a, #78fc3b);
-}
+  /* Products */
+  .custom-card.card-product {
+      background: linear-gradient(61deg, #08691a, #78fc3b);
+  }
 
-/* Brand-themed card (Black & Red) */
-.custom-card.brand {
-    background: linear-gradient(61deg, #1a1a1a, #ff1e1e);
-}
+  /* Brand-themed card (Black & Red) */
+  .custom-card.brand {
+      background: linear-gradient(61deg, #1a1a1a, #ff1e1e);
+  }
 
 /* Optional: dark theme with a hint of red */
 .custom-card.brand-dark {

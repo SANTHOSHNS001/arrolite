@@ -98,7 +98,7 @@ class Invoice(CustomBase):
         IMPORTANT: multiply unit_cost * quantity (this was missing before).
         """
         return sum(
-            (item.unit_cost or Decimal("0.00")) * Decimal(item.quantity or 0)
+            (item.unit_cost or Decimal("0.00"))  
             for item in self.invoiceitems.all()
         ) or Decimal("0.00")
 

@@ -18,6 +18,7 @@
               <table  class="display table table-bordered table-striped" id="dynamic-table">
               <thead>
               <tr>
+                  <th>S.No</th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Phone</th>
@@ -27,6 +28,7 @@
               <tbody>
                 {% for customer in customers%}
               <tr class="gradeX">
+                <td>{{forloop.counter}}</td>
                   <td>{{customer.name}}</td>
                   <td >{{customer.email}}</td> 
                   <td>{{customer.phone_number}}</td>
