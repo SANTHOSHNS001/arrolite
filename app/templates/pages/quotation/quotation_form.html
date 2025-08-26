@@ -201,10 +201,7 @@
     $(document).ready(function () {
     let counter = 0;
 
-    const unitMap = {
-        '1': 'mm', '2': 'cm', '3': 'm', '4': 'in', '5': 'ft',
-        '6': 'mm²', '7': 'cm²', '8': 'm²', '9': 'in²', '10': 'ft²'
-    };
+   
 
     const PRODUCTS_DATA = {
         {% for product in products %}
@@ -218,56 +215,60 @@
         {% endfor %}
     };
 
-    function convertToMM(value, unitSymbol) {
-        const conversionRates = {
-            'mm': 1, 'cm': 10, 'm': 1000, 'in': 25.4, 'ft': 304.8,
-            'mm²': 1, 'cm²': 100, 'm²': 1000000, 'in²': 645.16, 'ft²': 92903.04
-        };
-        return value * (conversionRates[unitSymbol.toLowerCase()] || 1);
+    const UNIT_MAP = {
+    {% for u in units %}
+    "{{ u.symbol }}": {{ u.to_mm_factor }},
+    {% endfor %}
+};
+
+function convertToMM(value, unitSymbol) {
+    const factor = UNIT_MAP[unitSymbol] || 1;
+    return value * factor;
+}
+
+function calculateTotal(row) {
+    const qty = parseFloat(row.find('.qty-input').val()) || 0;
+    const selectedOption = row.find('.product-select option:selected');
+    const productId = selectedOption.val();
+    const product = PRODUCTS_DATA[productId];
+    const widthRow = row.find('.dimension-row');
+
+    if (!product || !product.price) {
+        row.find('.total-cost').val("Invalid");
+        widthRow.hide();
+        return;
     }
 
-    function calculateTotal(row) {
-        const qty = parseFloat(row.find('.qty-input').val()) || 0;
-        const selectedOption = row.find('.product-select option:selected');
-        const productId = selectedOption.val();
-        const product = PRODUCTS_DATA[productId];
-        const widthRow = row.find('.dimension-row');
-  
-        if (!product || !product.price) {
-            row.find('.total-cost').val("Invalid");
-            widthRow.hide()
-            return;
-        }
+    const hasDimensions = product.width && product.height;
 
-        const hasDimensions = product.width && product.height;
+    if (hasDimensions) {
+        widthRow.show();
 
-        if (hasDimensions) {
-            widthRow.show(); // Sh
-            const width = parseFloat(row.find('input[name^="width_"]').val()) || 0;
-            const height = parseFloat(row.find('input[name^="height_"]').val()) || 0;
+        const width = parseFloat(row.find('input[name^="width_"]').val()) || 0;
+        const height = parseFloat(row.find('input[name^="height_"]').val()) || 0;
 
-            const inputUnit = row.find('.unit-select').val() || '1';
-            const selectedUnitName = unitMap[inputUnit] || 'mm';
-            const productUnitName = product.unit || 'mm';
+        // unit from dropdown (now symbol like "mm", "cm", etc.)
+        const inputUnit = row.find('.unit-select').val() || 'mm';
+        const productUnit = product.unit || 'mm';
 
-            const widthInMM = convertToMM(width, selectedUnitName);
-            const heightInMM = convertToMM(height, selectedUnitName);
-            const productWidthInMM = convertToMM(product.width, productUnitName);
-            const productHeightInMM = convertToMM(product.height, productUnitName);
+        const widthInMM = convertToMM(width, inputUnit);
+        const heightInMM = convertToMM(height, inputUnit);
+        const productWidthInMM = convertToMM(product.width, productUnit);
+        const productHeightInMM = convertToMM(product.height, productUnit);
 
-            const productArea = productWidthInMM * productHeightInMM || 1;
-            const requestedArea = widthInMM * heightInMM;
+        const productArea = productWidthInMM * productHeightInMM || 1;
+        const requestedArea = widthInMM * heightInMM;
 
-            const scale = requestedArea / productArea;
-            const total = qty * product.price * scale;
+        const scale = requestedArea / productArea;
+        const total = qty * product.price * scale;
 
-            row.find('.total-cost').val(total.toFixed(2));
-        } else {
-             widthRow.hide(); // Hide dimension inputs
-            const total = qty * product.price;
-            row.find('.total-cost').val(total.toFixed(2));
-        }
+        row.find('.total-cost').val(total.toFixed(2));
+    } else {
+        widthRow.hide();
+        const total = qty * product.price;
+        row.find('.total-cost').val(total.toFixed(2));
     }
+}
 
     function updateProductDropdowns() {
         const selectedValues = $('.product-select').map(function () {
@@ -316,7 +317,7 @@
                <input type="number" class="form-control" name="height_${counter}" placeholder="Height" />
                <select class="form-control unit-select select2" name="unit_${counter}">
                 {% for unit in units %}
-                    <option value="{{ unit.id }}">{{ unit.symbol }}</option>
+                    <option value="{{ unit.symbol }}">{{ unit.symbol }}</option>
                 {% empty %}
                     <option disabled>No Unit available</option>
                 {% endfor %}

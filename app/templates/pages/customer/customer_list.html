@@ -23,6 +23,8 @@
                   <th>Email</th>
                   <th>Phone</th>
                   <th>Gst Number</th>
+                  <th>Action</th>
+
               </tr>
               </thead>
               <tbody>
@@ -32,7 +34,17 @@
                   <td>{{customer.name}}</td>
                   <td >{{customer.email}}</td> 
                   <td>{{customer.phone_number}}</td>
-                  <td >{{customer.gst_number}}</td>                 
+                  <td >{{customer.gst_number}}</td>  
+                  <td>
+                      <button id ="edit-customer-btn" data-toggle="modal"  href="#customer-edit-model" class="btn btn-edi btn-sm edit-customer-btn" data-id="{{customer.id}}"
+                        data-name="{{customer.name}}" 
+                        data-email="{{customer.email}}" 
+                        data-phone_prefix="{{customer.phone_prefix}}" 
+                        data-phone_number="{{customer.phone_number}}" 
+                        data-gst_number="{{customer.gst_number}}"  
+                        data-address="{{customer.address}}"><i class="fa fa-pencil"></i></button>
+                      <button class="btn btn-del btn-sm" onclick="confirmDeletedUpdate('{% url 'customer_delete' customer.id%}')"><i class="fa fa-trash-o "></i></button>
+                  </td>               
               </tr>
               {%endfor%}
              
@@ -43,6 +55,68 @@
               </table>
               </div>
     </div>
+
+
+
+    <!-- Model Add Customer Add Part-->
+
+        <div class="modal fade" id="customer-edit-model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="myModal3">Edit</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                          <form class="" id="customer-form">
+                                {% csrf_token %}
+                                    <div class="form-group row">
+                                        <label for="inputEmail3" class="col-sm-2 col-form-label">Name</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" class="form-control" id="name" name="name" placeholder="Name" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="inputEmail3" class="col-sm-2 col-form-label">Email</label>
+                                        <div class="col-sm-10">
+                                            <input type="email" class="form-control" name="email" id="email" placeholder="Email" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="phonenumber" class="col-sm-2 col-form-label">Phone Number</label>
+                                        <div class="col-sm-10">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" name="phone_prefix" id="phone_prefix"
+                                                placeholder="+65" maxlength="5" style="max-width: 80px;" required>
+                                            <input type="tel" class="form-control" name="phone_number" id="phone_number"
+                                                placeholder="Enter phone number" pattern="[0-9]{10}" maxlength="10" required>
+                                        </div>                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="gstnumber" class="col-sm-2 col-form-label">GST Number</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" class="form-control"name="gst_number" id="gstnumber" placeholder="GST Number" required>
+                                        </div>
+                                    </div>  
+                                    <div class="form-group row">
+                                        <label for="gstnumber" class="col-sm-2 col-form-label">Address</label>
+                                        <div class="col-sm-10">
+                                           <textarea class="form-control" name="address" id="address" placeholder="Enter Address" rows="2"  ></textarea>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-primary" id ="submit-customer">Update</button>
+                                    </div>
+                                </form>
+                       </div>
+                </div>
+            </div>
+        </div>
+        <!-- Model Add Customer Edit Part-->
     </div>
  
 
@@ -54,6 +128,65 @@
   $('#dynamic-table').dataTable( {
             "aaSorting": [[ 4, "desc" ]]
         } );
+
+$(function () {
+    const modal = $("#customer-edit-model");
+    const form = $("#customer-form");
+
+    // Populate modal form
+    $(document).on("click", ".edit-customer-btn", function () {
+        $("#customer-form").trigger("reset");  // reset form each time
+
+        const btn = $(this);
+
+        form.attr("data-id", btn.data("id"));
+        form.find("#name").val(btn.data("name"));
+        form.find("#email").val(btn.data("email"));
+        form.find("#phone_prefix").val(btn.data("phone_prefix"));
+        form.find("#phone_number").val(btn.data("phone_number"));
+        form.find("#gstnumber").val(btn.data("gst_number"));  // matches your <input id="gstnumber">
+        form.find("#address").val(btn.data("address"));
+    });
+
+    // Submit updated form via AJAX
+    $("#submit-customer").click(function () {
+        const id = form.attr("data-id");
+        const url = "{% url 'customer_edit' 0 %}".replace("0", id);
+
+        const data = {
+            name: form.find("#name").val(),
+            email: form.find("#email").val(),
+            phone_prefix: form.find("#phone_prefix").val(),
+            phone_number: form.find("#phone_number").val(),
+            gst_number: form.find("#gstnumber").val(),
+            address: form.find("#address").val()
+        };
+        console.log("Submitting data:", data);
+
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: JSON.stringify(data),
+            contentType: "application/json",
+            headers: { "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val() },
+            success: function (res) {
+                console.log("Response:", res);
+                if (res.success === true) {    
+                    modal.modal("hide");
+                    location.reload();
+                } else {
+                    console.log(res.errors);
+                    alert("Validation error");
+                }
+            },
+            error: function (err) {
+                console.error("Server error:", err.responseText);
+                alert("Server error");
+            }
+        });
+    });
+});
+
 </script>
 
 

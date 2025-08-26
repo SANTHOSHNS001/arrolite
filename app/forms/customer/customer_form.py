@@ -50,9 +50,10 @@ class CustomerUserRegisterForm(forms.ModelForm):
          
 class CustomerRegisterFrom(forms.ModelForm):
     # specify the name of model to use
+    gst_number = forms.CharField(required=False)  # <--- not required
      
     class Meta:
         model = Customer
-        fields = ['email', 'phone_number', 'phone_prefix', 'name', 'address']
+        fields = ['email', 'phone_number', 'phone_prefix', 'name', 'address','gst_number']
 
   

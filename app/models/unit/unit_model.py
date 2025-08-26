@@ -4,6 +4,8 @@ from app.models.base_model.basemodel import CustomBase
 class Unit(CustomBase):
     name = models.CharField(max_length=50, unique=True)  # e.g., Centimeters
     symbol = models.CharField(max_length=15, unique=True)  # e.g., cm, in, ft
+    to_mm_factor = models.FloatField(default=1)  
+    
     class Meta:
         verbose_name = "unit"
         verbose_name_plural = "units"

@@ -10,7 +10,7 @@ from app.view.product.product_view import ProductDelete, ProductEditView, Produc
 from app.view.quotation.quotation_view import QuotationApprovalView,   QuotationListView, QuotationReportView, QuotationRequestView, QuotationView,QuotationApprove
 from app.view.sub_category.sub_category_view import SubCategoryDelete, SubCategoryEditView, SubCategoryListView
 from app.view.category.category_view import CategoryDelete, CategoryEditView, CategoryListView
-from app.view.customer.customer_view import CustomUserRegister, CustomUserUpdate, CustomerList, CustomerRegister, CustomuserList, Login, UserLogoutView
+from app.view.customer.customer_view import CustomUserRegister, CustomUserUpdate, CustomerList, CustomerRegister, CustomerUpdate, CustomuserList, Login, UserLogoutView, customerDelete
 from app.view.unit.unit_view import UnitDelete, UnitEditView, UnitListView
  
 urlpatterns = [
@@ -45,19 +45,15 @@ urlpatterns = [
                 path("quotaion-report/", QuotationReportView.as_view(), name="quotaion_report") , 
                 # Customer Path
                 path("customer-list/", CustomerList.as_view(), name="customer_list") , 
+                path("customer-edit/<int:pk>", CustomerUpdate.as_view(), name="customer_edit") , 
+                path("customer-delete/<int:pk>", customerDelete.as_view(), name="customer_delete") , 
+                 
                 # Invoice List
                 path("invoice-list/", InvoiceListView.as_view(), name="quotation_invoice"),  
                 path("invoice-request/", InvoiceRequestView.as_view(), name="invoice_request"),
                 path("invoice-details/<int:pk>", InvoiceDetails.as_view(), name="invoice_details"),
                 path("invoice-invoice_bill/", InvoiceReportPdfView.as_view(), name="invoice_bill"),
-                
-                
-                
-                
-                
-                
-
-                
+                 
                 # Permission Path
                 path("permission-setting", PermissionSetting.as_view(), name="permission_setting"),
                 path("permission-add", PermissionAdd.as_view(), name="permission_add"), 
