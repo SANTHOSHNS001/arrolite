@@ -143,6 +143,14 @@
                 {% endfor %}
             </tbody>
             <tfoot>
+                <tr>
+                        <th colspan="8" style="text-align:right">
+                            Discount{% if quotation.discount %} ({{ quotation.discount }}{% if quotation.is_percentage %}%{% endif %}){% endif %}:
+                        </th>
+                        <th colspan="1" style="text-align:left" id="discount-val">
+                            $ {{ quotation.discount_amount|floatformat:2 }}
+                        </th>
+                    </tr>
                     <tr>
                         <th colspan="8" style="text-align:right">Deposit:</th>
                         <th colspan="1" style="text-align:left" 
@@ -157,14 +165,7 @@
                             $ {{ quotation.total_cost|floatformat:2 }}
                         </th>
                     </tr>
-                    <tr>
-                        <th colspan="8" style="text-align:right">
-                            Discount{% if quotation.discount %} ({{ quotation.discount }}{% if quotation.is_percentage %}%{% endif %}){% endif %}:
-                        </th>
-                        <th colspan="1" style="text-align:left" id="discount-val">
-                            $ {{ quotation.discount_amount|floatformat:2 }}
-                        </th>
-                    </tr>
+                    
                     <tr>
                         <th colspan="8" style="text-align:right"><strong>Balance Due:</strong></th>
                         <th colspan="1" style="text-align:left" id="balance-val">

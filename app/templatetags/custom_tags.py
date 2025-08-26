@@ -14,7 +14,10 @@ def get_sidebar_menu():
         {"url": "quotation_waiting", "name": "Approved", "icon": "pending_actions", "perm": "app.can_approve_quotation"},
         {"url": "quotation_invoice", "name": "Invoice", "icon": "receipt", "perm": "app.can_assign_approver_quotation"}, 
         {"url": "permission_setting", "name": "Permission", "icon": "admin_panel_settings", "perm": "app.can_assign_approver_quotation"},
-        {"url": "quotaion_report", "name": "Report", "icon": "assignment", "perm": "app.can_assign_approver_quotation"},
+        {"url": "quotaion_report", "name": "Quotaion Report", "icon": "assignment", "perm": "app.can_assign_approver_quotation"},
+        {"url": "invoice_report", "name": "Invoice Report", "icon": "assignment", "perm": "app.can_assign_approver_quotation"},
+        
+        
         
         {"url": "unit_list", "name": "Unit", "icon": "ac_unit", "perm": "app.manage_unit"},
         {"url": "iso_list", "name": "ISO-Size", "icon": "apps", "perm": "app.can_manage_isosize"},

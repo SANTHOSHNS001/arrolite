@@ -210,7 +210,8 @@ class QuotationReportPdfView(View):
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                # ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                 ("BOTTOMPADDING", (0, 0), (-1, -1), 3),  # ⬅ adds little space after each row
             ])
 
         # Left and right info blocks
@@ -331,11 +332,11 @@ class QuotationReportPdfView(View):
         # First separator "or"
         canvas.setFont("Helvetica-Bold", 12)
         canvas.setFillColor(colors.red)
-        canvas.drawString(doc.leftMargin + 6 * cm, 2.0 * cm, "or")
+        canvas.drawString(doc.leftMargin + 5 * cm, 2.0 * cm, "or")
 
         # PayNow logo
         paynow_img_path = os.path.join(settings.BASE_DIR, 'static', 'ac-imgs', 'paynow.png')
-        canvas.drawImage(paynow_img_path, doc.leftMargin + 7 * cm, 1.5 * cm, width=1.1 * cm, height=1 * cm, mask='auto')
+        canvas.drawImage(paynow_img_path, doc.leftMargin + 7 * cm, 1.5 * cm, width=1.3 * cm, height=1 * cm, mask='auto')
 
         # UEN and company name
         canvas.setFont("Helvetica-Bold", 10)
@@ -349,16 +350,12 @@ class QuotationReportPdfView(View):
         # Second separator "or"
         canvas.setFont("Helvetica-Bold", 12)
         canvas.setFillColor(colors.red)
-        canvas.drawString(doc.leftMargin + 13.3 * cm, 2.0 * cm, "or")
+        canvas.drawString(doc.leftMargin + 12.2 * cm, 2.0 * cm, "or")
 
         # Scan Me image
         scan_img_path = os.path.join(settings.BASE_DIR, 'static', 'ac-imgs', 'scan_me.png')
         canvas.drawImage(scan_img_path, doc.leftMargin + 14 * cm, 1.4 * cm, width=2* cm, height=1.6 * cm, mask='auto')
 
-        # QR code
-        # canvas.setFont("Helvetica-Bold", 8)
-        # canvas.setFillColor(colors.black)
-        # canvas.drawString(doc.leftMargin + 14 * cm, 1.7 * cm, "Scan me")
         qr_img_path = os.path.join(settings.BASE_DIR, 'static', 'ac-imgs', 'qr_img.jpeg')
         canvas.drawImage(qr_img_path, doc.leftMargin + 16 * cm, 0.6 * cm, width=3 * cm, height=3 * cm, mask='auto')
 

@@ -3,7 +3,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from app.view.home import HomePageView
-from app.view.invoices.invoice_view import InvoiceDetails, InvoiceListView, InvoiceReportPdfView, InvoiceRequestView
+from app.view.invoices.invoice_view import InvoiceDetails, InvoiceListView, InvoiceReportPdfView, InvoiceReportView, InvoiceRequestView
 from app.view.iso_series.iso_view import ISOSizeDelete, ISOSizeEditView, ISOSizeListView
 from app.view.permission.permission import GroupUpdateView, GroupUserAddorUpdateView, PermissionAdd, PermissionSetting
 from app.view.product.product_view import ProductDelete, ProductEditView, ProductListView, QuotationReportPdfView
@@ -53,6 +53,7 @@ urlpatterns = [
                 path("invoice-request/", InvoiceRequestView.as_view(), name="invoice_request"),
                 path("invoice-details/<int:pk>", InvoiceDetails.as_view(), name="invoice_details"),
                 path("invoice-invoice_bill/", InvoiceReportPdfView.as_view(), name="invoice_bill"),
+                path("Invoice-report/", InvoiceReportView.as_view(), name="invoice_report") , 
                  
                 # Permission Path
                 path("permission-setting", PermissionSetting.as_view(), name="permission_setting"),

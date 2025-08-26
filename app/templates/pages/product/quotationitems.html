@@ -106,15 +106,16 @@
             </tbody>
             <tfoot>
             <tr>
-                <th colspan="8" style="text-align:right">Subtotal:</th>
-                    <th colspan="1"style="text-align:left">$ {{ quotation.total_cost|floatformat:2 }}</th>
-                </tr>
                 <tr>
                     <th colspan="8" style="text-align:right">
                         Discount{% if quotation.discount %} ({{ quotation.discount }}%){% endif %}:
                     </th>
                     <th colspan="1"style="text-align:left">$ {{ quotation.discount_amount|floatformat:2 }}</th>
                 </tr>
+                <th colspan="8" style="text-align:right">Subtotal:</th>
+                    <th colspan="1"style="text-align:left">$ {{ quotation.total_cost|floatformat:2 }}</th>
+                </tr>
+                
                 <tr>
                     <th colspan="8" style="text-align:right"><strong>Total :</strong></th>
                     <th colspan="1"style="text-align:left"><strong>$ {{ quotation.payable_total|floatformat:2 }}</strong></th>

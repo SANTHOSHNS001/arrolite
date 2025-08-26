@@ -78,8 +78,6 @@ class QuotationRequestView(View):
         user_id = request.POST.get("user")
         description = request.POST.get("description")
         iso_size = request.POST.get("iso_size")
-        
-        
         if not requite_date or not user_id:
             messages.error(request, "Request date and user are required.")
             return self.render_with_context(request)

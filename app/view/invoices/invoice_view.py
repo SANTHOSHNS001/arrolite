@@ -1,6 +1,8 @@
  
 
+from datetime import datetime
 from decimal import Decimal
+from django.db import DatabaseError
 from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
 from app.models.customer_model.customer_model import CustomUser, Customer
@@ -333,10 +335,10 @@ class InvoiceReportPdfView(View):
 
         # Define Styles
         title_style = ParagraphStyle(
-            "title", fontName="Gotham-Bold", fontSize=90, textColor=colors.red, leading=87
+            "title", fontName="Gotham-Bold", fontSize=89, textColor=colors.red, leading=87
         )
         subtitle_style = ParagraphStyle(
-            "subtitle", fontName="GothamLight", fontSize=25, textColor=colors.black, backColor=colors.white, leading=30
+            "subtitle", fontName="GothamLight", fontSize=26, textColor=colors.black, backColor=colors.white, leading=30
         )
         label_style = ParagraphStyle(
             "label", fontName="GothamBold", fontSize=8, textColor=colors.black
@@ -350,7 +352,7 @@ class InvoiceReportPdfView(View):
 
         # Left Block (hello + subtitle)
         hello = Paragraph("<b>hello</b>", title_style)
-        subtitle = Paragraph('this is your <font color="red"><b> invoice</b></font>', subtitle_style)
+        subtitle = Paragraph('this is your <font name="GothamBold" color="red" >invoice</font>', subtitle_style)
 
         left_block = Table([[hello], [subtitle]], colWidths=[12 * cm], style=[
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
@@ -395,7 +397,7 @@ class InvoiceReportPdfView(View):
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
             ])
 
         # Left and right info blocks
@@ -511,7 +513,7 @@ class InvoiceReportPdfView(View):
 
         # OCBC Logo
         ocbc_img_path = os.path.join(settings.BASE_DIR, 'static', 'ac-imgs', 'ocbc_logo.png')
-        canvas.drawImage(ocbc_img_path, doc.leftMargin, 1.3 * cm, width=1.3 * cm, height=1.3 * cm, mask='auto')
+        canvas.drawImage(ocbc_img_path, doc.leftMargin, 1.3 * cm, width=1.2 * cm, height=1.3 * cm, mask='auto')
         
 
         # OCBC Bank Text
@@ -529,7 +531,7 @@ class InvoiceReportPdfView(View):
         # First separator "or"
         canvas.setFont("Helvetica-Bold", 12)
         canvas.setFillColor(colors.red)
-        canvas.drawString(doc.leftMargin + 6 * cm, 2.0 * cm, "or")
+        canvas.drawString(doc.leftMargin + 5 * cm, 2.0 * cm, "or")
 
         # PayNow logo
         paynow_img_path = os.path.join(settings.BASE_DIR, 'static', 'ac-imgs', 'paynow.png')
@@ -547,7 +549,7 @@ class InvoiceReportPdfView(View):
         # Second separator "or"
         canvas.setFont("Helvetica-Bold", 12)
         canvas.setFillColor(colors.red)
-        canvas.drawString(doc.leftMargin + 13.3 * cm, 2.0 * cm, "or")
+        canvas.drawString(doc.leftMargin + 12.2 * cm, 2.0 * cm, "or")
 
         # Scan Me image
         scan_img_path = os.path.join(settings.BASE_DIR, 'static', 'ac-imgs', 'scan_me.png')
@@ -678,3 +680,97 @@ class InvoiceReportPdfView(View):
         doc.build(elements)
         buffer.seek(0)
         return buffer
+    
+class InvoiceReportView(View):
+    template = "pages/invoice/invoice_report.html"
+    def get(self, request):
+        quotations = Invoice.active_objects.all()
+
+        # Distinct approvers from quotations
+        
+        approvers=(
+                quotations
+                .filter(approver__isnull=False)
+                .order_by("approver__id")  
+                .values("approver__id", "approver__first_name","approver__last_name").distinct()
+            )
+        # Distinct customers from quotations
+        customers =(
+                quotations
+                .filter(customer__isnull=False)
+                .order_by("customer__id")  
+                .values("customer__id", "customer__name").distinct()   
+            )
+        context = {
+            'quotations': quotations,
+            'approvers': approvers,
+            'customers': customers,
+        }
+        return render(request, self.template, context)
+      
+
+    def post(self, request):
+        try:
+            filters = {}
+            approver_ids = request.POST.getlist("approver")
+            status_list = request.POST.get("status")
+            customer_ids = request.POST.getlist("customer")
+            quotation_ids = request.POST.getlist("quotation")
+            request_date_str = request.POST.getlist("request_date")
+            if quotation_ids:
+                quotation_ids = quotation_ids
+                filters["id__in"] = quotation_ids
+                
+            if approver_ids:
+                filters["approver__id__in"] = approver_ids
+            if status_list:
+                filters["approver_status"] = status_list
+            if customer_ids:
+                filters["customer__id__in"] = customer_ids
+
+            if request_date_str:
+                try:
+                    if "to" in request_date_str:
+                        start_str, end_str = [d.strip() for d in request_date_str.split("to")]
+                        filters["request_date__date__range"] = (
+                            datetime.strptime(start_str, "%d-%m-%Y").date(),
+                            datetime.strptime(end_str, "%d-%m-%Y").date()
+                        )
+                    else:
+                        filters["request_date__date"] = datetime.strptime(request_date_str.strip(), "%d-%m-%Y").date()
+                except ValueError:
+                    return JsonResponse({"error": "Invalid date format. Use DD-MM-YYYY"}, status=400)
+
+            # Query database
+            quotations_qs = (
+                        Invoice.active_objects.filter(**filters).select_related("approver", "isosize").prefetch_related("customer", "invoiceitems") )                         
+            data = [
+                    {
+                        "id": q.id,
+                        "invoice_number": q.invoice_number,
+                        "price": float(q.total_cost),  # property, not callable
+                        "approver": {
+                            "id": q.approver.id,
+                            "name": f"{q.approver.first_name} {q.approver.last_name}".strip()
+                        } if q.approver else None,
+                        "status": q.get_approver_status_display(),
+                        "discount": float(q.discount) if q.discount is not None else None,
+                        "request_date": q.request_date.strftime("%d-%m-%Y") if q.request_date else None,
+                        "customer": {
+                            "id": q.customer.id,
+                            "name": f"{q.customer.name} "
+                        } if q.customer else None,
+                    }
+                        for q in quotations_qs
+            ]
+            return JsonResponse({
+                "message": "Invoice fetched successfully",
+                "count": len(data),
+                "data": data
+            })
+
+        except DatabaseError as db_err:
+            return JsonResponse({"error": f"Database error: {str(db_err)}"}, status=500)
+        
+        except Exception as e:
+            return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)

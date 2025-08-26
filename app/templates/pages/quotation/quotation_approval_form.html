@@ -149,14 +149,6 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <th colspan="8" style="text-align:right">Subtotal:</th>
-                    <th colspan="1" style="text-align:left" 
-                        id="subtotal-val" 
-                        data-value="{{ quotation.total_cost }}">
-                        $ {{ quotation.total_cost|floatformat:2 }}
-                    </th>
-                </tr>
-                <tr>
                     <th colspan="8" style="text-align:right">
                         Discount{% if quotation.discount %} ({{ quotation.discount }}{% if quotation.is_percentage %}%{% endif %}){% endif %}:
                     </th>
@@ -164,6 +156,15 @@
                         $ {{ quotation.discount_amount|floatformat:2 }}
                     </th>
                 </tr>
+                <tr>
+                    <th colspan="8" style="text-align:right">Subtotal:</th>
+                    <th colspan="1" style="text-align:left" 
+                        id="subtotal-val" 
+                        data-value="{{ quotation.total_cost }}">
+                        $ {{ quotation.total_cost|floatformat:2 }}
+                    </th>
+                </tr>
+                
                 <tr>
                     <th colspan="8" style="text-align:right"><strong>Total :</strong></th>
                     <th colspan="1" style="text-align:left" id="balance-val">
