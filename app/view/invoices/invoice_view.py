@@ -119,7 +119,7 @@ class InvoiceRequestView(View):
                 height = float(post_data.get(f'height_{counter}', 0) or 0)
                 unit_cost = float(post_data.get(f'unit_cost_{counter}', 0) or 0)
                 unit_id = post_data.get(f'unit_{counter}')    
-                unit = Unit.active_objects.get(id=unit_id) if unit_id else None
+                unit = Unit.active_objects.get(symbol=unit_id) if unit_id else None
 
                 if qty > 0:
                     items.append({
@@ -195,7 +195,7 @@ class InvoiceDetails(View):
             })
 
         # --- Prevent overpayment ---
-        balance_due = quotation.balance_due
+        balance_due = round(quotation.balance_due, 2)
         if advance > balance_due:
             quotation_items = InvoiceItem.objects.filter(invoice=quotation)
             messages.error(request, f'Deposit ({advance}) cannot exceed balance due ({balance_due}).')
