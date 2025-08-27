@@ -65,14 +65,14 @@ class InvoiceRequestView(View):
         requite_date = request.POST.get("requite_date")
         user_id = request.POST.get("user")
         description = request.POST.get("description")
-        iso_size = request.POST.get("iso_size")
+        # iso_size = request.POST.get("iso_size")
            
         if not requite_date or not user_id:
             messages.error(request, "Request date and user are required.")
             return self.render_with_context(request)
 
         user = get_object_or_404(Customer.active_objects, id=user_id)
-        iso_size = get_object_or_404(ISOSize.active_objects, id=iso_size)
+        # iso_size = get_object_or_404(ISOSize.active_objects, id=iso_size)
         items = self.extract_valid_items(request.POST)
 
         if not items:
@@ -86,12 +86,12 @@ class InvoiceRequestView(View):
             approver_status ="pending",
             approver = self.request.user,
             description=description,
-            isosize = iso_size,
+            # isosize = iso_size,
             customer=user
         )
     
         # ✅ Save valid items
-        print("items--099",items)
+        
         for item in items:
             InvoiceItem.objects.create(invoice=invoice, **item)
 
@@ -100,12 +100,19 @@ class InvoiceRequestView(View):
 
     def generate_quotation_number(self):
         last_quotation = Invoice.active_objects.order_by('-id').first()
+
         if last_quotation and last_quotation.invoice_number:
             last_number = int(last_quotation.invoice_number.replace('Q', ''))
-            new_number = last_number + 1
+            # if last is below 3000, reset to 3000
+            if last_number < 3000:
+                new_number = 3000
+            else:
+                new_number = last_number + 1
         else:
-            new_number = 1
-        return f"Q{new_number:04d}"
+            new_number = 3000  # first ever starts at 3000
+
+        # Always return 7 digits (Q0003000, Q0003001, ...)
+        return f"Q{new_number:07d}"
 
     def extract_valid_items(self, post_data):
         items = []
@@ -165,120 +172,104 @@ class InvoiceDetails(View):
         return render(request, self.template, context)
 
     def post(self, request, pk):
-        quotation = get_object_or_404(Invoice, id=pk)
-        print("request.POST", request.POST)
+            quotation = get_object_or_404(Invoice, id=pk)
+            print("request.POST", request.POST)
 
-        # --- Read inputs ---
-        status_str   = request.POST.get('status')
-        discount_str = request.POST.get('discount')
-        deposit_str  = request.POST.get('deposit')
-        is_disc_flag = request.POST.get('is_discount', 'off') == 'on'
+            # --- Read inputs ---
+            status_str   = request.POST.get('status')
+            discount_str = request.POST.get('discount')
+            deposit_str  = request.POST.get('deposit')
+            is_disc_flag = request.POST.get('is_discount', 'off') == 'on'
 
-        # --- Validate status ---
-        if not status_str:
-            quotation_items = InvoiceItem.objects.filter(invoice=quotation)
-            messages.error(request, "Status is required.")
-            return render(request, self.template, {
-                'quotation': quotation,
-                'quotationsitems': quotation_items,
-                'error': 'Status is required.',
-            })
+            # --- Validate status ---
+            if not status_str:
+                return self._error(request, quotation, "Status is required.")
 
-        # --- Parse deposit safely ---
-        try:
-            advance = Decimal(str(deposit_str or 0))
-        except (InvalidOperation, TypeError, ValueError):
-            quotation_items = InvoiceItem.objects.filter(invoice=quotation)
-            messages.error(request, "Invalid deposit amount")
-            return render(request, self.template, {
-                'quotation': quotation,
-                'quotationsitems': quotation_items,
-                'error': 'Invalid deposit amount.',
-            })
-
-        # --- Prevent overpayment ---
-        balance_due = round(quotation.balance_due, 2)
-        if advance > balance_due:
-            quotation_items = InvoiceItem.objects.filter(invoice=quotation)
-            messages.error(request, f'Deposit ({advance}) cannot exceed balance due ({balance_due}).')
-            return render(request, self.template, {
-                'quotation': quotation,
-                'quotationsitems': quotation_items,
-                'error': f'Deposit ({advance}) cannot exceed balance due ({balance_due}).',
-            })
-
-        # --- Handle discount (optional) ---
-        if discount_str not in (None, ""):
+            # --- Parse deposit safely ---
             try:
-                discount_val = Decimal(str(discount_str))
+                advance = Decimal(str(deposit_str or 0))
             except (InvalidOperation, TypeError, ValueError):
-                quotation_items = InvoiceItem.objects.filter(invoice=quotation)
-                messages.error(request, "Invalid discount format")
-                return render(request, self.template, {
-                    'quotation': quotation,
-                    'quotationsitems': quotation_items,
-                    'error': 'Invalid discount format.',
-                })
+                return self._error(request, quotation, "Invalid deposit amount.")
 
-            # Validate discount bounds
-            if is_disc_flag:
-                if not (Decimal("0") <= discount_val <= Decimal("100")):
-                    quotation_items = InvoiceItem.objects.filter(invoice=quotation)
-                    messages.error(request, "Percentage discount must be between 0 and 100.")
-                    return render(request, self.template, {
-                        'quotation': quotation,
-                        'quotationsitems': quotation_items,
-                        'error': 'Percentage discount must be between 0 and 100.',
-                    })
+            # --- Prevent overpayment ---
+            balance_due = round(quotation.balance_due, 2)
+            if advance > balance_due:
+                return self._error(
+                    request,
+                    quotation,
+                    f"Deposit ({advance}) cannot exceed balance due ({balance_due})."
+                )
+
+            # --- Handle discount (only managers) ---
+            if discount_str not in (None, ""):
+                if not request.user.has_perm("app.can_manager_access"):
+                    return self._error(request, quotation, "You are not allowed to set discount.")
+
+                try:
+                    discount_val = Decimal(str(discount_str))
+                except (InvalidOperation, TypeError, ValueError):
+                    return self._error(request, quotation, "Invalid discount format.")
+
+                # Validate discount bounds
+                if is_disc_flag:
+                    if not (Decimal("0") <= discount_val <= Decimal("100")):
+                        return self._error(request, quotation, "Percentage discount must be 0–100.")
+                else:
+                    if discount_val < 0:
+                        return self._error(request, quotation, "Fixed discount must be ≥ 0.")
+
+                quotation.discount = discount_val
+                quotation.is_percentage = is_disc_flag
+
+                # When sending to manager, track manager
+                if discount_val  :
+                    quotation.manager = request.user
+
+            # --- Apply deposit ---
+            if advance > 0:
+                quotation.advance_amount = (quotation.advance_amount or Decimal("0.00")) + advance
+                quotation.save(update_fields=["advance_amount", "discount", "is_percentage"])
+                quotation.refresh_from_db()
+
+            # --- Recompute balance ---
+            balance_due = quotation.balance_due
+
+            # --- Status logic ---
+            if status_str == "paid":
+    # forcefully allow small rounding differences (<= 1.00)
+                if balance_due <= Decimal("1.00"):
+                    quotation.approver_status = "paid"
+                    # Clear out any tiny remaining balance by bumping advance_amount
+                    quotation.advance_amount = quotation.total_cost
+                else:
+                    return self._error(request, quotation, f"Balance {balance_due} must be cleared before marking paid.")
             else:
-                if discount_val < 0:
-                    quotation_items = InvoiceItem.objects.filter(invoice=quotation)
-                    return render(request, self.template, {
-                        'quotation': quotation,
-                        'quotationsitems': quotation_items,
-                        'error': 'Fixed discount must be 0 or higher.',
-                    })
+                if balance_due <= 0:
+                    quotation.approver_status = "paid"
+                else:
+                    quotation.approver_status = status_str
 
-            quotation.discount = discount_val
-            quotation.is_percentage = is_disc_flag
+            # --- Optional: protect against unauthorized edits ---
+       
 
-        # --- Apply deposit ---
-        if advance > 0:
-            quotation.advance_amount = (quotation.advance_amount or Decimal("0.00")) + advance
-            quotation.save(update_fields=["advance_amount", "discount", "is_percentage"])
-            quotation.refresh_from_db()
+            # --- Creator / Updater tracking ---
+            if not quotation.creator:
+                quotation.creator = request.user
+            quotation.updater = request.user
 
-        # --- Recompute balance ---
-        balance_due = quotation.balance_due
-        print("quotation.balance_due", balance_due)
-        print("advance just received", advance)
-        print("total paid so far", quotation.total_paid)
+            # --- Save final state ---
+            quotation.save(update_fields=["approver_status", "discount", "is_percentage", "updater"])
+            return redirect("quotation_invoice")
 
-        # --- Status logic ---
-        if status_str == 'paid':
-            if balance_due <= 0:
-                quotation.approver_status = 'paid'
-            else:
-                quotation.approver_status = 'pending_payment'
-        else:
-            quotation.approver_status = status_str
-
-        # --- Optional: protect against unauthorized edits ---
-        if not (
-            quotation.approver == request.user
-            and quotation.approver_status in ['pending', 'pending_payment', 'paid', status_str]
-        ):
+        # ---------------- Helper ----------------
+    def _error(self, request, quotation, msg):
             quotation_items = InvoiceItem.objects.filter(invoice=quotation)
+            messages.error(request, msg)
             return render(request, self.template, {
-                'quotation': quotation,
-                'quotationsitems': quotation_items,
-                'error': 'You are not allowed to update this quotation.',
+                "quotation": quotation,
+                "quotationsitems": quotation_items,
+                "error": msg,
             })
-
-        # --- Save final state ---
-        quotation.save(update_fields=["approver_status", "discount", "is_percentage"])
-        return redirect('quotation_invoice')
-    
     
     
     
@@ -341,7 +332,7 @@ class InvoiceReportPdfView(View):
             "subtitle", fontName="GothamLight", fontSize=26, textColor=colors.black, backColor=colors.white, leading=30
         )
         label_style = ParagraphStyle(
-            "label", fontName="GothamBold", fontSize=8, textColor=colors.black
+            "label", fontName="GothamBold", fontSize=8, textColor=colors.HexColor("#474444")
         )
         value_style = ParagraphStyle(
             "value", fontName="Helvetica", fontSize=10, textColor=colors.red
@@ -349,6 +340,10 @@ class InvoiceReportPdfView(View):
         address_style = ParagraphStyle(
             "addr", fontName="GothamLight", fontSize=11, textColor=colors.black
         )
+        number_style = ParagraphStyle(
+            "addr", fontName="GothamBold", fontSize=11, textColor=colors.black
+        )
+        
 
         # Left Block (hello + subtitle)
         hello = Paragraph("<b>hello</b>", title_style)
@@ -371,14 +366,21 @@ class InvoiceReportPdfView(View):
             logo = Paragraph("<b>ARROLITE</b>", title_style)
 
         address = Paragraph("#01-21 Centrum Square 320 Serangoon Rd, Singapore 218108", address_style)
+        care = Paragraph(
+            '<b>Customer care:</b> <font color="red"><b>+65 8193 0246</b></font>',
+            number_style
+        )
 
-        right_block = Table([[logo], [address]], colWidths=[10 * cm], style=[
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("LEFTPADDING", (0, 0), (-1, -1), 0),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-            ("TOPPADDING", (0, 0), (-1, -1), 0),
-           
-        ])
+        right_block = Table(
+            [[logo], [address], [care]],
+            colWidths=[10 * cm],
+            style=[
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
 
         # Top row (hello + logo block)
         top_row = Table([[left_block, right_block]], colWidths=[11 * cm, 10 * cm], style=[
@@ -402,7 +404,7 @@ class InvoiceReportPdfView(View):
 
         # Left and right info blocks
         invoice_table = make_info_table([
-            ("invoice no.", f"{quotation.invoice_number}"),
+            ("invoice no.", f"#{quotation.invoice_number}"),
             ("date", quotation.request_date.strftime('%d %B %Y').upper()),
         ])
 
@@ -459,7 +461,7 @@ class InvoiceReportPdfView(View):
             Paragraph("for", for_style),
             Paragraph(f"{quotation.customer.name}", company_style),
             Spacer(1, 5),
-           Paragraph(f"{quotation.customer.address}", address_style),
+            Paragraph(f"{quotation.customer.address}", address_style),
         ]
          
 
@@ -498,14 +500,14 @@ class InvoiceReportPdfView(View):
 
         # === Draw summary box instead of "For" ===
         w, h = summary_table.wrap(doc.width, doc.bottomMargin)
-        summary_table.drawOn(canvas, doc.leftMargin, 6 * cm)
+        summary_table.drawOn(canvas, doc.leftMargin, 5.4 * cm)
 
         # Set red "thank you!"
         canvas.setFont("Helvetica-Bold", 40)
         canvas.setFillColor(colors.red)
         #  that add that dection part 
         
-        canvas.drawString(doc.leftMargin, 4 * cm, "thank you!")
+        canvas.drawString(doc.leftMargin, 3.6 * cm, "thank you!")
 
         # Draw a light grey background rectangle (very slim)
         canvas.setFillColorRGB(0.95, 0.95, 0.95)  # #f2f2f2
@@ -535,7 +537,7 @@ class InvoiceReportPdfView(View):
 
         # PayNow logo
         paynow_img_path = os.path.join(settings.BASE_DIR, 'static', 'ac-imgs', 'paynow.png')
-        canvas.drawImage(paynow_img_path, doc.leftMargin + 7 * cm, 1.5 * cm, width=1.1 * cm, height=1 * cm, mask='auto')
+        canvas.drawImage(paynow_img_path, doc.leftMargin + 7 * cm, 1.5 * cm, width=1.2 * cm, height=1 * cm, mask='auto')
 
         # UEN and company name
         canvas.setFont("Helvetica-Bold", 10)

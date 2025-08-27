@@ -116,29 +116,40 @@
 <script>
     // Initialize Tabulator (empty for now)
     var table = new Tabulator("#quotationTable", {
-        height: "500px",
+         
         layout: "fitColumns",
         pagination:"local",
-        paginationSize:6,
+        paginationSize:10,
         paginationSizeSelector:[3, 6, 8, 10],
         movableColumns:true,
         paginationCounter:"rows",
-        height: "500px",
+    
         responsiveLayout:"collapse",
         placeholder: "No records found",
 
         columns: [
             {title:"S.No", formatter:"rownum", width:70, hozAlign:"center"}, // auto increment column
+            {title:"Request Date", field:"request_date"},
             {title:"Invoice", field:"invoice_number"},
-            {title:"Approver", field:"approver.name"},   // nested object field
-            {title:"Price", field:"price", hozAlign:"right", formatter:"money"},
-            {title:"Status", field:"status"},
+            {title:"Customer", field:"customer.name"},
             {title:"Discount", field:"discount", formatter:function(cell){
                 let val = cell.getValue();
                 return val !== null ? val+"%" : "";
             }},
-            {title:"Request Date", field:"request_date"},
-            {title:"Customer", field:"customer.name"},
+            {
+                title:"Price",
+                field:"price",
+                hozAlign:"right",
+                formatter:"money",
+                bottomCalc:"sum",
+                bottomCalcFormatter:function(cell){
+                    let value = cell.getValue();
+                    return value ? "Total Price: $" + value.toLocaleString() : "Total Price: $0.00";
+                }
+        },
+            
+            {title:"Status", field:"status"},
+            {title:"Approver", field:"approver.name"},   // nested object field
         ],
     });
 

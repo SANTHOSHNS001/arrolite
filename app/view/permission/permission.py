@@ -43,7 +43,7 @@ class PermissionAdd(View):
                 continue  # ignore invalid entries
 
         messages.success(request, "Group created and permissions assigned.")
-        return redirect(reverse("permission_add"))  # change this to your success URL name
+        return redirect(reverse("permission_setting"))  # change this to your success URL name
     
     
     
@@ -58,7 +58,8 @@ class GroupUpdateView(View):
         context = {
             "group": group,
             "selected_perms": selected_perms,
-            "permission_pages": get_sidebar_menu(),
+            "permission_pages": get_sidebar_menu() ,  
+            # app.can_manager_access Name =Managemat Acesss
         }
         return render(request, self.template_name, context)
 

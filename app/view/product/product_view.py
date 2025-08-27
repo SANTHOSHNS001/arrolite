@@ -161,10 +161,17 @@ class QuotationReportPdfView(View):
         address_style = ParagraphStyle(
             "addr", fontName="GothamLight", fontSize=11, textColor=colors.black
         )
+        number_style = ParagraphStyle(
+            "addr", fontName="GothamBold", fontSize=11, textColor=colors.black
+        )
 
         # Left Block (hello + subtitle)
         hello = Paragraph("<b>hello</b>", title_style)
         subtitle = Paragraph('this is your <font color="red"><b>quotation</b></font>', subtitle_style)
+        care = Paragraph(
+            '<b>Customer care:</b> <font color="red"><b>+65 8193 0246</b></font>',
+            number_style
+        )
 
         left_block = Table([[hello], [subtitle]], colWidths=[12 * cm], style=[
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
@@ -184,7 +191,7 @@ class QuotationReportPdfView(View):
 
         address = Paragraph("#01-21 Centrum Square 320 Serangoon Rd, Singapore 218108", address_style)
 
-        right_block = Table([[logo], [address]], colWidths=[10 * cm], style=[
+        right_block = Table([[logo], [address],[care]], colWidths=[10 * cm], style=[
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
             ("RIGHTPADDING", (0, 0), (-1, -1), 0),

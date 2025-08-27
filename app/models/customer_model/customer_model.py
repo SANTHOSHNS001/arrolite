@@ -128,7 +128,6 @@ class Customer(CustomBase):
     phone_number = models.CharField(max_length=18, unique=True)
     phone_prefix = models.CharField(max_length=5, blank=True, null=True)
     name = models.CharField(max_length=30, verbose_name="Name", blank=True, null=True)
-    gst_number = models.CharField(max_length=18, unique=True, null=True, blank=True)
     address = models.TextField(verbose_name="Address", blank=True, null=True)
     active =  models.BooleanField(default=True)
 
@@ -140,5 +139,7 @@ class Customer(CustomBase):
         verbose_name_plural = "Customers"
         permissions = [
             ("client_role_access", "Can access client-level features"),
+            ("client_manege_permission", "Can Mange client-level features"),
+            
         ]
         ordering = ["-created_at"]

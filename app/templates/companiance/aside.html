@@ -5,16 +5,24 @@
         <!-- sidebar menu start-->
             <ul class="sidebar-menu" id="nav-accordion">
       
-                {% for item in sidebar_menu %}
-           
-                {% if not item.perm or request.user|has_perm:item.perm %}
-                <li>
-                    <a href="{% url item.url %}">
-                    <i class="material-icons">{{ item.icon }}</i>
-                    <span>{{ item.name }}</span>
-                    </a>
-                </li>
-                {% endif %}
+                 {% for item in sidebar_menu %}
+                  {% if not item.permission_only %} 
+                    {% if not item.perm or request.user|has_perm:item.perm %}
+                        <li>
+                            {% if item.url %}
+                                <a href="{% url item.url %}">
+                                    <i class="material-icons">{{ item.icon }}</i>
+                                    <span>{{ item.name }}</span>
+                                </a>
+                            {% else %}
+                                <span class="menu-item">
+                                    <i class="material-icons">{{ item.icon }}</i>
+                                    <span>{{ item.name }}</span>
+                                </span>
+                            {% endif %}
+                        </li>
+                    {% endif %}
+                          {% endif %}
                 {% endfor %}
                 
                   

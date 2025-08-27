@@ -14,7 +14,7 @@ class Invoice(CustomBase):
             ("draft", "Draft"),
             ("sent", "Sent to Customer"),
             ("pending", "Pending"),
-            ("waiting_manager_confirmation", "Waiting Manager Confirmation"),
+            ("sent_to_manager", "Sent to Manager"),
             ("approved", "Approved"),
             ("rejected", "Rejected"),
             ("cancelled", "Cancelled"),
@@ -41,6 +41,13 @@ class Invoice(CustomBase):
         blank=True,
         null=True,
         related_name='invoice_approvers'
+    )
+    manager = models.ForeignKey(
+        "CustomUser",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name='invoice_manager'
     )
     request_date = models.DateTimeField(null=True, blank=True)
     invoice_number = models.CharField(max_length=20, unique=True)
@@ -70,7 +77,10 @@ class Invoice(CustomBase):
         verbose_name_plural = "Invoices"
         permissions = [
             ("can_approve_invoice", "Can approve Invoice"),
-            ("can_manage_invoice","Can manage Invoice")
+            ("can_manage_invoice","Can manage Invoice"),
+            ("can_report_invoice","Can Report Invoice"),
+            ("can_manager_access", "Manager: Can Access Invoice"),  
+
         ]
         ordering = ["-created_at"]
     def __str__(self):

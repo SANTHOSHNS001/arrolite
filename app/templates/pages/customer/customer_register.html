@@ -5,15 +5,9 @@
 
 {% block style %}
 <style>
-
-
-
-
     .content {
-  
-    min-height: 452px!important;
-    
-}
+       min-height: 452px!important;
+    }
 </style>
 {% endblock %}
 {% block body_content %} 
@@ -89,24 +83,29 @@
                                         <input id="blood_group" name="blood_group" type="text" class="required form-control" value= "{{ form.blood_group.value|default_if_none:'' }}">
                                     </div>
                                 </div>
-                                <div class="form-group clearfix">
+                                {% comment %} <div class="form-group clearfix">
                                     <label class="col-lg-2 control-label " for="father_name">Father Name *</label>
                                     <div class="col-lg-10">
                                         <input id="father_name" name="father_name" type="text" class="form-control" value= "{{ form.father_name.value|default_if_none:'' }}">
                                     </div>
-                                </div>
+                                </div> {% endcomment %}
                                 <div class="form-group clearfix">
                                     <label class="col-lg-2 control-label " for="address">Address </label>
                                     <div class="col-lg-10">
                                         <input id="address" name="address" type="text" class="form-control" value= "{{ form.address.value|default_if_none:'' }}">
                                     </div>
                                 </div>
-                                <div class="form-group clearfix">
-                                    <label class="col-lg-2 control-label " for="gender">Gender </label>
-                                    <div class="col-lg-10">
-                                        <input id="gender" name="gender" type="text" class="form-control" value= "{{ form.gender.value|default_if_none:'' }}">
-                                    </div>
-                                </div>
+                             <div class="form-group clearfix">
+                            <label class="col-lg-2 control-label" for="gender">Gender</label>
+                            <div class="col-lg-10">
+                                <select id="gender" name="gender" class="form-control">
+                                    <option value="">-- Select Gender --</option>
+                                    <option value="male" {% if form.gender.value == "male" %}selected{% endif %}>Male</option>
+                                    <option value="female" {% if form.gender.value == "female" %}selected{% endif %}>Female</option>
+                                    <option value="other" {% if form.gender.value == "other" %}selected{% endif %}>Other</option>
+                                </select>
+                            </div>
+                        </div>
                                 
 
                                 <div class="form-group clearfix">

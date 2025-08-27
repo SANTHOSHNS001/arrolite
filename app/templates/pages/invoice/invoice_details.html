@@ -1,6 +1,7 @@
 
 {% extends 'base/container.html' %}
 {% load static %}
+{% load custom_tags %}
 {% block title %}Invoice Bill{% endblock %}
 
 {% block style %}
@@ -186,6 +187,7 @@
                             <option value="">--Select--</option>
                             <option value="pending">Pending</option>
                             <option value="pending_payment">Pending Payment</option>
+                            <option value="sent_to_manager">Sent to Manager</option>
                             <option value="paid">Paid</option>
                             <option value="rejected">Rejected</option>
                             <option value="cancelled">Cancel</option>
@@ -195,7 +197,74 @@
                     <label class="ml-3"><b>Deposit:</b></label>
                     <input type="text" class="form-control d-inline-block" id="deposit" min="0" name="deposit" style="width: 100px;" placeholder="0">
                     </div>
-                    <div class="mb-3">
+                  <div class="mb-3" >
+                    <label class="ml-3" id="discount-label">
+                        <b>Discount:</b>
+                    </label>
+                  
+
+                            <input type="text" class="form-control d-inline-block" 
+                                id="discount" min="0" max="100" 
+                                 style="width: 100px;" placeholder="0"disabled >
+                               
+
+                            <input type="checkbox" id="ch"  
+                                disabled > %
+                        </div>
+                    
+                    <button type="submit" class="btn btn-primary ml-2"  >
+                        Submit
+                    </button>
+                </div>
+            </form>
+             {%endif%}
+             {%if quotation.approver_status == "pending_payment" %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="action-btn mt-2" style="display: flex;justify-content: space-around;">
+                        <div>
+                            <label><b>Action:</b></label>
+                            <select class="form-control d-inline-block" id="action" name="status" style="width: 150px;">
+                                <option value="">--Select--</option>
+                                <option value="pending_payment">Pending Payment</option>
+                                <option value="sent_to_manager">Sent to Manager</option>
+                                
+                                <option value="paid">Paid</option>
+                                <option value="cancelled">Cancel</option>
+                            </select>
+                        </div>
+                        <div>
+                        <label class="ml-3"><b>Deposit:</b></label>
+                        <input type="text" class="form-control d-inline-block" id="deposit" min="0" name="deposit" style="width: 100px;" placeholder="0">
+                        </div>
+                        <button type="submit" class="btn btn-primary ml-2"  >
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            {%endif%}
+          
+      {% if quotation.approver_status == "sent_to_manager" and request.user|has_perm:"app.can_manager_access" %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="action-btn mt-2" style="display: flex;justify-content: space-around;">
+                        <div>
+                            <label><b>Action:</b></label>
+                            <select class="form-control d-inline-block" id="action" name="status" style="width: 150px;">
+                                <option value="">--Select--</option>
+                                <option value="pending_payment">Pending Payment</option>
+                                <option value="sent_to_manager">Sent to Manager</option>
+                                
+                                <option value="paid">Paid</option>
+                                <option value="cancelled">Cancel</option>
+                            </select>
+                        </div>
+                        <div>
+                        <label class="ml-3"><b>Deposit:</b></label>
+                        <input type="text" class="form-control d-inline-block" id="deposit" min="0" name="deposit" style="width: 100px;" placeholder="0">
+                        </div>
+                      <div class="mb-3">
                     <label class="ml-3" id="discount-label">
                         <b>Discount:</b>
                     </label>
@@ -203,37 +272,13 @@
                             id="discount" min="0" max="100" 
                             name="discount" style="width: 100px;" placeholder="0">
                     <input type="checkbox" id="ch" name="is_discount"> %
+                    </div>  
+                        <button type="submit" class="btn btn-primary ml-2"  >
+                            Submit
+                        </button>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary ml-2"  >
-                        Submit
-                    </button>
-                </div>
-            </form>
-                 {%endif%}
-             {%if quotation.approver_status == "pending_payment" %}
-             <form method="post">
-                {% csrf_token %}
-                <div class="action-btn mt-2" style="display: flex;justify-content: space-around;">
-                    <div>
-                        <label><b>Action:</b></label>
-                        <select class="form-control d-inline-block" id="action" name="status" style="width: 150px;">
-                            <option value="">--Select--</option>
-                            <option value="pending_payment">Pending Payment</option>
-                            <option value="paid">Paid</option>
-                            <option value="cancelled">Cancel</option>
-                        </select>
-                    </div>
-                    <div>
-                    <label class="ml-3"><b>Deposit:</b></label>
-                    <input type="text" class="form-control d-inline-block" id="deposit" min="0" name="deposit" style="width: 100px;" placeholder="0">
-                    </div>
-                    <button type="submit" class="btn btn-primary ml-2"  >
-                        Submit
-                    </button>
-                </div>
-            </form>
-                  {%endif%}
+                </form>
+            {%endif%} 
         </div>
    
         <div>

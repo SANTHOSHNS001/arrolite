@@ -22,7 +22,7 @@
                   <th>Name</th>
                   <th>Email</th>
                   <th>Phone</th>
-                  <th>Gst Number</th>
+                
                   <th>Action</th>
 
               </tr>
@@ -34,14 +34,14 @@
                   <td>{{customer.name}}</td>
                   <td >{{customer.email}}</td> 
                   <td>{{customer.phone_number}}</td>
-                  <td >{{customer.gst_number}}</td>  
+                
                   <td>
                       <button id ="edit-customer-btn" data-toggle="modal"  href="#customer-edit-model" class="btn btn-edi btn-sm edit-customer-btn" data-id="{{customer.id}}"
                         data-name="{{customer.name}}" 
                         data-email="{{customer.email}}" 
                         data-phone_prefix="{{customer.phone_prefix}}" 
                         data-phone_number="{{customer.phone_number}}" 
-                        data-gst_number="{{customer.gst_number}}"  
+                       
                         data-address="{{customer.address}}"><i class="fa fa-pencil"></i></button>
                       <button class="btn btn-del btn-sm" onclick="confirmDeletedUpdate('{% url 'customer_delete' customer.id%}')"><i class="fa fa-trash-o "></i></button>
                   </td>               
@@ -94,12 +94,7 @@
                                                 placeholder="Enter phone number" pattern="[0-9]{10}" maxlength="10" required>
                                         </div>                                        </div>
                                     </div>
-                                    <div class="form-group row">
-                                        <label for="gstnumber" class="col-sm-2 col-form-label">GST Number</label>
-                                        <div class="col-sm-10">
-                                            <input type="text" class="form-control"name="gst_number" id="gstnumber" placeholder="GST Number" required>
-                                        </div>
-                                    </div>  
+                                     
                                     <div class="form-group row">
                                         <label for="gstnumber" class="col-sm-2 col-form-label">Address</label>
                                         <div class="col-sm-10">
@@ -144,7 +139,7 @@ $(function () {
         form.find("#email").val(btn.data("email"));
         form.find("#phone_prefix").val(btn.data("phone_prefix"));
         form.find("#phone_number").val(btn.data("phone_number"));
-        form.find("#gstnumber").val(btn.data("gst_number"));  // matches your <input id="gstnumber">
+       
         form.find("#address").val(btn.data("address"));
     });
 
@@ -158,7 +153,7 @@ $(function () {
             email: form.find("#email").val(),
             phone_prefix: form.find("#phone_prefix").val(),
             phone_number: form.find("#phone_number").val(),
-            gst_number: form.find("#gstnumber").val(),
+          
             address: form.find("#address").val()
         };
         console.log("Submitting data:", data);

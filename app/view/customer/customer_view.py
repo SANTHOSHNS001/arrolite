@@ -164,8 +164,7 @@ class CustomerUpdate(LoginRequiredMixin, UpdateView):
     def post(self, request, pk, *args, **kwargs):
         customer = get_object_or_404(Customer, pk=pk)
         data = json.loads(request.body)
-        print("ner",data)
-        print("get ",request.POST,)
+       
 
         # use request.POST, not json.loads
         form = self.form_class(data, instance=customer)

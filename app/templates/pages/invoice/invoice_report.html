@@ -34,7 +34,7 @@
             <div class="class-filter row">
                 <div class="col-2">
                   
-                     <label cfor ="quotation">Quotation</lable>
+                     <label cfor ="quotation">Invoice No</lable>
                      <select class="form-control select2" name="quotation" id ="quotation" multiple="multiple" placeholder="select">
                          {% for quotation in quotations%}
                          <option value="{{quotation.id}}">{{quotation}}</option>
@@ -80,23 +80,7 @@
              
             </div>
             <div class="mt-2" id="quotationTable"></div>
-            {% comment %} <table id="quotationTable" class="display table table-bordered ">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Invoice</th>
-                        <th>Approver</th>
-                        <th>Price</th>
-                        
-                        <th>Status</th>
-                        <th>Discount</th>
-                        <th>Request Date</th>
-                        <th>Customer</th>
-                      
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table> {% endcomment %}
+         
 
         </div>
    </div>
@@ -114,36 +98,77 @@
 <script>
     // Initialize Tabulator (empty for now)
     var table = new Tabulator("#quotationTable", {
-        height: "500px",
+   
         layout: "fitColumns",
         pagination:"local",
-        paginationSize:6,
+        paginationSize:10,
         paginationSizeSelector:[3, 6, 8, 10],
         movableColumns:true,
         paginationCounter:"rows",
-        height: "500px",
         responsiveLayout:"collapse",
         placeholder: "No records found",
 
         columns: [
-            {title:"S.No", formatter:"rownum", width:70, hozAlign:"center"}, // auto increment column
-            {title:"Invoice", field:"invoice_number"},
-            {title:"Approver", field:"approver.name"},   // nested object field
-            {title:"Price", field:"price", hozAlign:"right", formatter:"money"},
-            {title:"Status", field:"status"},
-            {title:"Discount", field:"discount", formatter:function(cell){
-                let val = cell.getValue();
-                return val !== null ? val+"%" : "";
-            }},
+            {title:"S.No", formatter:"rownum", width:70, hozAlign:"center"},
             {title:"Request Date", field:"request_date"},
+            {title:"Invoice", field:"invoice_number"},
             {title:"Customer", field:"customer.name"},
+            {title:"Approver", field:"approver.name"},
+             {
+                title:"Discount",
+                field:"discount",
+                formatter:function(cell){
+                    let val = cell.getValue();
+                    return val !== null ? val+"%" : "";
+                }
+            },
+            {
+                title:"Price",
+                field:"price",
+                hozAlign:"right",
+                formatter:"money",
+                bottomCalc:"sum",                // ✅ calculate total
+                bottomCalcFormatter:"money",     // ✅ format total like money
+                bottomCalcFormatter:function(cell){
+        let value = cell.getValue();
+        return value ? "Total Price: $" + value.toLocaleString() : "Total Price: $0.00";
+    }
+            },
+            {title:"Status", field:"status"},
+           
         ],
     });
 
     // XLSX Export
     document.getElementById("download-xlsx").addEventListener("click", function(){
-        table.download("xlsx", "quotations.xlsx", {sheetName:"Quotations"});
+    table.download("xlsx", "Invoice.xlsx", {
+        sheetName: "Invoice",
+        documentProcessing: function(workbook){
+            // Get worksheet
+            var sheet = workbook.Sheets["Invoices"];
+
+            // Find last row
+            var range = XLSX.utils.decode_range(sheet["!ref"]);
+            var lastRow = range.e.r + 2; // +1 for next row, +1 offset
+
+            // Calculate total
+            var total = table.getCalcResults().bottom.price; // ✅ Tabulator calc results
+
+            // Add "Total Price" label in second last column
+            var labelCell = XLSX.utils.encode_cell({r:lastRow, c:sheet["!ref"].split(":")[1].match(/\d+/) - 2});
+            sheet[labelCell] = { t:"s", v:"Total Price" };
+
+            // Add total value in last column
+            var totalCell = XLSX.utils.encode_cell({r:lastRow, c:range.e.c});
+            sheet[totalCell] = { t:"n", v:total };
+
+            // Update worksheet range
+            sheet["!ref"] = XLSX.utils.encode_range(range.s, {r:lastRow, c:range.e.c});
+
+            return workbook;
+        }
     });
+});
 
     // Fetch data from Django backend
     function fetchQuotations() {
