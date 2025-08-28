@@ -17,15 +17,11 @@ def get_sidebar_menu():
         {"url": "permission_setting", "name": "Permission", "icon": "admin_panel_settings", "perm": "app.client_manege_access"},
         {"url": "quotaion_report", "name": "Quotaion Report", "icon": "assignment", "perm": "app.can_reports_quotaion"},
         {"url": "invoice_report", "name": "Invoice Report", "icon": "assignment", "perm": "app.can_report_invoice"},
+        {"url": "invoice_product_report", "name": "Product-Report", "icon": "add_shopping_cart", "perm": "app.can_report_invoice"},
         {"url": "unit_list", "name": "Unit", "icon": "ac_unit", "perm": "app.manage_unit"},
         {"url": "iso_list", "name": "ISO-Size", "icon": "apps", "perm": "app.can_manage_isosize"},
         {"url": "customer_list", "name": "Customer", "icon": "person_search", "perm": "app.client_manege_permission"},
-        
-        # {"url": "logout", "name": "Logout", "icon": "logout"},  
-        
-        # {"url": "Sheet", "name": "Sheet-Size", "icon": "user", "perm": "app.can_manage_isosize"},
-        
-        # {"url": "unit", "name": "Unit", "icon": "user", "perm": "app.manage_unit"}, 
+
     ]
 @register.filter
 def has_perm(user, perm_name):

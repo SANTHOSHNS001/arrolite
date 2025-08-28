@@ -280,16 +280,26 @@ class QuotationReportView(View):
 
             if request_date_str:
                 try:
-                    if "to" in request_date_str:
+                
+                    if isinstance(request_date_str, list):
+                        request_date_str = request_date_str[0]
+
+                    request_date_str = request_date_str.strip()
+
+                    if "to" in request_date_str:  # Date range case: "01-09-2025 to 06-09-2025"
                         start_str, end_str = [d.strip() for d in request_date_str.split("to")]
                         filters["request_date__date__range"] = (
                             datetime.strptime(start_str, "%d-%m-%Y").date(),
                             datetime.strptime(end_str, "%d-%m-%Y").date()
                         )
-                    else:
-                        filters["request_date__date"] = datetime.strptime(request_date_str.strip(), "%d-%m-%Y").date()
+                    else:  # Single date case: "2025-09-06"
+                        filters["request_date__date"] = datetime.strptime(request_date_str, "%Y-%m-%d").date()
+
                 except ValueError:
-                    return JsonResponse({"error": "Invalid date format. Use DD-MM-YYYY"}, status=400)
+                    return JsonResponse(
+                        {"error": "Invalid date format. Use YYYY-MM-DD or DD-MM-YYYY to DD-MM-YYYY"},
+                        status=400
+                    )
 
             # Query database
             quotations_qs = (

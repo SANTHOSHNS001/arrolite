@@ -730,18 +730,29 @@ class InvoiceReportView(View):
             if customer_ids:
                 filters["customer__id__in"] = customer_ids
 
+            
             if request_date_str:
                 try:
-                    if "to" in request_date_str:
+                
+                    if isinstance(request_date_str, list):
+                        request_date_str = request_date_str[0]
+
+                    request_date_str = request_date_str.strip()
+
+                    if "to" in request_date_str:  # Date range case: "01-09-2025 to 06-09-2025"
                         start_str, end_str = [d.strip() for d in request_date_str.split("to")]
                         filters["request_date__date__range"] = (
                             datetime.strptime(start_str, "%d-%m-%Y").date(),
                             datetime.strptime(end_str, "%d-%m-%Y").date()
                         )
-                    else:
-                        filters["request_date__date"] = datetime.strptime(request_date_str.strip(), "%d-%m-%Y").date()
+                    else:  # Single date case: "2025-09-06"
+                        filters["request_date__date"] = datetime.strptime(request_date_str, "%Y-%m-%d").date()
+
                 except ValueError:
-                    return JsonResponse({"error": "Invalid date format. Use DD-MM-YYYY"}, status=400)
+                    return JsonResponse(
+                        {"error": "Invalid date format. Use YYYY-MM-DD or DD-MM-YYYY to DD-MM-YYYY"},
+                        status=400
+                    )
 
             # Query database
             quotations_qs = (
@@ -776,3 +787,125 @@ class InvoiceReportView(View):
         
         except Exception as e:
             return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
+        
+        
+from django.db.models import F      
+class ProductReportInvoice(View):
+ 
+    template = "pages/invoice/product_invoice_report.html"
+    def get(self, request):
+        products=Product.active_objects.all()
+        products=Product.active_objects.all()
+        invoices=Invoice.active_objects.all()
+        approvers=(
+                invoices
+                .filter(approver__isnull=False)
+                .order_by("approver__id")  
+                .values("approver__id", "approver__first_name","approver__last_name").distinct()
+            )
+        # Distinct customers from quotations
+        customers =(
+                invoices
+                .filter(customer__isnull=False)
+                .order_by("customer__id")  
+                .values("customer__id", "customer__name").distinct()   
+            )
+        
+        print("all",products)
+         
+
+        context = {
+            'products': products,
+            "approvers":approvers,
+            "customers":customers
+            
+        }
+        return render(request, self.template, context)
+    def post(self, request):
+        try:
+            filters = {}
+            approver_ids = request.POST.getlist("approver")
+            status_list = request.POST.get("status")
+            customer_ids = request.POST.getlist("customer")
+            quotation_ids = request.POST.getlist("quotation")
+            product_ids = request.POST.getlist("product")       
+            request_date_str = request.POST.getlist("request_date")
+            if quotation_ids:
+                quotation_ids = quotation_ids
+                filters["invoice__id__in"] = quotation_ids
+            if product_ids:
+                product_ids = product_ids
+                filters["product__id__in"] = product_ids
+                
+            if approver_ids:
+                filters["invoice__approver__id__in"] = approver_ids
+            if status_list:
+                filters["invoice__approver_status"] = status_list
+            if customer_ids:
+                filters["invoice__customer__id__in"] = customer_ids
+
+            if request_date_str:
+                try:
+                   
+                    if isinstance(request_date_str, list):
+                        request_date_str = request_date_str[0]
+
+                    request_date_str = request_date_str.strip()
+
+                    if "to" in request_date_str:  # Date range case: "01-09-2025 to 06-09-2025"
+                        start_str, end_str = [d.strip() for d in request_date_str.split("to")]
+                        filters["invoice__request_date__date__range"] = (
+                            datetime.strptime(start_str, "%d-%m-%Y").date(),
+                            datetime.strptime(end_str, "%d-%m-%Y").date()
+                        )
+                    else:  # Single date case: "2025-09-06"
+                        filters["invoice__request_date__date"] = datetime.strptime(request_date_str, "%Y-%m-%d").date()
+
+                except ValueError:
+                    return JsonResponse(
+                        {"error": "Invalid date format. Use YYYY-MM-DD or DD-MM-YYYY to DD-MM-YYYY"},
+                        status=400
+                    )
+
+            # Query database
+            quotations_qs = (
+                        InvoiceItem.active_objects.filter(**filters).select_related("product" ) )  
+            print(quotations_qs)
+                               
+            data = [
+                    {
+                        "id": q.id,
+                        "invoice_number": q.invoice.invoice_number,
+                        "product": q.product.name,
+                        
+                        
+                        "price": float(q.unit_cost),  # property, not callable
+                        "qty": float(q.quantity),  # property, not callable
+                        
+                        "approver": {
+                            "id": q.invoice.approver.id,
+                            "name": f"{q.invoice.approver.first_name} {q.invoice.approver.last_name}".strip()
+                        } if q.invoice.approver else None,
+                        "status": q.invoice.get_approver_status_display(),
+                        "discount": float(q.invoice.discount) if q.invoice.discount is not None else None,
+                        "request_date": q.invoice.request_date.strftime("%d-%m-%Y") if q.invoice.request_date else None,
+                        "customer": {
+                            "id": q.invoice.customer.id,
+                            "name": f"{q.invoice.customer.name} "
+                        } if q.invoice.customer else None,
+                    }
+                        for q in quotations_qs
+            ]
+            return JsonResponse({
+                "message": "Invoice fetched successfully",
+                "count": len(data),
+                "data": data
+            })
+
+        except DatabaseError as db_err:
+            return JsonResponse({"error": f"Database error: {str(db_err)}"}, status=500)
+        
+        except Exception as e:
+            return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
+     
+        
