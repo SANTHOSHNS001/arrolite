@@ -15,6 +15,9 @@ def get_sidebar_menu():
         {"url": "quotation_waiting", "name": "Approved", "icon": "pending_actions", "perm": "app.can_approve_quotation"},
         {"url": "quotation_invoice", "name": "Invoice", "icon": "receipt", "perm": "app.can_assign_approver_quotation"}, 
         {"url": "permission_setting", "name": "Permission", "icon": "admin_panel_settings", "perm": "app.client_manege_access"},
+        {"url": "expenses_list", "name": "Expenses", "icon": "account_balance_wallet", "perm": "app.expense_manage_permission"},
+        
+        
         {"url": "quotaion_report", "name": "Quotaion Report", "icon": "assignment", "perm": "app.can_reports_quotaion"},
         {"url": "invoice_report", "name": "Invoice Report", "icon": "assignment", "perm": "app.can_report_invoice"},
         {"url": "invoice_product_report", "name": "Product-Report", "icon": "add_shopping_cart", "perm": "app.can_report_invoice"},

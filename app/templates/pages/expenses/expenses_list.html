@@ -1,0 +1,493 @@
+
+{% extends 'base/container.html' %}
+{% load static %}
+{% block title %}Expenses {% endblock %}
+{% block style %}
+ 
+{% endblock %}
+{% block body_content %} 
+<div class="wrapper">
+     <div class="wrapper-title">
+       <div class="wrapper-content">Expenses List</div>
+         <div class="wrapper-actions">
+             <a class="btn btn-add" data-toggle="modal" href="#expenses-model"><i class="fa fa-plus"></i> Add</a>
+           <a class="btn btn-primary" href="{%url 'expensestype_details' %}">  Expenses Type</a> 
+           
+           <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  Back</button>
+        </div>
+     </div>
+ 
+     <div class="card">
+        <div class="adv-table">
+            <div class="class-filter row" style="    align-items: flex-end;">
+                 <div class="col-3">
+                    <label for="">Expenses-Type</label>
+                     <select class="form-control select2" name="expenses-type-filter" id ="expenses_type_filter"   placeholder="select">
+                         <option value="">All</option> 
+                        {% for expensestype in expensestypes%}
+                         <option value="{{expensestype.id}}">{{expensestype.name}}</option>
+                        {% endfor%}
+                     </select>
+                </div>
+                <div class="col-3">
+                    <label class="form-lable" for="due_date_filter">Due date</label>
+                    <input type="date" class="form-control" id="due_date_filter" name="due_date_filter">
+                </div>
+                 <div class="col-3">
+                     
+                     <button class="btn btn-warning" type="button"  onclick="fetchQuotations()">Filter</button>
+                     <button class="btn btn-success" type="button" id="download-xlsx">Excel</button>
+                   
+                     
+                </div>
+            </div>
+            <div class="mt-2" id="ExpenseTable"></div>
+
+        </div>
+     </div>
+ 
+     <!-- Model Add Expenses Add Part-->
+        <div class="category-model modal fade" id="expenses-model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="myModal2">Add</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                          <form class="cmxform form-horizontal tasi-form" id="expenses-add-form" method="post" enctype="multipart/form-data" action="#">
+    {% csrf_token %}
+    
+    <!-- Expenses Type -->
+    <div class="form-group row">
+        <label for="expenses_type" class="control-label col-lg-2">Expenses Type</label>
+        <div class="col-lg-10">
+            <select name="expenses_type" class="select2 form-control" id="expenses_type">
+                <option value="">All</option>
+                {% for expensestype in expensestypes %}
+                    <option value="{{expensestype.id}}">{{expensestype.name}}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Name -->
+    <div class="form-group row">
+        <label for="name" class="control-label col-lg-2">Name</label>
+        <div class="col-lg-10">
+            <input class="form-control" id="name" name="name" type="text" />
+        </div>
+    </div>
+
+    <!-- Amount -->
+    <div class="form-group row">
+        <label for="amount" class="control-label col-lg-2">Amount</label>
+        <div class="col-lg-10">
+            <input class="form-control" id="amount" name="amount" type="text" />
+        </div>
+    </div>
+
+    <!-- Due Date -->
+    <div class="form-group row">
+        <label for="due_date" class="control-label col-lg-2">Due Date</label>
+        <div class="col-lg-10">
+            <input class="form-control" id="due_date" name="due_date" type="date" />
+        </div>
+    </div>
+
+    <!-- Receipt -->
+    <div class="form-group row">
+        <label for="receipt" class="control-label col-lg-2">Receipt</label>
+        <div class="col-lg-10">
+            <input class="form-control" id="receipt" name="receipt" type="file" />
+        </div>
+    </div>
+
+    <!-- Description -->
+    <div class="form-group row">
+        <label for="description" class="control-label col-lg-2">Description</label>
+        <div class="col-lg-10"> 
+            <textarea class="form-control" name="description" id="description"></textarea>
+        </div>
+    </div>
+
+  
+
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" id="expenses-submit" class="btn btn-primary">Save</button>
+    </div>
+</form>
+                       </div>
+                </div>
+            </div>
+        </div>
+        <!-- Model Add Expenses Add Part-->
+
+     <!-- Model Add ExpensesType Add Part-->
+        <div class="category-model modal fade" id="expensestype_model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="myModal2">Add</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                           <form class="cmxform form-horizontal tasi-form" id="expensestype-add-form" method="post" action="#">
+                            {% csrf_token %}
+                                <div class="form-group row">
+                                    <label for="name" class="control-label col-lg-2">Name</label>
+                                    <div class="col-lg-10">
+                                        <input class=" form-control" id="name" name="name" type="text" />
+                                    </div>
+                                </div>
+                                <div class="form-group row ">
+                                    <label for="description" class="control-label col-lg-2">Description</label>
+                                    <div class="col-lg-10"> 
+                                        <textarea class=" form-control"  name="description" id="description"></textarea>
+                                    </div>
+                                </div>
+                                  <!-- 🔔 Recurring Reminder Section -->
+    <hr>
+    <h6 class="text-primary">Reminder Options</h6>
+
+ 
+
+  <!-- Recurring Checkbox -->
+<div class="form-group row">
+    <label for="is_recurring" class="control-label col-lg-2">Recurring?</label>
+    <div class="col-lg-10">
+        <input type="checkbox" id="is_recurring" name="is_recurring" value="true" />
+        <small class="form-text text-muted">Check if this expense repeats automatically (EMI, Salary, Rent, etc.)</small>
+    </div>
+</div>
+
+<!-- 🔔 Recurrence Options (hidden by default) -->
+<div id="recurrence-options" style="display: none;">
+    <!-- Recurrence Type -->
+    <div class="form-group row">
+        <label for="recurrence_type" class="control-label col-lg-2">Recurrence</label>
+        <div class="col-lg-10">
+            <select id="recurrence_type" name="recurrence_type" class="form-control">
+                <option value="none">No Recurrence</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Recurrence Day -->
+    <div class="form-group row">
+        <label for="recurrence_day" class="control-label col-lg-2">Recurrence Day</label>
+        <div class="col-lg-10">
+            <input type="number" class="form-control" id="recurrence_day" name="recurrence_day" placeholder="e.g. 5 = 5th of the month" />
+        </div>
+    </div>
+
+    <!-- Reminder Start -->
+    <div class="form-group row">
+        <label for="reminder_start" class="control-label col-lg-2">Reminder Start</label>
+        <div class="col-lg-10">
+            <input class="form-control" id="reminder_start" name="reminder_start" type="date" />
+        </div>
+    </div>
+
+    <!-- Reminder End -->
+    <div class="form-group row">
+        <label for="reminder_end" class="control-label col-lg-2">Reminder End</label>
+        <div class="col-lg-10">
+            <input class="form-control" id="reminder_end" name="reminder_end" type="date" />
+        </div>
+    </div>
+</div>
+                                
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" id="expensestype-submit" class="btn btn-primary">Save</button>
+                                </div>
+                            </form>
+                       </div>
+                </div>
+            </div>
+        </div>
+        <!-- Model Add ExpensesType Add Part-->
+</div>
+
+{% endblock %}
+{% block js %}
+ 
+
+<script>
+    $(document).ready(function () {
+    $("#is_recurring").change(function () {
+        if ($(this).is(":checked")) {
+            $("#recurrence-options").slideDown(); // show with animation
+        } else {
+            $("#recurrence-options").slideUp();   // hide with animation
+        }
+    });
+});
+ $('#category-table').dataTable( {
+       
+        } );
+//Search  -Filter
+$(function () {
+    const modal = $("#category-model-edit");
+    const form = $("#category-edit-form");
+   
+ 
+    // Populate modal form
+   $(".edit-category-btn").click(function () {
+    const btn = $(this);
+    const form = $("#category-edit-form");
+
+    form.attr("data-id", btn.data("id"));
+    form.find("#name").val(btn.data("name"));
+    form.find("#description").val(btn.data("description"));
+    const isChecked = btn.data("status") === "True" || btn.data("status") === true;
+    form.find("#status").prop("checked", isChecked);
+
+     
+});
+
+// Optional: reset form on close
+$('#category-model-edit').on('hidden.bs.modal', function () {
+    $(this).find("form")[0].reset();
+});
+
+    // Submit updated form via AJAX
+    $("#category-edit-submit").click(function () {
+        const id = form.attr("data-id");
+        const url = "{% url 'category_edit' 0 %}".replace("0", id);
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: form.serialize(),
+            headers: {
+                "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+            },
+            success: function (res) {
+                if (res.success) {
+                    modal.modal("hide");
+                    location.reload();  // OR update DOM without reload
+                } else {
+                    alert("Validation error");
+                    console.log(res.errors);
+                }
+            },
+            error: function (err) {
+                alert("Server error");
+                console.error(err.responseText);
+            }
+        });
+    });
+$("#expenses-submit").click(function () {
+    const form = document.getElementById("expenses-add-form"); // plain DOM form
+    const modal = $("#expensestype_model");  
+    const url = "{% url 'expense_create' %}";  
+
+    const formData = new FormData(form); // includes files + text inputs
+ 
+
+    $.ajax({
+        url: url,
+        type: "POST",
+        data: formData,
+        processData: false,   // required for file upload
+        contentType: false,   // required for file upload
+        headers: {
+            "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+        },
+        success: function (res) {
+            if (res.success) {
+                $("#category-model").modal("hide");
+                DisplayAlert(true, res.message);
+                location.reload();
+            } else {
+                DisplayAlert(false, res.errors);
+                console.log(res.errors);
+            }
+        },
+        error: function (err) {
+            console.log(err);
+            DisplayAlert(false, "Server error");
+            console.error(err.responseText);
+        }
+    });
+});
+
+ 
+
+
+  $("#expensestype-submit").click(function () {
+ 
+    const form = $("#expensestype-add-form");   // reference form
+    const modal = $("#expensestype_model");     // reference modal
+    const url = "{% url 'expensestype_create' %}";  // create view doesn't need id
+
+    $.ajax({
+        url: url,
+        type: "POST",
+        data: form.serialize(),
+        headers: {
+            "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
+        },
+        success: function (res) {
+            if (res.success) {
+                $("#category-model").modal("hide");
+                DisplayAlert(true,res.message)
+                location.reload();
+                
+            } else {
+              
+                DisplayAlert(false,res.errors)
+                
+                console.log(res.errors);
+            }
+        },
+        error: function (err) {
+            console.log(err)
+            DisplayAlert(false,res.errors)
+            console.error(err.responseText);
+        }
+    });
+});
+});
+</script>
+<script type="text/javascript" src="https://oss.sheetjs.com/sheetjs/xlsx.full.min.js"></script>
+<link href="https://unpkg.com/tabulator-tables@5.5.2/dist/css/tabulator.min.css" rel="stylesheet">
+<script src="https://unpkg.com/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.20/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+    // Initialize Tabulator (empty for now)
+    var table = new Tabulator("#ExpenseTable", {
+   
+        layout: "fitColumns",
+        pagination:"local",
+        paginationSize:10,
+        paginationSizeSelector:[3, 6, 8, 10],
+        movableColumns:true,
+        paginationCounter:"rows",
+        responsiveLayout:"collapse",
+        placeholder: "No records found",
+
+        columns: [
+            {title:"S.No", formatter:"rownum", width:70, hozAlign:"center"},
+            {title:"Due Date", field:"due_date"},
+            {title:"Expenses-Type", field:"expenses_type"},
+             
+         
+            {
+                title:"Amount",
+                field:"amount",
+                hozAlign:"right",
+                   // ✅ format total like money
+                
+            },
+             {title:"Description", field:"description"},
+           
+           
+        ],
+    });
+
+    // XLSX Export
+    document.getElementById("download-xlsx").addEventListener("click", function(){
+    table.download("xlsx", "Invoice.xlsx", {
+        sheetName: "Invoice",
+        documentProcessing: function(workbook){
+            // Get worksheet
+            var sheet = workbook.Sheets["Invoices"];
+
+            // Find last row
+            var range = XLSX.utils.decode_range(sheet["!ref"]);
+            var lastRow = range.e.r + 2; // +1 for next row, +1 offset
+
+            // Calculate total
+            var total = table.getCalcResults().bottom.price; // ✅ Tabulator calc results
+
+            // Add "Total Price" label in second last column
+            var labelCell = XLSX.utils.encode_cell({r:lastRow, c:sheet["!ref"].split(":")[1].match(/\d+/) - 2});
+            sheet[labelCell] = { t:"s", v:"Total Price" };
+
+            // Add total value in last column
+            var totalCell = XLSX.utils.encode_cell({r:lastRow, c:range.e.c});
+            sheet[totalCell] = { t:"n", v:total };
+
+            // Update worksheet range
+            sheet["!ref"] = XLSX.utils.encode_range(range.s, {r:lastRow, c:range.e.c});
+
+            return workbook;
+        }
+    });
+});
+fetchQuotations()
+    // Fetch data from Django backend
+    function fetchQuotations() {
+        const formData = new FormData();
+        /*let quotationVals = Array.from(document.getElementById("quotation").selectedOptions).map(opt => opt.value);
+        let customerVals = Array.from(document.getElementById("customer").selectedOptions).map(opt => opt.value);
+        let approverVals = Array.from(document.getElementById("approver").selectedOptions).map(opt => opt.value);
+        quotationVals.forEach(val => formData.append("quotation", val));
+        customerVals.forEach(val => formData.append("customer", val));
+        approverVals.forEach(val => formData.append("approver", val));*/
+
+        // Single values
+       
+        let expenses_typeVal = document.getElementById("expenses_type_filter").value;
+       
+        let due_dateVal = document.getElementById("due_date_filter").value;
+        if (expenses_typeVal) formData.append("expenses_type", expenses_typeVal);
+        if (due_dateVal) formData.append("due_date", due_dateVal);
+
+        fetch(window.location.href, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": getCookie("csrftoken")
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.data && data.data.length > 0) {
+                table.setData(data.data);   // load data into Tabulator
+            } else {
+                table.clearData();          // clear if no records
+            }
+        })
+        .catch(err => {
+            console.error("Error:", err);
+        });
+    }
+
+    // Run once on page load
+    fetchQuotations();
+
+    // CSRF helper for Django POST
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+
+{% endblock %}
