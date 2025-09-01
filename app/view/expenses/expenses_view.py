@@ -7,7 +7,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from app.forms.expenses.expenses_form import ExpensesForm, ExpensesTypesForm
 from app.models.expenses.expenses_model import Expenses, ExpensesTypes
-
+from django.db import transaction  
+import datetime
+from django.db.models import Q
 
 class ExpensesTypeDetail(View):
     
@@ -37,9 +39,7 @@ class ExpensesTypesCreate(View):
             return JsonResponse({
                 'success': True,
                 'message': 'ExpensesTypes Create successfully.',
-                'data': {
-                     
-                }
+                'data': {}                
             }, status=200)
 
         return JsonResponse({
@@ -68,23 +68,30 @@ class ExpensesTypesUpdate(View):
         }, status=400)
 
 class ExpensesTypesDelete(View):
-    def post(self, request):
-        form = ExpensesForm(request.POST)
-        if form.is_valid():
-            expensestypes = form.save( )
-             
+    def post(self, request, pk):
+        customer = get_object_or_404(ExpensesTypes, pk=pk)
+
+        try:
+            with transaction.atomic():
+                customer.delete(user=request.user)  # soft delete using your CustomBase method
             return JsonResponse({
                 'success': True,
-                'message': 'Expenses Create successfully.',
-                'data': {
-                     
-                }
+                'message': 'Expensestypes deleted successfully.'
             }, status=200)
 
-        return JsonResponse({
-            'success': False,
-            'errors': form.errors
-        }, status=400)
+        except ValueError as e:
+            # Raised when there are related non-deleted objects
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f"An unexpected error occurred: {str(e)}"
+            }, status=500)
+    
 
 class ExpensesCreate(View):
     def post(self, request):
@@ -138,7 +145,7 @@ class ExpensesViewList(View):
     def post(self, request):
         try:
             filters = {}
-            print("Post -List",request.POST)
+            
             expenses_type = request.POST.get("expenses_type")
             quotation_ids = request.POST.getlist("quotation")
             request_date_str = request.POST.get("due_date")
@@ -203,12 +210,6 @@ class ExpensesViewList(View):
 
 class ExpensesDelete(View):
     pass
-
-
-import datetime
-from django.db.models import Q
- 
-
 def RecycleEence_datas():
     today = datetime.date.today()
     current_year, current_month, current_day = today.year, today.month, today.day

@@ -189,10 +189,12 @@
         {% for product in products %}
         "{{ product.id }}": {
             name: "{{ product.name|escapejs }}",
-            width: {{ product.width|default:"null" }},
-            height: {{ product.height|default:"null" }},
-            price: {{ product.price|default:0 }},
-            unit: "{{ product.unit.symbol|default:'mm' }}"
+            width: "{{ product.width|default:"null" }}",
+            height: "{{ product.height|default:"null" }}",
+            price: "{{ product.price|default:0 }}",
+            unit: "{{ product.unit.symbol|default:'mm' }}",
+            fixed_price: "{{ product.fixed_price }}"
+ 
         },
         {% endfor %}
     };
@@ -221,9 +223,12 @@ function calculateTotal(row) {
         return;
     }
 
-    const hasDimensions = product.width && product.height;
-
-    if (hasDimensions) {
+    const hasDimensions = (
+        product.width && product.width !== "null" &&
+        product.height && product.height !== "null"
+    );
+    const isFixedPrice = String(product.fixed_price).toLowerCase() === "true";
+    if (hasDimensions && !isFixedPrice) {
         widthRow.show();
 
         const width = parseFloat(row.find('input[name^="width_"]').val()) || 0;
@@ -246,7 +251,13 @@ function calculateTotal(row) {
 
         row.find('.total-cost').val(total.toFixed(2));
     } else {
-        widthRow.hide();
+ 
+       
+        if(isFixedPrice){
+             widthRow.show();
+        }else{
+             widthRow.hide();
+        }
         const total = qty * product.price;
         row.find('.total-cost').val(total.toFixed(2));
     }
@@ -287,7 +298,7 @@ function calculateTotal(row) {
 
         const html = `
         <div class="form-group request-row custom-row-data mb-0" data-index="${counter}">
-            <select name="product_${counter}" class="select2 form-control product-select select2 ">
+            <select name="product_${counter}" class="select2 form-control product-select">
                 <option value="">Select Product</option>
                 {% for product in products %}
                     <option value="{{ product.id }}" data-price="{{ product.price }}">{{ product.name }}</option>
@@ -295,8 +306,8 @@ function calculateTotal(row) {
             </select>
             <input type="number" class="form-control qty-input" name="qty_${counter}" placeholder="Qty" min="1" value="1" />
             <div class="dimension-row" style="display: contents;">
-                <input type="number" class="form-control" name="width_${counter}" placeholder="Width" />
-               <input type="number" class="form-control" name="height_${counter}" placeholder="Height" />
+                <input type="number" class="form-control" name="width_${counter}" value="{{ product.value }}" placeholder="Width" />
+                <input type="number" class="form-control" name="height_${counter}" placeholder="Height" />
                <select class="form-control unit-select select2" name="unit_${counter}">
                 {% for unit in units %}
                     
@@ -327,7 +338,7 @@ function calculateTotal(row) {
             `);
         }
     });
-
+ 
     // Remove row
     $(document).on('click', '.remove-row', function () {
         const row = $(this).closest('.request-row');
@@ -344,14 +355,84 @@ function calculateTotal(row) {
                     </a>
                 `);
             }
+           $(".select2").select2({
+           tags: true
+        });
         }
     });
 
     // Prevent duplicate product selections
     $(document).on('change', '.product-select', function () {
-        updateProductDropdowns();
-        calculateTotal($(this).closest('.request-row'));
+    
+    const row = $(this).closest('.request-row');
+    const productId = $(this).val();
+
+    if (!productId) {
+        // reset if nothing selected
+        row.find('.qty-input').val(1);
+        row.find('input[name^="width_"]').val('');
+        row.find('input[name^="height_"]').val('');
+        row.find('.total-cost').val('');
+        return;
+    }
+
+    // lookup product details
+    const product = PRODUCTS_DATA[productId];
+     let duplicate = false;
+    $('.product-select').not(this).each(function () {
+        if ($(this).val() === productId) {
+            duplicate = true;
+            return false; // break loop
+        }
     });
+
+    if (duplicate) {
+        DisplayAlert(false,"This product is already selected in another row.");
+        $(this).val('').trigger('change'); // reset current selection
+        return;
+    }
+
+    if (product) {
+        // set default values
+        if (product.width && product.width !== "null") {
+            row.find(`input[name^="width_"]`).val(product.width);
+        } else {
+            row.find(`input[name^="width_"]`).val('');
+        }
+
+        if (product.height && product.height !== "null") {
+            row.find(`input[name^="height_"]`).val(product.height);
+           
+        } else {
+            row.find(`input[name^="height_"]`).val('');
+        }
+
+        // update unit
+        row.find('.unit-select').val(product.unit).trigger('change');
+        const is_FixedPrice = String(product.fixed_price).toLowerCase() === "true";
+        if (is_FixedPrice) {
+        row.find('.dimension-row').hide();
+        row.find(`input[name^="width_"]`).prop('disabled', true);
+        row.find(`input[name^="height_"]`).prop('disabled', true);
+        row.find('.unit-select').prop('disabled', true);
+    } else {
+        row.find('.dimension-row').show();
+        row.find(`input[name^="width_"]`).prop('disabled', false);
+        row.find(`input[name^="height_"]`).prop('disabled', false);
+        row.find('.unit-select').prop('disabled', false);
+    }
+
+        // fixed price? hide dimension inputs
+        if (String(product.fixed_price).toLowerCase() === "true") {
+            row.find('.dimension-row').hide();
+        } else {
+            row.find('.dimension-row').show();
+        }
+
+        // recalc
+        calculateTotal(row);
+    }
+});
 
     // On quantity/width/height/unit input change, recalculate
     $(document).on('input change', '.qty-input, .unit-select, input[name^="width_"], input[name^="height_"]', function () {

@@ -63,7 +63,8 @@
                                   data-reminder_start="{{expensestype.reminder_start|date:'Y-m-d'}}"
                                   data-reminder_end="{{expensestype.reminder_end|date:'Y-m-d'}}">
                                 <i class="fa fa-pencil"></i></button>
-                                {% comment %} <button class="btn btn-del btn-sm" onclick="confirmDeletedUpdate('{% url 'iso_delete' isosize.id %}')"><i class="fa fa-trash-o "></i></button> {% endcomment %}
+                                
+                                <button class="btn btn-del btn-sm" onclick="confirmDeletedUpdate('{% url 'expensestype_delete' expensestype.id %}')"><i class="fa fa-trash-o "></i></button>
                             </td>
                         </tr>
                          

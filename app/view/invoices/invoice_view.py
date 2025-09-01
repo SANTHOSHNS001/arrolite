@@ -9,26 +9,24 @@ from app.models.customer_model.customer_model import CustomUser, Customer
 from app.models.invoice_model.invoice_model import Invoice, InvoiceItem
 from app.models.iso_series.iso_series_model import ISOSize
 from app.models.product.product_model import Product
-from app.models.product.quotation_model import Quotation, QuotationItem
+from app.models.product.quotation_model import Quotation
 from app.models.unit.unit_model import Unit
 from django.contrib import messages 
 from django.http import FileResponse, JsonResponse
 import json
- 
+from django.db.models import F 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle 
 from reportlab.lib.units import cm
 from reportlab.platypus import (
     BaseDocTemplate, Frame, PageTemplate, Paragraph, Spacer,
-    Table, TableStyle, Image,KeepTogether
+    Table, TableStyle, Image
 )
-import io
+import io,os
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-import os
 from django.conf import settings
- 
 from decimal import Decimal, InvalidOperation
 
 class InvoiceListView(View):
@@ -173,7 +171,7 @@ class InvoiceDetails(View):
 
     def post(self, request, pk):
             quotation = get_object_or_404(Invoice, id=pk)
-            print("request.POST", request.POST)
+            
 
             # --- Read inputs ---
             status_str   = request.POST.get('status')
@@ -236,7 +234,7 @@ class InvoiceDetails(View):
 
             # --- Status logic ---
             if status_str == "paid":
-    # forcefully allow small rounding differences (<= 1.00)
+ 
                 if balance_due <= Decimal("1.00"):
                     quotation.approver_status = "paid"
                     # Clear out any tiny remaining balance by bumping advance_amount
@@ -788,8 +786,7 @@ class InvoiceReportView(View):
         except Exception as e:
             return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
         
-        
-from django.db.models import F      
+         
 class ProductReportInvoice(View):
  
     template = "pages/invoice/product_invoice_report.html"
@@ -803,7 +800,7 @@ class ProductReportInvoice(View):
                 .order_by("approver__id")  
                 .values("approver__id", "approver__first_name","approver__last_name").distinct()
             )
-        # Distinct customers from quotations
+    
         customers =(
                 invoices
                 .filter(customer__isnull=False)
@@ -811,9 +808,6 @@ class ProductReportInvoice(View):
                 .values("customer__id", "customer__name").distinct()   
             )
         
-        print("all",products)
-         
-
         context = {
             'products': products,
             "approvers":approvers,
@@ -868,20 +862,15 @@ class ProductReportInvoice(View):
                     )
 
             # Query database
-            quotations_qs = (
-                        InvoiceItem.active_objects.filter(**filters).select_related("product" ) )  
-            print(quotations_qs)
-                               
+            quotations_qs = (InvoiceItem.active_objects.filter(**filters).select_related("product" ) )  
+                                            
             data = [
                     {
                         "id": q.id,
                         "invoice_number": q.invoice.invoice_number,
                         "product": q.product.name,
-                        
-                        
                         "price": float(q.unit_cost),  # property, not callable
-                        "qty": float(q.quantity),  # property, not callable
-                        
+                        "qty": float(q.quantity),  # property, not callable                       
                         "approver": {
                             "id": q.invoice.approver.id,
                             "name": f"{q.invoice.approver.first_name} {q.invoice.approver.last_name}".strip()

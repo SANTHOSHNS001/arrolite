@@ -36,7 +36,7 @@
                  <div class="col-3">
                      
                      <button class="btn btn-warning" type="button"  onclick="fetchQuotations()">Filter</button>
-                     <button class="btn btn-success" type="button" id="download-xlsx">Excel</button>
+                     {% comment %} <button class="btn btn-success" type="button" id="download-xlsx">Excel</button> {% endcomment %}
                    
                      
                 </div>
@@ -401,7 +401,7 @@ $("#expenses-submit").click(function () {
     });
 
     // XLSX Export
-    document.getElementById("download-xlsx").addEventListener("click", function(){
+   /* document.getElementById("download-xlsx").addEventListener("click", function(){
     table.download("xlsx", "Invoice.xlsx", {
         sheetName: "Invoice",
         documentProcessing: function(workbook){
@@ -429,7 +429,7 @@ $("#expenses-submit").click(function () {
             return workbook;
         }
     });
-});
+});*/
 fetchQuotations()
     // Fetch data from Django backend
     function fetchQuotations() {

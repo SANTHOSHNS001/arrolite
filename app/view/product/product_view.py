@@ -16,12 +16,11 @@ from reportlab.platypus import (
     BaseDocTemplate, Frame, PageTemplate, Paragraph, Spacer,
     Table, TableStyle, Image,KeepTogether
 )
-import io
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-import os
 from django.conf import settings
-import json
+from django.db import transaction 
+import json,os,io
 
 class ProductListView(View):
     template="pages/product/product.html"
@@ -66,7 +65,7 @@ class ProductEditView(View):
             'success': False,
             'errors': form.errors
         }, status=400)   
-from django.db import transaction     
+    
 class ProductDelete(View):
     def post(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
