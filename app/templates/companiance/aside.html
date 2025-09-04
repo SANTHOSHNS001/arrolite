@@ -1,30 +1,49 @@
 {% load custom_tags %}
 {% get_sidebar_menu as sidebar_menu %}
+  
+ 
 
       <div id="sidebar"  class="nav-collapse ">
         <!-- sidebar menu start-->
             <ul class="sidebar-menu" id="nav-accordion">
+         
       
-                 {% for item in sidebar_menu %}
-                  {% if not item.permission_only %} 
-                    {% if not item.perm or request.user|has_perm:item.perm %}
-                        <li>
-                            {% if item.url %}
-                                <a href="{% url item.url %}">
-                                    <i class="material-icons">{{ item.icon }}</i>
-                                    <span>{{ item.name }}</span>
-                                </a>
-                            {% else %}
-                                <span class="menu-item">
-                                    <i class="material-icons">{{ item.icon }}</i>
-                                    <span>{{ item.name }}</span>
-                                </span>
-                            {% endif %}
-                        </li>
-                    {% endif %}
-                          {% endif %}
-                {% endfor %}
+                {% regroup sidebar_menu  by parent as menu_groups %}
                 
+                {% for group in menu_groups %}
+                {% if group.grouper %}
+                    <!-- Sub Menu -->
+                    <li class="sub-menu">
+                    <a href="javascript:;">
+                        <i class="fa fa-folder"></i>
+                        <span>{{ group.grouper }}</span>
+                    </a>
+                    <ul class="sub">
+                        {% for item in group.list %}
+                        {% if not item.permission_only %}
+                            {% if not item.perm or request.user|has_perm:item.perm %}
+                            <li><a href="{% url item.url %}"> {{ item.name }}</a></li>
+                            {% endif %}
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                    </li>
+                {% else %}
+                    <!-- Top-level items -->
+                    {% for item in group.list %}
+                    {% if not item.permission_only %}
+                        {% if not item.perm or request.user|has_perm:item.perm %}
+                        <li>
+                            <a href="{% url item.url %}">
+                            <i class="{{ item.icon }}"></i>
+                            <span>{{ item.name }}</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endif %}
+                    {% endfor %}
+                {% endif %}
+                {% endfor %}
                   
                 {% comment %} <li>
                     <a  href="{%url 'quotation_invoice'%}">
