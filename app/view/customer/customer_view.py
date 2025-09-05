@@ -94,10 +94,8 @@ class CustomUserUpdate(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         user = form.save(commit=False)
         raw_password = form.cleaned_data.get("password")
-        if raw_password and len(raw_password) < 3:  
-            # only hash & update if changing password
-          
-            user.set_password(raw_password)
+        if raw_password:
+            user.set_password(raw_password)  # ensures password is hashed
         user.save()
         form.save_m2m()
         messages.success(
