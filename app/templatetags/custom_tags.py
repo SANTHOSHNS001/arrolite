@@ -24,20 +24,19 @@ def get_sidebar_menu():
         {"url": "unit_list", "name": "Unit", "icon": "fa fa-ruler", "perm": "app.manage_unit", "parent": "Setting"},
         {"url": "iso_list", "name": "ISO-Size", "icon": "fa fa-cubes", "perm": "app.can_manage_isosize", "parent": "Setting"},
         # Product (single menu, not grouped)
+        {"url": "product_list", "name": "Product", "icon": "fa fa-shopping-cart", "perm": "app.can_manage_product", "parent": "Product"},
         {"url": "invoice_product_report", "name": "Product-Report", "icon": "fa fa-shopping-cart", "perm": "app.can_report_invoice", "parent": "Product"},
-        {"url": "product_list", "name": "Product", "icon": "fa fa-box", "perm": "app.can_manage_product", "parent": "Product"},
-        
-
+    
         # QUOTATIONS
         {"url": "quotation_list", "name": "Quotation", "icon": "fa fa-file", "perm": "app.can_manage_quotaion", "parent": "Quotation"},
         {"url": "quotation_waiting", "name": "Approved", "icon": "fa fa-check", "perm": "app.can_approve_quotation", "parent": "Quotation"}, 
         {"url": "quotaion_report", "name": "Quotaion Report", "icon": "fa fa-file-alt", "perm": "app.can_reports_quotaion", "parent": "Quotation"},
 
         # Invoice
-        {"url": "quotation_invoice", "name": "Invoice", "icon": "fa fa-receipt", "perm": "app.can_assign_approver_quotation", "parent": "Invoice"}, 
+        {"url": "quotation_invoice", "name": "Invoice", "icon": "fa fa-file-text-o", "perm": "app.can_assign_approver_quotation", "parent": "Invoice"}, 
         {"url": "invoice_report", "name": "Invoice Report", "icon": "fa fa-file-invoice", "perm": "app.can_report_invoice", "parent": "Invoice"},
        # Expenses (single menu, not grouped)
-        {"url": "expenses_list", "name": "Expenses", "icon": "fa fa-wallet", "perm": "app.expense_manage_permission", "parent": "Expenses"},
+        {"url": "expenses_list", "name": "Expenses", "icon": "fa fa-clone", "perm": "app.expense_manage_permission", "parent": "Expenses"},
  
         {"url": "customer_list", "name": "Customer", "icon": "fa fa-user", "perm": "app.client_manege_permission", "parent": None},
     ]
