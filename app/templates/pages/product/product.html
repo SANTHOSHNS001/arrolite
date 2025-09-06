@@ -279,43 +279,29 @@
 {% endblock %}
 {% block js %}
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$('#hidden-table-info').dataTable( { } );       
 
-    <!--dynamic table initialization -->
-    <script>
-          
-     //Search  -Filter
-         $('#hidden-table-info').dataTable( {
-    
-        } );
 $(function () {
     const modal = $("#project-edit-model");
     const form = $("#project-edit-form");
- 
     // Populate modal form
     $(".edit-category-btn").click(function () {
-        const btn = $(this);
- 
-        const categoryId = btn.data("categorie");
-        const subcategoryId = btn.data("subcategory");
-        const unitId = btn.data("unit");
-        form.attr("data-id", btn.data("id"));
-        form.find("#name").val(btn.data("name"));
-        form.find("#width").val(btn.data("width")|| '');
-        form.find("#height").val(btn.data("height") || '');
-        form.find("#price").val(btn.data("price") || '');
-       const fixedPrice = btn.data("fixed_price"); // will be "True" or "False"
-       form.find("#fixed_price").prop("checked", String(fixedPrice).toLowerCase() === "true");
-
-        
-
-         
+         const btn = $(this);
+         const categoryId = btn.data("categorie");
+         const subcategoryId = btn.data("subcategory");
+         const unitId = btn.data("unit");
+         form.attr("data-id", btn.data("id"));
+         form.find("#name").val(btn.data("name"));
+         form.find("#width").val(btn.data("width")|| '');
+         form.find("#height").val(btn.data("height") || '');
+         form.find("#price").val(btn.data("price") || '');
+         const fixedPrice = btn.data("fixed_price"); // will be "True" or "False"
+         form.find("#fixed_price").prop("checked", String(fixedPrice).toLowerCase() === "true"); 
          form.find("#category").val(categoryId);
          form.find("#subcategory").val(subcategoryId);
-
          form.find("#unit").val(unitId);
-
-
-        form.find("#description").val(btn.data("description") || '');
+         form.find("#description").val(btn.data("description") || '');
  
     });
 
@@ -336,9 +322,7 @@ $(function () {
                 if (res.success) {
                     modal.modal("hide");
                     DisplayAlert(true,res.message)
-                    window.location.reload();
-
-                     
+                    window.location.reload();    
                 } else {
                     DisplayAlert(false,"Validation error")
                     console.log(res.errors);
@@ -353,8 +337,5 @@ $(function () {
     });
 });
 </script>
-     
-  
  
-
 {% endblock %}

@@ -12,8 +12,7 @@
     <div class="wrapper-content">Sub-Category List</div>
     <div class="wrapper-actions">
          <a class="btn btn-add" data-toggle="modal" href="#category-model"><i class="fa fa-plus"></i> Add</a>
-         
-        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
+         <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
    </div>
     <div class="row mt-2">
@@ -50,10 +49,7 @@
                                 <button class="btn btn-del btn-sm" onclick="confirmDeletedUpdate('{% url 'sub_category_delete' subcategorie.id %}')"><i class="fa fa-trash-o "></i></button>
                             </td>
                         </tr>
-                    
                         {%endfor%}
-                        
-                        
                         </tbody>
                     </table>
                 </div>
@@ -185,13 +181,10 @@ $(function () {
  
     // Populate modal form
     $(".edit-category-btn").click(function () {
-        const btn = $(this);
-      
+        const btn = $(this); 
         const categoryId = btn.data("categorie");
         form.attr("data-id", btn.data("id"));
-        form.find("#name").val(btn.data("name"));
-         
-         
+        form.find("#name").val(btn.data("name"));   
         form.find("#category").val(categoryId).trigger('change');
         form.find("#description").val(btn.data("description"));
  
@@ -200,8 +193,7 @@ $(function () {
     // Submit updated form via AJAX
     $("#category-edit-submit").click(function () {
         const id = form.attr("data-id");
-        const url = "{% url 'sub_category_edit' 0 %}".replace("0", id);
-  
+        const url = "{% url 'sub_category_edit' 0 %}".replace("0", id); 
         $.ajax({
             url: url,
             type: "POST",

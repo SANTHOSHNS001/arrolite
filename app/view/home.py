@@ -16,7 +16,6 @@ class HomePageView(View):
         today = timezone.now()
         # Get the first day of this month
         first_day_this_month = today.replace(day=1)
-
         # Range: this month (from 1st until now)
         start_date = first_day_this_month
         end_date = today 
@@ -55,7 +54,7 @@ class HomePageView(View):
             ).count(),
             "paid_invoices": Invoices.filter(approver_status="paid").count(),
 }
-        print("Ins",Ins)
+  
         context = {
             'categories' :categories,
             'categories_total' :categories.count(),

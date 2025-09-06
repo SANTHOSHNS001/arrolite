@@ -10,8 +10,6 @@ from app.models.sub_category.sub_category_model import SubCategory
 from app.models.unit.unit_model import Unit
 
 # Register your models here.
-
-
 admin.site.register(CustomUser)
 admin.site.register(Customer)
 admin.site.register(Category)

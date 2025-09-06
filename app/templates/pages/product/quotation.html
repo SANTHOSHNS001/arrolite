@@ -208,12 +208,9 @@
                 const dataitems = data;
                 const quotationId = $(nTr).find("th[data-id]").data("id");
                 const approver = $(nTr).find("th[data-user]").data("user");
-                const approvestatus = $(nTr).find("th[data-status]").data("status");
-
-                console.log(dataitems)
+                const approvestatus = $(nTr).find("th[data-status]").data("status"); 
                 try {
-                    const htmlContent = $('<div>').html(data[5]).text();
-
+                    const htmlContent = $('<div>').html(data[5]).text(); 
                     const fixedContent = htmlContent
                         .replace(/'/g, '"')
                         .replace(/None/g, 'null')
@@ -238,8 +235,7 @@
                                     </button>
                                 </div>`;
                     }
-                
-
+                 
                 sOut += '<table cellpadding="5" cellspacing="0"   style="width:100%;">';
                 sOut += '<thead><tr style="color:#fff8f8;font-size:12px;background-color: #6acc6a;"><th>Product Name</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Total</th><th>Width</th><th>Height</th><th>Description</th></tr></thead><tbody>';
 
@@ -311,11 +307,7 @@
                     ],
                     "aaSorting": [[1, 'asc']]
                 });
-
-                /* Add event listener for opening and closing details
-                * Note that the indicator for showing which row is open is not controlled by DataTables,
-                * rather it is done here
-                */
+ 
             $(document).on('click', '#hidden-table-info tbody td i', function () {
             const tr = $(this).closest('tr')[0];
 
@@ -581,16 +573,12 @@ function submitQuotationAction(id) {
     if (!action) {
         alert("Please select an action.");
         return;
-    }
-
+    } 
     if (discount && (discount < 0 || discount > 100)) {
         alert("Discount must be between 0 and 100.");
         return;
-    }
-
-    const url = "{% url 'quotaion_approval' 0 %}".replace(0, id);
- 
-
+    } 
+    const url = "{% url 'quotaion_approval' 0 %}".replace(0, id); 
     fetch(url, {
         method: "POST",
         headers: {
@@ -618,8 +606,5 @@ function submitQuotationAction(id) {
         alert("Error: " + error.message);
     });
 }
-</script>
-
-
-
+</script> 
 {% endblock %}

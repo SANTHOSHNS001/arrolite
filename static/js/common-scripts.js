@@ -73,9 +73,7 @@ var Script = function () {
 
  
 
-//    popovers
-
-    $('.popovers').popover();
+ 
 
 
 // custom bar chart
