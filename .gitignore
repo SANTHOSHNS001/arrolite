@@ -1,0 +1,140 @@
+# Python
+.venv/
+.env
+*.pyc
+__pycache__/
+*.cpython-*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Django
+staticfiles/
+media/
+*.log
+django.log
+django_queries.log
+*.sqlite3
+db.sqlite3
+
+# Environment files
+.env
+.env.custom
+app/migrations
+# Migrations (keeping them in repo is usually better)
+migrations/
+app/migrations/
+
+# Static files and old directories
+static_old/
+templates_old/
+
+# SQL files
+*.sql
+*pyc
+# Compressed files
+*.zip
+docker-compose.yaml
+*.sql
+Dockerfile
+# Generated client library (not required in repo)
+ros-store-api-client/
+
+# Test artifacts and local tests (optional)
+.pytest_cache/
+storeApi/tests/
+storeApi/tests.py
+
+# Virtual environments
+venv/
+testenv/
+myenv/
+.env
+=======
+*.tar.gz
+
+# Docker (commented out to keep in repo)
+# docker-compose.yaml
+# Dockerfile
+
+# Generated client library
+ros-store-api-client/
+
+# Test artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+.hypothesis/
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Local settings
+local_settings.py
+
+# Documentation builds
+docs/_build/
+
+# PyCharm
+.idea/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+Azure_Full_Workflow.txt
+README_Azure_Deployment_Singapore.md

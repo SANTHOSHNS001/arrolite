@@ -1,6 +1,5 @@
 from django.views import View
 from django.shortcuts import render
-
 from app.models.category.category_model import Category
 from app.models.customer_model.customer_model import Customer
 from app.models.invoice_model.invoice_model import Invoice
@@ -44,16 +43,10 @@ class HomePageView(View):
         }
         Ins = {
             "list_invoice": Invoices.count(),
-            "pending_invoice": Invoices.filter(
-                approver_status="pending",
-               
-            ).count(),
-            "payment_pending_invoice": Invoices.filter(
-                approver_status="pending_payment",
-                
-            ).count(),
+            "pending_invoice": Invoices.filter(approver_status="pending",).count(),
+            "payment_pending_invoice": Invoices.filter(approver_status="pending_payment",).count(),
             "paid_invoices": Invoices.filter(approver_status="paid").count(),
-}
+        }
   
         context = {
             'categories' :categories,

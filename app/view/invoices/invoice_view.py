@@ -1,5 +1,3 @@
- 
-
 from datetime import datetime
 from decimal import Decimal
 from django.db import DatabaseError
@@ -109,7 +107,7 @@ class InvoiceRequestView(View):
         else:
             new_number = 3000  # first ever starts at 3000
 
-        # Always return 7 digits (Q0003000, Q0003001, ...)
+       
         return f"Q{new_number:07d}"
 
     def extract_valid_items(self, post_data):
@@ -246,11 +244,6 @@ class InvoiceDetails(View):
                     quotation.approver_status = "paid"
                 else:
                     quotation.approver_status = status_str
-
-            # --- Optional: protect against unauthorized edits ---
-       
-
-            # --- Creator / Updater tracking ---
             if not quotation.creator:
                 quotation.creator = request.user
             quotation.updater = request.user
