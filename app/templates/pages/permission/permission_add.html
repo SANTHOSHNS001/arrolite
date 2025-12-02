@@ -24,6 +24,34 @@
     height: 16px;
     margin: 3px;
 }
+.permission-pages {
+    display: grid;
+    gap: 15px; /* space between items */
+    
+    /* default: 1 item per row for very small screens */
+    grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 600px) {
+    /* 4 items per row on tablet/small screens */
+    .permission-pages {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1200px) {
+    /* 7 items per row on large screens */
+    .permission-pages {
+        grid-template-columns: repeat(7, 1fr);
+    }
+}
+
+.permission-items {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* space between checkbox and label */
+}
+
  </style>
 {% endblock %}
 {% block body_content %} 
