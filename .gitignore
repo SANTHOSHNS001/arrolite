@@ -37,5 +37,6 @@ staticfiles/
 *.swp
 .DS_Store
 
-# Ignore .pyc files inside migrations __pycache__, but keep migration .py files
+# Ignore __pycache__ inside migrations, but keep migration .py files
+**/migrations/__pycache__/
 **/migrations/__pycache__/
