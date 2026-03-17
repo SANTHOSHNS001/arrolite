@@ -1,42 +1,23 @@
 # Python
-*.pyc
-*.pyo
-*.pyd
 __pycache__/
-*.so
-.Python
+*.pyc
 
-# Virtual environments
-.venv/
+# Django migrations (ignore everything except __init__.py)
+**/migrations/*
+!**/migrations/__init__.py
+
+# Virtualenv
+venv/
 env/
-ENV/
 
-# Environment variables
-.env
-
-# Distribution / packaging
-build/
-dist/
-*.egg-info/
-.eggs/
-
-# Django
-*.log
-*.pot
-*.py[cod]
-db.sqlite3
-media/
-staticfiles/
-
-# Pytest
-.pytest_cache/
-
-# Editor / OS files
+# IDE
 .vscode/
 .idea/
-*.swp
-.DS_Store
 
-# Ignore __pycache__ inside migrations, but keep migration .py files
-**/migrations/__pycache__/
-**/migrations/__pycache__/
+# Git
+.gitignore
+staticfiles/assets
+media/receipts
+app/migrations
+app/migrations/*.py
+arrolite/.env 

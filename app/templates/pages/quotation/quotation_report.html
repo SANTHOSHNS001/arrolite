@@ -1,219 +1,195 @@
-
 {% extends 'base/container.html' %}
 {% load static %}
-{% block title %}Report Quotation {% endblock %}
+{% block title %}Report Quotation{% endblock %}
 
 {% block style %}
 <style>
-    label {
-    display: unset; 
-    margin-bottom: .5rem;
+.chat-container {
+    width: 100%;
+    max-width: 700px;
+    margin: auto;
+    padding: 20px;
+    background: #f2f4f7;
+    border-radius: 16px;
+    font-family: "Segoe UI", sans-serif;
 }
-.class-filter {
+
+.message-row {
     display: flex;
-    align-items: flex-end;
+    margin: 12px 0;
+}
+
+.from-user {
+    justify-content: flex-end;
+}
+
+.from-eng {
+    justify-content: flex-start;
+}
+
+.message-bubble {
+    max-width: 75%;
+    padding: 14px 18px;
+    border-radius: 18px;
+    font-size: 15px;
+    line-height: 1.5;
+    box-shadow: 0 3px 8px #00000010;
+    position: relative;
+}
+
+.user-bubble {
+    background: #434dc22b;
+    color: black;
+    border-bottom-right-radius: 4px;
+}
+
+.eng-bubble {
+    background: #6fce6cff;
+    color: #222;
+    border-bottom-left-radius: 4px;
+}
+
+.message-bubble img,.chat-image {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 10px;
+    margin-top: 10px;
+    display: block;
+    object-fit: cover;
+}
+
+.chat-file a {
+    display: inline-block;
+    margin-top: 5px;
+    color: #0066ff;
+    text-decoration: underline;
+}
+
+.edit-btn, .fa-edit {
+    background: #ffffff40;
+    color: #000;
+    border: none;
+    padding: 4px 10px;
+    font-size: 14px;
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+.edit-btn:hover, .fa-edit:hover {
+    background: #ffffff70;
 }
 </style>
-
-
 {% endblock %}
-{% block body_content %} 
 
+{% block body_content %}
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
- <div class="wrapper">
-   <div class="wrapper-title">
-    <div class="wrapper-content">Quotation Report List</div>
-    <div class="wrapper-actions">
-        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
-    </div>
-   </div> 
- 
-    <div class="card ">
-    <!--Qoutaion Report List Table Start-->
-    
-     
-        <div class="adv-table">   
-            <div class="class-filter row">
-                <div class="col-2">
-                  
-                     <label cfor ="quotation">Quotation</lable>
-                     <select class="form-control select2" name="quotation" id ="quotation" multiple="multiple" placeholder="select">
-                         {% for quotation in quotations%}
-                         <option value="{{quotation.id}}">{{quotation}}</option>
-                        {% endfor%}
-                     </select>
-                  
+<div class="wrapper">
+    <div id="chatApp" class="chat-container">
+
+        <div v-for="msg in chat" :key="msg.id">
+
+            <!-- USER MESSAGE -->
+            <div class="message-row from-user">
+                <div class="message-bubble user-bubble">
+
+                    <div v-html="limitBreaks(msg.user_comment)"></div> 
+                    <!-- User Files -->
+                    <div v-for="file in msg.user_files" :key="file.id" class="chat-file">
+                        <img v-if="isImage(file.file)" :src="file.file" class="chat-image">
+                        <a v-else-if="isPDF(file.file)" :href="file.file" target="_blank">📄[[ getFileName(file.file) ]]</a>
+                        <a v-else-if="isExcel(file.file)" :href="file.file" target="_blank">📊 [[ getFileName(file.file) ]]</a>
+                        <a v-else :href="file.file" target="_blank">📁[[ getFileName(file.file) ]]</a>
+                    </div>
+
+                    <i class="fa fa-edit" @click="editUserComment(msg)"></i>
+
                 </div>
-                <div class="col-2">
-                    <label class="form-lable" for ="customers">Customers </lable>
-                    <select class="form-control select2" name="customer" id="customer" multiple="multiple">
-                         {% for customer in customers%}
-                       <option value="{{customer.customer__id}}">{{customer.customer__name}}</option>
-                         {% endfor%}
-                     </select>
-                </div>
-                <div class="col-2">
-                    <label class="form-lable" for ="approver">Approvers </lable>
-                    <select class="form-control select2" name="approver" id="approver" multiple="multiple">
-                         {% for approver in approvers%}
-                       <option value="{{approver.approver__id}}">{{approver.approver__first_name}}</option>
-                          {% endfor%}
-                     </select>
-                </div>
-                <div class="col-2">
-                    <label class="form-lable" for ="status">Status</lable>
-                    <select class="form-control select2" name="status" id ="status">
-                        <option value="">All</option>           
-                       <option value="pending">Pending</option>
-                       <option value="approved">Approved</option>
-                       <option value="rejected">Rejected</option>                         
-                     </select>
-                </div>
-                <div class="col-2">
-                    <label class="form-lable" for ="approver">Request date</lable>
-                    <input type="date" class="form-control" id="request_date" name="request_date">
-                </div>
-                <div class="col-2">
-                     
-                     <button class="btn btn-warning" type="button"  onclick="fetchQuotations()">Filter</button>
-                     <button class="btn btn-success" type="button" id="download-xlsx">Excel</button>
-                </div>
-               
-             
             </div>
-            <div class="mt-2" id="quotationTable"></div>
-            {% comment %} <table id="quotationTable" class="display table table-bordered ">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Invoice</th>
-                        <th>Approver</th>
-                        <th>Price</th>
-                        
-                        <th>Status</th>
-                        <th>Discount</th>
-                        <th>Request Date</th>
-                        <th>Customer</th>
-                      
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table> {% endcomment %}
+
+            <!-- ENGINEER MESSAGE -->
+            <div class="message-row from-eng">
+                <div class="message-bubble eng-bubble">
+
+                    <div v-html="limitBreaks(msg.eng_comment)" ></div> 
+                    <!-- Engineer Files -->
+                    <div v-for="file in msg.eng_files" :key="file.id" class="chat-file">
+                        <img v-if="isImage(file.file)" :src="file.file" class="chat-image">
+                        <a v-else-if="isPDF(file.file)" :href="file.file" target="_blank">📄 [[ getFileName(file.file) ]]</a>
+                        <a v-else-if="isExcel(file.file)" :href="file.file" target="_blank">📊[[ getFileName(file.file) ]]</a>
+                        <a v-else :href="file.file" target="_blank">📁 [[ getFileName(file.file) ]]</a>
+                    </div>
+                </div>
+            </div>
 
         </div>
-   </div>
- </div>
 
-
+    </div>
+</div>
 {% endblock %}
+
 {% block js %}
-<link rel="stylesheet" href="{% static 'assets/tabulator/css/tabulator.min.css'%}" />
-<script type="text/javascript" src="{% static 'assets/tabulator/js/xlsx.full.min.js'%}"></script>
-<script type="text/javascript" src="{% static 'assets/tabulator/js/tabulator.min.js'%}"></script>
-<script type="text/javascript" src="{% static 'assets/tabulator/js/jspdf.umd.min.js'%}"></script>
-<script type="text/javascript" src="{% static 'assets/tabulator/js/jspdf.plugin.autotable.min.js'%}"></script>
-
 <script>
-    // Initialize Tabulator (empty for now)
-    var table = new Tabulator("#quotationTable", {
-         
-        layout: "fitColumns",
-        pagination:"local",
-        paginationSize:10,
-        paginationSizeSelector:[3, 6, 8, 10],
-        movableColumns:true,
-        paginationCounter:"rows",
-    
-        responsiveLayout:"collapse",
-        placeholder: "No records found",
-
-        columns: [
-            {title:"S.No", formatter:"rownum", width:70, hozAlign:"center"}, // auto increment column
-            {title:"Request Date", field:"request_date"},
-            {title:"Invoice", field:"invoice_number"},
-            {title:"Customer", field:"customer.name"},
-            {title:"Discount", field:"discount", formatter:function(cell){
-                let val = cell.getValue();
-                return val !== null ? val+"%" : "";
-            }},
-            {
-                title:"Price",
-                field:"price",
-                hozAlign:"right",
-                formatter:"money",
-                bottomCalc:"sum",
-                bottomCalcFormatter:function(cell){
-                    let value = cell.getValue();
-                    return value ? "Total Price: $" + value.toLocaleString() : "Total Price: $0.00";
+const app = Vue.createApp({
+    delimiters: ['[[', ']]'],
+    data() {
+        return {
+            chat: [
+                {
+                    id: 1,
+                    user_comment: `<p>review code <img src="https://upload.wikimedia.org/wikipedia/en/5/51/Bharathiar_University_logo.png"></p>`,
+                    user_files: [
+                        { id: 1, file: "https://via.placeholder.com/300.png" },
+                        { id: 2, file: "/media/sample.pdf" },
+                        { id: 3, file: "/media/sample.xlsx" }
+                    ],
+                    eng_comment: `<p>Noted 👍 <img src="https://upload.wikimedia.org/wikipedia/en/5/51/Bharathiar_University_logo.png"</p>`,
+                    eng_files: [
+                        { id: 1, file: "/media/engineer_doc.pdf" }
+                    ]
+                },
+                {
+                    id: 2,
+                    user_comment: `<p>review code again <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Bharathiar_university_admin_block.jpg/500px-Bharathiar_university_admin_block.jpg"</p>`,
+                    user_files: [
+                        { id: 4, file: "https://via.placeholder.com/200.jpg" }
+                    ],
+                    eng_comment: `<p>Checked ✅</p>`,
+                    eng_files: []
                 }
-        },
-            
-            {title:"Status", field:"status"},
-            {title:"Approver", field:"approver.name"},   // nested object field
-        ],
-    });
-
-    // XLSX Export
-    document.getElementById("download-xlsx").addEventListener("click", function(){
-        table.download("xlsx", "quotations.xlsx", {sheetName:"Quotations"});
-    });
-
-    // Fetch data from Django backend
-    function fetchQuotations() {
-        const formData = new FormData();
-        // Multiple selects
-        let quotationVals = Array.from(document.getElementById("quotation").selectedOptions).map(opt => opt.value);
-        let customerVals = Array.from(document.getElementById("customer").selectedOptions).map(opt => opt.value);
-        let approverVals = Array.from(document.getElementById("approver").selectedOptions).map(opt => opt.value);
-        quotationVals.forEach(val => formData.append("quotation", val));
-        customerVals.forEach(val => formData.append("customer", val));
-        approverVals.forEach(val => formData.append("approver", val));
-
-        // Single values
-        let statusVal = document.getElementById("status").value;
-        let requestDateVal = document.getElementById("request_date").value;
-        if (statusVal) formData.append("status", statusVal);
-        if (requestDateVal) formData.append("request_date", requestDateVal);
-
-        fetch(window.location.href, {
-            method: "POST",
-            body: formData,
-            headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "X-CSRFToken": getCookie("csrftoken")
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.data && data.data.length > 0) {
-                table.setData(data.data);   // load data into Tabulator
-            } else {
-                table.clearData();          // clear if no records
-            }
-        })
-        .catch(err => {
-            console.error("Error:", err);
+            ]
+        };
+    },
+    methods: {
+         limitBreaks(html, maxBreaks = 5) {
+        // replace all <br> or <br/> tags with limited number
+        let breakCount = 0;
+        return html.replace(/<br\s*\/?>/gi, match => {
+            breakCount++;
+            return breakCount <= maxBreaks ? match : '';
         });
-    }
-
-    // Run once on page load
-    fetchQuotations();
-
-    // CSRF helper for Django POST
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== "") {
-            const cookies = document.cookie.split(";");
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-                if (cookie.startsWith(name + "=")) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
+    },
+        isImage(file) {
+            return /\.(jpg|jpeg|png|gif|bmp)$/i.test(file);
+        },
+        isPDF(file) {
+            return /\.pdf$/i.test(file);
+        },
+        isExcel(file) {
+            return /\.(xls|xlsx)$/i.test(file);
+        },
+        getFileName(file) {
+            return file.split("/").pop();
+        },
+        editUserComment(msg) {
+            let updated = prompt("Edit your comment:", msg.user_comment);
+            if (updated !== null) {
+                msg.user_comment = updated;
             }
         }
-        return cookieValue;
     }
-</script>
+});
 
+app.mount("#chatApp");
+</script>
 {% endblock %}

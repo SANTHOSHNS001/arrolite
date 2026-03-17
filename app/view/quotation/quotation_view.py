@@ -62,10 +62,8 @@ class QuotationRequestView(View):
         products = Product.active_objects.all()
         units = Unit.active_objects.all()
         customer = Customer.active_objects.all() 
-        iso_sizes = ISOSize.active_objects.all() 
-        
-        context = {
-             
+        iso_sizes = ISOSize.active_objects.all()  
+        context = { 
             'products': products,
             'units': units,
             'users': customer,
@@ -106,8 +104,7 @@ class QuotationRequestView(View):
 
         # ✅ Save valid items
         for item in items:
-            QuotationItem.objects.create(quotation=quotation, **item)
-
+            QuotationItem.objects.create(quotation=quotation, **item) 
         messages.success(request, "Quotation created successfully.")
         return redirect('quotation_list')
 
@@ -234,10 +231,8 @@ class QuotationApprove(View):
 class QuotationReportView(View):
     template = "pages/quotation/quotation_report.html"
     def get(self, request):
-        quotations = Quotation.active_objects.all()
-
-        # Distinct approvers from quotations
-        
+        quotations = Quotation.active_objects.all() 
+        # Distinct approvers from quotations 
         approvers=(
                 quotations
                 .filter(approver__isnull=False)
