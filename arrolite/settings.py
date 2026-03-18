@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import dj_database_url
 import os
 from dotenv import load_dotenv
 
@@ -33,7 +34,12 @@ DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
-
+ 
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+] or [ 'https://arrolite-production.up.railway.app',]
 # Application definition
 
 INSTALLED_APPS = [
@@ -81,16 +87,22 @@ WSGI_APPLICATION = 'arrolite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "HOST": DB_HOST,
-        "PORT": DB_PORT,
-        "NAME": DATABASE_NAME,
-        "USER":DATABASE_USER,
-        "PASSWORD": DATABASE_PASSWORD,
+# If Railway provides a full URL, use it. Otherwise, use individual variables.
+if os.environ.get('MYSQL_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(default=os.environ.get('MYSQL_URL'))
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": os.environ.get("DATABASE_NAME", "your_local_db_name"),
+            "USER": os.environ.get("DATABASE_USER", "root"),
+            "PASSWORD": os.environ.get("DATABASE_PASSWORD", ""),
+            "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
+            "PORT": os.environ.get("DB_PORT", "3306"),
+        }
+    }
 AUTH_USER_MODEL = 'app.CustomUser'
  
 AUTH_PASSWORD_VALIDATORS = [
