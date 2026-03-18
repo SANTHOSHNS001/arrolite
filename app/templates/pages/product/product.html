@@ -25,7 +25,7 @@
     <div class="wrapper-title">
     <div class="wrapper-content">Products List</div>
     <div class="wrapper-actions">
-         <a class="btn btn-add" data-toggle="modal" href="#project-model"><i class="fa fa-plus"></i> Add</a>
+         <a class="btn btn-add" data-bs-toggle="modal" data-bs-target="#project-model"><i class="fa fa-plus"></i> Add</a>
          
         <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
@@ -65,7 +65,7 @@
                                     <td>{{product.width}}</td>
                                     <td>{{product.height}}</td>
                                     <td>
-                                        <button id ="edit-product-btn" data-toggle="modal"  href="#project-edit-model" class="btn btn-edi btn-sm edit-category-btn" data-id="{{product.id}}"
+                                        <button id ="edit-product-btn" data-bs-toggle="modal" data-bs-target="#project-edit-model" class="btn btn-edi btn-sm edit-category-btn" data-id="{{product.id}}"
                                          data-name="{{product.name}}" data-categorie="{{product.category.id}}" data-subcategory="{{product.subcategory.id}}" 
                                          data-unit="{{product.unit.id}}"  data-description="{{product.description}}"  data-price="{{product.price}}" 
                                          data-width="{{product.width}}"  data-fixed_price ="{{product.fixed_price}}"
@@ -86,8 +86,7 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="myModal2">Add</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
+                                <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Close">
                                 </button>
                             </div>
                             <div class="modal-body">
@@ -167,7 +166,7 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                             <button type="submit" id="category-submit" class="btn btn-primary">Save</button>
                                         </div>
                                     </form>
@@ -183,8 +182,7 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="myModal2">Edit</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
+                                <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Close">
                                 </button>
                             </div>
                             <div class="modal-body">
@@ -263,7 +261,7 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                             <button type="button" id="category-edit-submit" class="btn btn-primary">Save</button>
                                         </div>
                                     </form>

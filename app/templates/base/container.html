@@ -110,7 +110,7 @@
         }
         .btn-add{
             background-color:#33883c;
-            color:white;
+            color:white !important;
             
         }
      .site-footer {
@@ -121,6 +121,33 @@
         right: 0;
         left: 0;
      }
+     .custom-close {
+        background-color: red;      /* red circle */
+        border-radius: 50%;         /* make it circle */
+        opacity: 1;                 /* full visibility */
+        width: 30px;
+        height: 30px;
+        position: relative;
+    }
+
+    .custom-close::before,
+    .custom-close::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 12px;
+        height: 2px;
+        background: white;          /* white X */
+    }
+
+    .custom-close::before {
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .custom-close::after {
+        transform: translate(-50%, -50%) rotate(-45deg);
+    }
     </style>
      {% block style %} {% endblock %}
   </head>

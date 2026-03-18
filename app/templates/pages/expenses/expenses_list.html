@@ -9,7 +9,7 @@
      <div class="wrapper-title">
        <div class="wrapper-content">Expenses List</div>
          <div class="wrapper-actions">
-             <a class="btn btn-add" data-toggle="modal" href="#expenses-model"><i class="fa fa-plus"></i> Add</a>
+             <a class="btn btn-add" data-bs-toggle="modal" data-bs-target="#expenses-model"><i class="fa fa-plus"></i> Add</a>
              <a class="btn btn-primary" href="{%url 'expensestype_details' %}">  Expenses Type</a> 
            <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  Back</button>
         </div>
@@ -45,8 +45,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="myModal2">Add</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                         </button>
                     </div>
                     <div class="modal-body">
@@ -101,7 +100,7 @@
                             </div>
                             <!-- Modal Footer -->
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="button" id="expenses-submit" class="btn btn-primary">Save</button>
                             </div>
                         </form>
@@ -116,8 +115,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="myModal2">Add</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                         </button>
                     </div>
                     <div class="modal-body">
@@ -189,7 +187,7 @@
                                 </div>
                                 
                                   <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     <button type="button" id="expensestype-submit" class="btn btn-primary">Save</button>
                                 </div>
                             </form>

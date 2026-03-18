@@ -85,7 +85,7 @@
                                         <option disabled>No user available</option>
                                     {% endfor %}
                             </select>
-                            <a href=""  href="#" data-toggle="modal" data-target="#add-customer">
+                            <a href=""  href="#" data-bs-toggle="modal" data-bs-target="#add-customer">
                                 <i class="fa fa-user"></i></a>
                             </div>
                         </div>
@@ -111,7 +111,7 @@
                             </div>
                     </div>
                 <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" id="category-submit" class="btn btn-primary">Save</button>
                     </div>
             </form>
@@ -123,8 +123,7 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="exampleModalLabel">Add  </h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                                 </button>
                             </div>
                             <div class="modal-body">
@@ -161,7 +160,7 @@
                                     </div>
                                     
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
                                         <button type="button" class="btn btn-primary" id ="submit-customer">Add</button>
                                     </div>
                                 </form>

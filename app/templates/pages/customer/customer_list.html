@@ -36,7 +36,7 @@
                   <td>{{customer.phone_number}}</td>
                 
                   <td>
-                      <button id ="edit-customer-btn" data-toggle="modal"  href="#customer-edit-model" class="btn btn-edi btn-sm edit-customer-btn" data-id="{{customer.id}}"
+                      <button id ="edit-customer-btn" data-bs-toggle="modal" data-bs-target="#customer-edit-model" class="btn btn-edi btn-sm edit-customer-btn" data-id="{{customer.id}}"
                         data-name="{{customer.name}}" 
                         data-email="{{customer.email}}" 
                         data-phone_prefix="{{customer.phone_prefix}}" 
@@ -65,8 +65,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="myModal3">Edit</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                         </button>
                     </div>
                     <div class="modal-body">
@@ -103,7 +102,7 @@
                                     </div>
                                     
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
                                         <button type="button" class="btn btn-primary" id ="submit-customer">Update</button>
                                     </div>
                                 </form>

@@ -11,7 +11,7 @@
      <div class="wrapper-title">
     <div class="wrapper-content">Sub-Category List</div>
     <div class="wrapper-actions">
-         <a class="btn btn-add" data-toggle="modal" href="#category-model"><i class="fa fa-plus"></i> Add</a>
+         <a class="btn btn-add" data-bs-toggle="modal" data-bs-target="#category-model"><i class="fa fa-plus"></i> Add</a>
          <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
    </div>
@@ -45,7 +45,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <button id ="edit-category-btn" data-toggle="modal"  href="#category-model-edit" class="btn btn-edi btn-sm edit-category-btn" data-id="{{subcategorie.id}}" data-name="{{subcategorie.name}}" data-categorie="{{subcategorie.category.id}}" data-description="{{subcategorie.description}}"><i class="fa fa-pencil"></i></button>
+                                <button id ="edit-category-btn" data-bs-toggle="modal"  data-bs-target="#category-model-edit" class="btn btn-edi btn-sm edit-category-btn" data-id="{{subcategorie.id}}" data-name="{{subcategorie.name}}" data-categorie="{{subcategorie.category.id}}" data-description="{{subcategorie.description}}"><i class="fa fa-pencil"></i></button>
                                 <button class="btn btn-del btn-sm" onclick="confirmDeletedUpdate('{% url 'sub_category_delete' subcategorie.id %}')"><i class="fa fa-trash-o "></i></button>
                             </td>
                         </tr>
@@ -63,9 +63,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="myModal2">Add</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">x</button>
                     </div>
                     <div class="modal-body">
                            <form class="cmxform form-horizontal tasi-form" id="category-add-form" method="post" action="#">
@@ -95,7 +93,7 @@
                                     </div>
                                 </div>
                                   <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     <button type="submit" id="category-submit" class="btn btn-primary">Save</button>
                                 </div>
                             </form>
@@ -110,9 +108,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="myModal2">Edit</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">x</button>
                     </div>
                     <div class="modal-body">
                            <form class="cmxform form-horizontal tasi-form" id="category-edit-form" method="post" action="#">
@@ -143,7 +139,7 @@
                                     </div>
                                 </div>
                                   <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     <button type="button" id="category-edit-submit" class="btn btn-primary">Save</button>
                                 </div>
                             </form>

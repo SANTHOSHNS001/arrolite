@@ -10,7 +10,7 @@
      <div class="wrapper-title">
        <div class="wrapper-content">Expenses Types</div>
          <div class="wrapper-actions">
-           <a class="btn btn-add" data-toggle="modal" href="#expensestype_model"><i class="fa fa-plus"></i> Add</a> 
+           <a class="btn btn-add" data-bs-toggle="modal" data-bs-target="#expensestype_model"><i class="fa fa-plus"></i> Add</a> 
            
            <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  Back</button>
         </div>
@@ -56,7 +56,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <button id ="edit-expensestype-btn" class=" btn edit-expensestype-btn" data-toggle="modal" href="#expensestype_model_edit" data-id="{{expensestype.id}}" data-name="{{expensestype.name}}" 
+                                <button id ="edit-expensestype-btn" class=" btn edit-expensestype-btn" data-bs-toggle="modal" data-bs-target="#expensestype_model_edit" data-id="{{expensestype.id}}" data-name="{{expensestype.name}}" 
                                   data-is_recurring="{{expensestype.is_recurring}}" data-recurrence_day="{{expensestype.recurrence_day}}"
                                   data-recurrence_type="{{expensestype.recurrence_type}}"  
                                  data-status ="{{expensestype.status}}"
@@ -83,8 +83,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="myModal2">Add</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                         </button>
                     </div>
                     <div class="modal-body">
@@ -156,7 +155,7 @@
                                     </div>
                                 
                                   <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     <button type="button" id="expensestype-submit" class="btn btn-primary">Save</button>
                                 </div>
                             </form>
@@ -172,8 +171,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="myModal2">Add</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                         </button>
                     </div>
                     <div class="modal-body">
@@ -245,7 +243,7 @@
                                     </div>
                                 
                                   <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     <button type="button" id="expensestype-edit-submit" class="btn btn-primary">Update</button>
                                 </div>
                             </form>
