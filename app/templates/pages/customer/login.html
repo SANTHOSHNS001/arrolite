@@ -1,65 +1,433 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Login</title>
-  </head>
-  <link href="{% static 'css/bootstrap.min.css'%}" rel="stylesheet">
-    <link href="{% static 'css/bootstrap-reset.css'%}" rel="stylesheet">
-    <style>
-      .login-btn {
-	width: 100%;
-	padding: 10px;
-	margin-top: 10px;
-	background: linear-gradient(to right, #92bdf4, #cf58cd);
-	color: #fff;
-	border: none;
-	border-radius: 37px;
-	font-weight: bold;
-	cursor: pointer;
-}
-.input-bottom-border {
-	border: none;
-	border-bottom: 2px solid #bcb0d0;
-	outline: none;
-	background: transparent;
-	width: 100%;
-	color: #8061bb;
-	padding: 5px;
-	margin-bottom: 11px;
-} 
-    </style>
-  <body style="margin:0;font-family:sans-serif;background:#f0f3f7;display:flex;justify-content:center;align-items:center;height:100vh">
-       {% include "companiance/message.html"%}
-    <div style="background:#fff;width:300px;padding:20px;border-radius:8px;box-shadow:0 0 10px #ccc">
-    
-      <div style="margin:-20px -20px 15px -20px;padding:15px;  border-radius:8px 8px 0 0;text-align:center">
-        <div style="
-              padding: 10px;
-              font-size: 25px;
-              font-weight: 700;
-              font-family: cursive;
-              color: #bb79da;
-          ">Welcome</div>
-                  <div style=" 
-              font-size: 12px;
-              font-weight: 600;
-              letter-spacing: 2px;
-          "> ARRO<span style="color: red;">LITE</span></div>
- 
-      </div>
-    <form  method="POST">
-        {% csrf_token %}
-      <input type="email" placeholder="Email" name="email" required  class="input-bottom-border"/>
-      <input type="password" placeholder="Password"  name="password" class="input-bottom-border" required  />
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin:8px 0">
-        <label style="display: flex;gap: 4px;font-size: 12px;"><input type="checkbox" />Remember</label><a href="#" style="color: #2c1cb5;text-decoration: none;font-family: initial;font-size: 11px;">Forgot password</a>
-      </div>
-      <button type="submit"  class="login-btn">LOGIN</button>
-     </form>
-      <div style="text-align:center;font-size:10px;margin-top:10px">
-        No account? <a href="#" style="color:#1cb5b2;text-decoration:none">register here</a>
-      </div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Login to ARROLITE – Your secure business management portal." />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Login | ARROLITE</title>
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/bootstrap-reset.css' %}" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #12101a;
+      --muted: #6b6578;
+      --border: #e0dbe8;
+      --surface: #ffffff;
+      --bg: #f5f3f9;
+      --accent: #7c3aed;
+      --accent-light: #ede9fe;
+      --accent-dark: #5b21b6;
+      --red: #dc2626;
+      --success: #059669;
+      --radius: 16px;
+      --shadow: 0 4px 6px -1px rgba(124,58,237,.07), 0 20px 40px -8px rgba(124,58,237,.12);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    /* ── Background texture ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,58,237,.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 90%, rgba(207,88,205,.07) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 60% 40%, rgba(146,189,244,.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Grid dots ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, rgba(124,58,237,.12) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page-wrap {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      width: 100%;
+      max-width: 420px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(124,58,237,.1);
+      overflow: hidden;
+      animation: cardIn .5s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(24px) scale(.98); }
+      to   { opacity: 1; transform: translateY(0)   scale(1);    }
+    }
+
+    /* ── Card header ── */
+    .card-header {
+      padding: 36px 36px 28px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .brand-mark {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, #7c3aed, #cf58cd);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(124,58,237,.35);
+    }
+
+    .brand-mark svg { width: 18px; height: 18px; fill: #fff; }
+
+    .brand-name {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+
+    .brand-name span { color: var(--red); }
+
+    .card-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+
+    .card-subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    /* ── Card body ── */
+    .card-body {
+      padding: 32px 36px 36px;
+    }
+
+    /* ── Messages ── */
+    .messages-wrap { margin-bottom: 20px; }
+
+    /* ── Form ── */
+    .field {
+      margin-bottom: 20px;
+      animation: fieldIn .4s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .field:nth-child(1) { animation-delay: .05s; }
+    .field:nth-child(2) { animation-delay: .1s;  }
+    .field:nth-child(3) { animation-delay: .15s; }
+
+    @keyframes fieldIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--muted);
+      pointer-events: none;
+      transition: color .2s;
+    }
+
+    .input-wrap:focus-within .input-icon { color: var(--accent); }
+
+    .field input[type="email"],
+    .field input[type="password"],
+     .field input[type="text"] {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--bg);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+
+    .field input:focus {
+      border-color: var(--accent);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(124,58,237,.1);
+    }
+
+    .field input::placeholder { color: #b0a8c4; }
+
+    /* password toggle */
+    .pwd-toggle {
+      position: absolute;
+      right: 12px;
+      background: none; border: none; cursor: pointer;
+      color: var(--muted);
+      padding: 4px;
+      transition: color .2s;
+    }
+    .pwd-toggle:hover { color: var(--accent); }
+
+    /* ── Row ── */
+    .form-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .remember {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--muted); cursor: pointer;
+    }
+
+    .remember input[type="checkbox"] {
+      accent-color: var(--accent);
+      width: 15px; height: 15px;
+    }
+
+    .forgot-link {
+      font-size: 13px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color .2s;
+    }
+
+    .forgot-link:hover { color: var(--accent-dark); text-decoration: underline; }
+
+    /* ── Button ── */
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #7c3aed, #cf58cd);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 16px rgba(124,58,237,.35);
+    }
+
+    .btn-login::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background .2s;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(124,58,237,.45);
+    }
+
+    .btn-login:hover::after { background: rgba(255,255,255,.06); }
+    .btn-login:active { transform: translateY(0); }
+
+    .btn-login .btn-text { position: relative; z-index: 1; }
+
+    /* ── Divider ── */
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 24px 0;
+      color: var(--border);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1;
+      height: 1px; background: var(--border);
+    }
+
+    /* ── Register ── */
+    .register-text {
+      text-align: center;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+
+    .register-text a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+      transition: color .2s;
+    }
+
+    .register-text a:hover { color: var(--accent-dark); }
+
+    /* ── Footer ── */
+    .card-footer {
+      padding: 16px 36px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 11px;
+      color: #b0a8c4;
+    }
+
+    @media (max-width: 480px) {
+      .card-header, .card-body { padding-left: 24px; padding-right: 24px; }
+      .card-footer { padding-left: 24px; padding-right: 24px; }
+    }
+     
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <div class="messages-wrap">
+        {% include "companiance/message.html" %}
     </div>
-  </body>
+    <div class="card" role="main">
+
+      <!-- Header -->
+      <div class="card-header">
+        <div class="brand">
+           
+          <span class="brand-name">ARRO<span>LITE</span></span>
+        </div>
+        <h1 class="card-title">Welcome back</h1>
+        <p class="card-subtitle">Sign in to your account to continue</p>
+      </div>
+
+      <!-- Body -->
+      <div class="card-body"> 
+        <!-- Django messages -->  
+        <form method="POST" novalidate>
+          {% csrf_token %}
+
+          <!-- Email -->
+          <div class="field">
+            <label for="email">Email address</label>
+            <div class="input-wrap">
+              <span class="input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                </svg>
+              </span>
+              <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required aria-label="Email address" />
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <input type="password"  id="password" name="password" placeholder="••••••••" autocomplete="current-password" required aria-label="Password" />
+              <button type="button" class="pwd-toggle" onclick="togglePwd()" aria-label="Show/hide password">
+                <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember & Forgot -->
+          <div class="form-row">
+            <label class="remember">
+              <input type="checkbox" name="remember" />
+              Remember me
+            </label>
+            <a href="#" class="forgot-link">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn-login">
+            <span class="btn-text">Sign In</span>
+          </button>
+        </form>
+
+        <div class="divider">or</div>
+
+        <p class="register-text">
+          Don't have an account? <a href="#">Create one free</a>
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="card-footer">
+        &copy;  <span id="yearSpan"></span> ARROLITE &nbsp;·&nbsp; All rights reserved
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function togglePwd() {
+      const pwd = document.getElementById('password');
+      const icon = document.getElementById('eye-icon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+      } else {
+        pwd.type = 'password';
+        icon.innerHTML = `<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>`;
+      }
+    }
+    // A script to run after the page loads
+    document.addEventListener('DOMContentLoaded', function() { 
+      const yearSpan = document.getElementById("yearSpan"); 
+      yearSpan.textContent = new Date().getFullYear();
+  });
+
+  </script>
+</body>
 </html>
