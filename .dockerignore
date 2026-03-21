@@ -1,0 +1,74 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+ENV/
+env/
+
+# Django
+*.log
+*.pot
+*.pyc
+db.sqlite3
+db.sqlite3-journal
+/media
+/static
+
+# Database backups
+db_backups/
+*.sql
+*.sql.gz
+*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentation and tests
+docs/
+tests/
+*.md
+!README.md
+
+# Node (if any)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Large assets that shouldn't be in Docker image
+*.wasm
+*.wasm.gz
+*.zip
+*.tar.gz
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Other
+*.bak
+*.tmp
+.cache/
+
