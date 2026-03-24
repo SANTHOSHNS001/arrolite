@@ -298,10 +298,10 @@ class InvoiceReportPdfView(View):
  
     def header(self, canvas, doc, quotation):
         canvas.saveState()
-        font_new = os.path.join(settings.BASE_DIR, 'static', 'fonts', 'montserrat', 'Montserrat-Black.ttf')
-        titles_header_fonts = os.path.join(settings.BASE_DIR, 'static', 'fonts', 'montserrat', 'GothamBold.ttf')
-        titles_header_fontss = os.path.join(settings.BASE_DIR, 'static', 'fonts', 'montserrat', 'Gotham-Bold.ttf')
-        titles_add = os.path.join(settings.BASE_DIR, 'static', 'fonts', 'montserrat', 'GothamLight.ttf')
+        font_new = os.path.join(settings.STATIC_ROOT,   'fonts', 'montserrat', 'Montserrat-Black.ttf')
+        titles_header_fonts = os.path.join(settings.STATIC_ROOT,  'fonts', 'montserrat', 'GothamBold.ttf')
+        titles_header_fontss = os.path.join(settings.STATIC_ROOT,   'fonts', 'montserrat', 'Gotham-Bold.ttf')
+        titles_add = os.path.join(settings.STATIC_ROOT,  'fonts', 'montserrat', 'GothamLight.ttf')
         pdfmetrics.registerFont(
             TTFont("Montserrat-Black", font_new)
         )
