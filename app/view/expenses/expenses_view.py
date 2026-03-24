@@ -10,7 +10,10 @@ from app.models.expenses.expenses_model import Expenses, ExpensesTypes
 from django.db import transaction  
 import datetime
 from django.db.models import Q
-
+from django.db import transaction
+from django.core.exceptions import ValidationError
+import logging 
+logger = logging.getLogger(__name__)
 class ExpensesTypeDetail(View):
     
     template="pages/expenses/expenses_type_list.html"
@@ -95,23 +98,51 @@ class ExpensesTypesDelete(View):
 
 class ExpensesCreate(View):
     def post(self, request):
-        form = ExpensesForm(request.POST,request.FILES)
-        if form.is_valid():
-            expensestypes = form.save(commit=False)
-            expensestypes.creator = request.user 
-            # Set status here
-            expensestypes.save()
-            return JsonResponse({
-                'success': True,
-                'message': 'Expenses Create successfully.',
-                'data': {  
-                }
-            }, status=200)
+        try:
+            form = ExpensesForm(request.POST, request.FILES) 
+            # 🔹 Validate form
+            if not form.is_valid():
+                return JsonResponse({
+                    "success": False,
+                    "message": "Validation failed",
+                    "errors": form.errors.get_json_data()
+                }, status=400)
 
-        return JsonResponse({
-            'success': False,
-            'errors': form.errors
-        }, status=400)
+            # 🔥 Atomic transaction (VERY IMPORTANT)
+            with transaction.atomic():
+                expense = form.save(commit=False)
+                expense.creator = request.user 
+                # Optional: full model validation
+                expense.full_clean() 
+                expense.save()
+
+            return JsonResponse({
+                "success": True,
+                "message": "Expense created successfully",
+                "data": {
+                    "id": expense.id,
+                    "name": expense.product_name,
+                    "amount": expense.amount,
+                }
+            }, status=201)
+
+        # 🔴 Model validation error
+        except ValidationError as e:
+            return JsonResponse({
+                "success": False,
+                "message": "Model validation error",
+                "errors": e.message_dict if hasattr(e, "message_dict") else str(e)
+            }, status=400)
+
+        # 🔴 Any unexpected error
+        except Exception as e:
+            logger.exception("Expense creation failed")
+
+            return JsonResponse({
+                "success": False,
+                "message": "Something went wrong",
+                "error": str(e)  # remove in production if needed
+            }, status=500)
      
 class ExpensesUpdate(View):
     def post(self, request,pk):
@@ -154,9 +185,7 @@ class ExpensesViewList(View):
                 filters["id__in"] = quotation_ids
                 
             if expenses_type:
-                filters["expenses_type"] = expenses_type
-             
-
+                filters["expenses_type"] = expenses_type 
             
             if request_date_str:
                 try:
@@ -191,7 +220,12 @@ class ExpensesViewList(View):
                         "amount":q.amount,
                         "due_date":q.due_date,
                         "receipt":q.receipt.url if q.receipt else '',
-                        "description":q.description
+                        "description":q.description,
+                        "company_name":q.company_name,
+                        "product_name":q.product_name,
+                        "payment_mode":q.payment_mode,
+                        "invoice_number":q.invoice_number,
+                        "invoice_name":q.invoice_name,
                         
                     }
                         for q in expenses_qs

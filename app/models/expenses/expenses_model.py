@@ -46,29 +46,62 @@ class Expenses(CustomBase):
         ("expired", "Expired"),     
         ("cancelled", "Cancelled"),   
     ]
+    PAYMENT_MODE_STATUS = [
+        ("upi", "UPI"),       
+        ("cash", "Cash"),  
+    ]
     expenses_type = models.ForeignKey(
         "app.ExpensesTypes", 
         on_delete=models.CASCADE, 
         blank=True, 
         null=True
     )
-    name = models.CharField(
+    product_name = models.CharField(
+        max_length=255, 
+        null=True,
+        blank=True, 
+        help_text="Product Name add.."
+    )
+    company_name = models.CharField(
         max_length=255,    
-        unique=True, 
-        verbose_name="Name Add"
+        null=True,
+        blank=True, 
+        help_text="Company Name add.."
+    ) 
+    invoice_number = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True, 
+        help_text="Optional invoice/reference number"
+    ) 
+    invoice_name = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Invoice title or name"
     )
     due_date = models.DateField(blank=True, null=True)   
     amount = models.FloatField()
-    receipt = models.FileField(upload_to="receipts/")    
+    receipt = models.FileField(
+        upload_to="receipts/",
+        null=True,
+        blank=True
+    )
     description = models.TextField(null=True, blank=True)
     expense_status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default="pending" 
     )
+    payment_mode = models.CharField(
+        max_length=20,
+        choices=PAYMENT_MODE_STATUS,
+        default="upi",
+        
+    )
 
     def __str__(self):
-        return self.name  
+        return self.product_name   or "None"
 
     class Meta:
         verbose_name = "Expense"
@@ -77,3 +110,4 @@ class Expenses(CustomBase):
             ("expense_manage_permission", "Can manage Expenses"),  
         ]
         ordering = ["-created_at"]
+         

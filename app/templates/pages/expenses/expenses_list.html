@@ -63,11 +63,19 @@
                                     </select>
                                 </div>
                             </div>
-                            <!-- Name -->
+                            <!-- Company Name -->
                             <div class="form-group row">
-                                <label for="name" class="control-label col-lg-2">Name</label>
+                                <label for="company_name" class="control-label col-lg-2">Company Name</label>
                                 <div class="col-lg-10">
-                                    <input class="form-control" id="name" name="name" type="text" />
+                                    <input class="form-control" id="company_name" name="company_name" type="text" />
+                                </div>
+                            </div>
+                            <!-- Product Name -->
+
+                              <div class="form-group row">
+                                <label for="product_name" class="control-label col-lg-2">Product Name</label>
+                                <div class="col-lg-10">
+                                    <input class="form-control" id="product_name" name="product_name" type="text" />
                                 </div>
                             </div>
                             <!-- Amount -->
@@ -77,9 +85,23 @@
                                     <input class="form-control" id="amount" name="amount" type="text" />
                                 </div>
                             </div>
+                              <!-- Invoice Number -->
+                            <div class="form-group row">
+                                <label for="invoice_number" class="control-label col-lg-2">Invoice Number</label>
+                                <div class="col-lg-10">
+                                    <input class="form-control" id="invoice_number" name="invoice_number" type="text" />
+                                </div>
+                            </div>
+                             <!-- Invoice Name -->
+                            <div class="form-group row">
+                                <label for="invoice_name" class="control-label col-lg-2">Invoice Name</label>
+                                <div class="col-lg-10">
+                                    <input class="form-control" id="invoice_name" name="invoice_name" type="text" />
+                                </div>
+                            </div>
                             <!-- Due Date -->
                             <div class="form-group row">
-                                <label for="due_date" class="control-label col-lg-2">Due Date</label>
+                                <label for="due_date" class="control-label col-lg-2">Invoice Date</label>
                                 <div class="col-lg-10">
                                     <input class="form-control" id="due_date" name="due_date" type="date" />
                                 </div>
@@ -91,6 +113,17 @@
                                     <input class="form-control" id="receipt" name="receipt" type="file" />
                                 </div>
                             </div>
+                            <!-- Payment Mode -->
+                            <div class="form-group row">
+                                <label for="receipt" class="control-label col-lg-2">Payment Mode</label>
+                                <div class="col-lg-10">
+                                    <select name="payment_mode" class="form-control" id="payment_mode">
+                                        <option value="upi">UPI</option>
+                                        <option value="cash">Cash</option> 
+                                    </select>
+                                </div>
+                            </div>
+
                             <!-- Description -->
                             <div class="form-group row">
                                 <label for="description" class="control-label col-lg-2">Description</label>
@@ -254,6 +287,7 @@ $(function () {
         });
     });
 $("#expenses-submit").click(function () {
+    debugger;
     const form = document.getElementById("expenses-add-form"); // plain DOM form
     const modal = $("#expensestype_model");  
     const url = "{% url 'expense_create' %}";  
@@ -298,7 +332,7 @@ $("#expenses-submit").click(function () {
             "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
         },
         success: function (res) {
-            if (res.success) { $("#category-model").modal("hide");DisplayAlert(true,res.message)location.reload();        
+            if (res.success) { $("#category-model").modal("hide");DisplayAlert(true,res.message);location.reload();        
               } else {DisplayAlert(false,res.errors);console.log(res.errors);  }          
         },
         error: function (err) {
@@ -329,7 +363,13 @@ $("#expenses-submit").click(function () {
         placeholder: "No records found",
         columns: [
             {title:"S.No", formatter:"rownum", width:70, hozAlign:"center"},
-            {title:"Due Date", field:"due_date"},
+            {title:"Company Name", field:"company_name"},
+            {title:"Product Name", field:"product_name"},
+            {title:"Invoice Number", field:"invoice_number"},
+            {title:"Invoice Name", field:"invoice_name"}, 
+            {title:"Payment Mode", field:"payment_mode"},  
+            {title:"Receipt", field:"receipt"},   
+            {title:"Invoice Date", field:"due_date"},
             {title:"Expenses-Type", field:"expenses_type"},
             {title:"Amount",field:"amount",hozAlign:"right", },      
             {title:"Description", field:"description"},      

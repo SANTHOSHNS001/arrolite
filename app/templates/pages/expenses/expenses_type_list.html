@@ -22,12 +22,7 @@
                     <thead>
                     <tr>
                         <th>S.No</th>
-                        <th>Name</th>
-                        <th>Recurring</th>
-                        <th>Recurrence Day</th>
-                        <th>Recurrence Type</th>
-                        <th>Reminder Start</th>
-                        <th>Reminder End</th>          
+                        <th>Name</th> 
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -37,17 +32,7 @@
                         <tr>
                             <td>{{forloop.counter}}</td>
                             <td>{{expensestype.name}}</td>
-                            <td>
-                                {%if expensestype.is_recurring %}
-                                  <span class="badge btn-act label-mini">ON</span>
-                                {% else %}
-                                  <span class="badge badge-danger label-mini">Off</span>
-                                {% endif %}
-                            </td>
-                            <td>{{expensestype.recurrence_day}}</td>
-                            <td>{{expensestype.recurrence_type}}</td>
-                            <td>{{expensestype.reminder_start}}</td>
-                            <td>{{expensestype.reminder_end}}</td>                         
+                                                   
                             <td>
                                 {%if expensestype.status %}
                                 <span class="badge btn-act label-mini">Active</span>
@@ -102,57 +87,7 @@
                                     </div>
                                 </div>
                                   <!-- 🔔 Recurring Reminder Section -->
-                                    <hr>
-                                    <h6 class="text-primary">Reminder Options</h6>
-                                    <!-- Recurring Checkbox -->
-                                    <div class="form-group row">
-                                        <label for="is_recurring" class="control-label col-lg-2">Recurring?</label>
-                                        <div class="col-lg-10">
-                                            <input type="checkbox" id="is_recurring" name="is_recurring" value="true" />
-                                            <small class="form-text text-muted">Check if this expense repeats automatically (EMI, Salary, Rent, etc.)</small>
-                                        </div>
-                                    </div>
-
-                                    <!-- 🔔 Recurrence Options (hidden by default) -->
-                                    <div id="recurrence-options" style="display: none;">
-                                        <!-- Recurrence Type -->
-                                        <div class="form-group row">
-                                            <label for="recurrence_type" class="control-label col-lg-2">Recurrence</label>
-                                            <div class="col-lg-10">
-                                                <select id="recurrence_type" name="recurrence_type" class="form-control">
-                                                    <option value="none">No Recurrence</option>
-                                                    <option value="daily">Daily</option>
-                                                    <option value="weekly">Weekly</option>
-                                                    <option value="monthly">Monthly</option>
-                                                    <option value="yearly">Yearly</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <!-- Recurrence Day -->
-                                        <div class="form-group row">
-                                            <label for="recurrence_day" class="control-label col-lg-2">Recurrence Day</label>
-                                            <div class="col-lg-10">
-                                                <input type="number" class="form-control" id="recurrence_day" name="recurrence_day" placeholder="e.g. 5 = 5th of the month" />
-                                            </div>
-                                        </div>
-
-                                        <!-- Reminder Start -->
-                                        <div class="form-group row">
-                                            <label for="reminder_start" class="control-label col-lg-2">Reminder Start</label>
-                                            <div class="col-lg-10">
-                                                <input class="form-control" id="reminder_start" name="reminder_start" type="date" />
-                                            </div>
-                                        </div>
-
-                                        <!-- Reminder End -->
-                                        <div class="form-group row">
-                                            <label for="reminder_end" class="control-label col-lg-2">Reminder End</label>
-                                            <div class="col-lg-10">
-                                                <input class="form-control" id="reminder_end" name="reminder_end" type="date" />
-                                            </div>
-                                        </div>
-                                    </div>
+                                   
                                 
                                   <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -190,57 +125,7 @@
                                     </div>
                                 </div>
                                   <!-- 🔔 Recurring Reminder Section -->
-                                    <hr>
-                                    <h6 class="text-primary">Reminder Options</h6>
-                                    <!-- Recurring Checkbox -->
-                                    <div class="form-group row">
-                                        <label for="is_recurring" class="control-label col-lg-2">Recurring?</label>
-                                        <div class="col-lg-10">
-                                            <input type="checkbox" id="is_recurring_edit" name="is_recurring" value="true" />
-                                            <small class="form-text text-muted">Check if this expense repeats automatically (EMI, Salary, Rent, etc.)</small>
-                                        </div>
-                                    </div>
-
-                                    <!-- 🔔 Recurrence Options (hidden by default) -->
-                                    <div id="recurrence-options-edit" style="display: none;">
-                                        <!-- Recurrence Type -->
-                                        <div class="form-group row">
-                                            <label for="recurrence_type" class="control-label col-lg-2">Recurrence</label>
-                                            <div class="col-lg-10">
-                                                <select id="recurrence_type" name="recurrence_type" class="form-control">
-                                                    <option value="none">No Recurrence</option>
-                                                    <option value="daily">Daily</option>
-                                                    <option value="weekly">Weekly</option>
-                                                    <option value="monthly">Monthly</option>
-                                                    <option value="yearly">Yearly</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <!-- Recurrence Day -->
-                                        <div class="form-group row">
-                                            <label for="recurrence_day" class="control-label col-lg-2">Recurrence Day</label>
-                                            <div class="col-lg-10">
-                                                <input type="number" class="form-control" id="recurrence_day" name="recurrence_day" placeholder="e.g. 5 = 5th of the month" />
-                                            </div>
-                                        </div>
-
-                                        <!-- Reminder Start -->
-                                        <div class="form-group row">
-                                            <label for="reminder_start" class="control-label col-lg-2">Reminder Start</label>
-                                            <div class="col-lg-10">
-                                                <input class="form-control" id="reminder_start" name="reminder_start" type="date" />
-                                            </div>
-                                        </div>
-
-                                        <!-- Reminder End -->
-                                        <div class="form-group row">
-                                            <label for="reminder_end" class="control-label col-lg-2">Reminder End</label>
-                                            <div class="col-lg-10">
-                                                <input class="form-control" id="reminder_end" name="reminder_end" type="date" />
-                                            </div>
-                                        </div>
-                                    </div>
+                                     
                                 
                                   <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -347,11 +232,8 @@ $('#category-model-edit').on('hidden.bs.modal', function () {
 $("#expenses-submit").click(function () {
     const form = document.getElementById("expenses-add-form"); // plain DOM form
     const modal = $("#expensestype_model");  
-    const url = "{% url 'expense_create' %}";  
-
-    const formData = new FormData(form); // includes files + text inputs
- 
-
+    const url = "{% url 'expense_create' %}";   
+    const formData = new FormData(form); // includes files + text inputs 
     $.ajax({
         url: url,
         type: "POST",
