@@ -23,6 +23,7 @@
                     <tr>
                         <th>S.No</th>
                         <th>Name</th> 
+                       
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -31,8 +32,7 @@
                         {% for expensestype in expensestypes %}
                         <tr>
                             <td>{{forloop.counter}}</td>
-                            <td>{{expensestype.name}}</td>
-                                                   
+                            <td>{{expensestype.name}}</td>  
                             <td>
                                 {%if expensestype.status %}
                                 <span class="badge btn-act label-mini">Active</span>
@@ -232,8 +232,11 @@ $('#category-model-edit').on('hidden.bs.modal', function () {
 $("#expenses-submit").click(function () {
     const form = document.getElementById("expenses-add-form"); // plain DOM form
     const modal = $("#expensestype_model");  
-    const url = "{% url 'expense_create' %}";   
-    const formData = new FormData(form); // includes files + text inputs 
+    const url = "{% url 'expense_create' %}";  
+
+    const formData = new FormData(form); // includes files + text inputs
+ 
+
     $.ajax({
         url: url,
         type: "POST",

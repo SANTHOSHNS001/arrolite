@@ -83,12 +83,12 @@
                                         <input id="blood_group" name="blood_group" type="text" class="required form-control" value= "{{ form.blood_group.value|default_if_none:'' }}">
                                     </div>
                                 </div>
-                                {% comment %} <div class="form-group clearfix">
-                                    <label class="col-lg-2 control-label " for="father_name">Father Name *</label>
-                                    <div class="col-lg-10">
-                                        <input id="father_name" name="father_name" type="text" class="form-control" value= "{{ form.father_name.value|default_if_none:'' }}">
-                                    </div>
-                                </div> {% endcomment %}
+                             
+                                 <div class="form-group">
+                                     <label class="col-lg-2 control-label" for="Designation"> Designation *</label>
+                                 <div class="col-lg-10">
+                                      {{ form.groups }}</div>
+                                </div>
                                 <div class="form-group clearfix">
                                     <label class="col-lg-2 control-label " for="address">Address </label>
                                     <div class="col-lg-10">

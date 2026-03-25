@@ -76,13 +76,13 @@ class QuotationRequestView(View):
         requite_date = request.POST.get("requite_date")
         user_id = request.POST.get("user")
         description = request.POST.get("description")
-        iso_size = request.POST.get("iso_size")
+        # iso_size = request.POST.get("iso_size")
         if not requite_date or not user_id:
             messages.error(request, "Request date and user are required.")
             return self.render_with_context(request)
 
         user = get_object_or_404(Customer.active_objects, id=user_id)
-        iso_size = get_object_or_404(ISOSize.active_objects, id=iso_size)
+        # iso_size = get_object_or_404(ISOSize.active_objects, id=iso_size)
         items = self.extract_valid_items(request.POST)
 
         if not items:
@@ -96,7 +96,7 @@ class QuotationRequestView(View):
             approver_status ="pending",
             approver = self.request.user,
             description=description,
-            isosize = iso_size,
+            # isosize = iso_size,
             customer=user
         
         )

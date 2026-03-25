@@ -2,7 +2,7 @@
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from app.view.expenses.expenses_view import ExpensesCreate, ExpensesTypeDetail, ExpensesTypesCreate, ExpensesTypesDelete, ExpensesTypesUpdate, ExpensesViewList
+from app.view.expenses.expenses_view import ExpensesCreate, ExpensesDelete, ExpensesItemsCreate, ExpensesTypeDetail, ExpensesTypesCreate, ExpensesTypesDelete, ExpensesTypesUpdate, ExpensesUpdate, ExpensesViewList
 from app.view.home import HomePageView
 from app.view.invoices.invoice_view import InvoiceDetails, InvoiceListView, InvoiceReportPdfView, InvoiceReportView, InvoiceRequestView, ProductReportInvoice
 from app.view.iso_series.iso_view import ISOSizeDelete, ISOSizeEditView, ISOSizeListView
@@ -64,6 +64,10 @@ urlpatterns = [
                 path("expensestype-update/<int:pk>", ExpensesTypesUpdate.as_view(), name="expensestype_update") , 
                 path("expensestype-delete/<int:pk>", ExpensesTypesDelete.as_view(), name="expensestype_delete") , 
                 path("expenses-create", ExpensesCreate.as_view(), name="expense_create") , 
+                path("expenses-update/<int:pk>", ExpensesUpdate.as_view(), name="expense_update") , 
+                path("expenses-update/<int:pk>", ExpensesDelete.as_view(), name="expense_delete") ,  
+                path("expenses-create-item", ExpensesItemsCreate.as_view(), name="expense_item_create") , 
+                
                   
                 # Permission Path
                 path("permission-setting", PermissionSetting.as_view(), name="permission_setting"),

@@ -3,111 +3,150 @@ from app.models.base_model.basemodel import CustomBase
  
  
  
+from django.db import models
+from django.core.exceptions import ValidationError
+
+
+# =======================
+# EXPENSE TYPE
+# =======================
 class ExpensesTypes(CustomBase):
     name = models.CharField(max_length=20, unique=True)
     active = models.BooleanField(default=True)
     description = models.TextField(null=True, blank=True)
 
-    # New fields for reminders
-    is_recurring = models.BooleanField(default=False, help_text="Check if this expense repeats automatically")
-    recurrence_type = models.CharField(
-        max_length=20,
-        choices=[
-            ("none", "No Recurrence"),
-            ("daily", "Daily"),
-            ("weekly", "Weekly"),
-            ("monthly", "Monthly"),
-            ("yearly", "Yearly"),
-        ],
-        default="none"
-    )
-    recurrence_day = models.PositiveSmallIntegerField(
-        null=True, blank=True,
-        help_text="Day of month for recurrence (e.g., 5 = every 5th of the month)"
-    )
-    reminder_start = models.DateField(null=True, blank=True, help_text="Start date for reminders")
-    reminder_end = models.DateField(null=True, blank=True, help_text="Optional end date for reminders")
+    # Recurring fields
+ 
 
     def __str__(self):
-        return self.name  
-
-    class Meta:
-        verbose_name = "Expenses Type"
-        verbose_name_plural = "Expenses Types"
-        ordering = ["-created_at"]
+        return self.name
 
 
+# =======================
+# MAIN EXPENSE (BILL)
+# =======================
 class Expenses(CustomBase):
+
     STATUS_CHOICES = [
-        ("pending", "Pending"),       
-        ("approved", "Approved"),    
-        ("paid", "Paid"),            
-        ("overdue", "Overdue"),       
-        ("expired", "Expired"),     
-        ("cancelled", "Cancelled"),   
+        ("pending", "Pending"),
+        ("partial", "Partial"),
+        ("paid", "Paid"),
+        ("overdue", "Overdue"),
+        ("expired", "Expired"),
+        ("cancelled", "Cancelled"),
     ]
+
     PAYMENT_MODE_STATUS = [
-        ("upi", "UPI"),       
-        ("cash", "Cash"),  
+        ("transfer", "Transfer"),
+        ("cash", "Cash"),
+        ("upi", "UPI"),
     ]
+
     expenses_type = models.ForeignKey(
-        "app.ExpensesTypes", 
-        on_delete=models.CASCADE, 
-        blank=True, 
-        null=True
-    )
-    product_name = models.CharField(
-        max_length=255, 
-        null=True,
-        blank=True, 
-        help_text="Product Name add.."
-    )
-    company_name = models.CharField(
-        max_length=255,    
-        null=True,
-        blank=True, 
-        help_text="Company Name add.."
-    ) 
-    invoice_number = models.CharField(
-        max_length=100,
-        null=True,
-        blank=True, 
-        help_text="Optional invoice/reference number"
-    ) 
-    invoice_name = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        help_text="Invoice title or name"
-    )
-    due_date = models.DateField(blank=True, null=True)   
-    amount = models.FloatField()
-    receipt = models.FileField(
-        upload_to="receipts/",
+        "app.ExpensesTypes",
+        on_delete=models.CASCADE,
         null=True,
         blank=True
     )
+
+    product_name = models.CharField(max_length=255, null=True, blank=True)
+    company_name = models.CharField(max_length=255, null=True, blank=True) 
+
+    due_date = models.DateField(null=True, blank=True)
+    amount = models.FloatField()  
     description = models.TextField(null=True, blank=True)
+
     expense_status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default="pending" 
+        default="pending"
     )
+ 
+    def __str__(self):
+        return self.product_name or "Expense"
+
+    # =======================
+    # CALCULATIONS
+    # =======================
+    def total_paid(self):
+        return sum(item.amount for item in self.items.all())
+
+    def balance_amount(self):
+        return (self.amount or 0) - self.total_paid()
+
+    def update_status(self):
+        paid = self.total_paid()
+
+        if paid == 0:
+            self.expense_status = "pending"
+        elif paid < self.amount:
+            self.expense_status = "partial"
+        elif paid >= self.amount:
+            self.expense_status = "paid"
+
+        self.save(update_fields=["expense_status"])
+
+
+# =======================
+# EXPENSE ITEMS (PAYMENTS)
+# =======================
+class ExpensesItems(CustomBase):
+    expenses = models.ForeignKey(
+        "app.Expenses",
+        on_delete=models.CASCADE,
+        related_name="items"
+    )
+
+    amount = models.FloatField()
+    invoice_number = models.CharField(max_length=100, null=True, blank=True)
+
+    due_date = models.DateField(null=True, blank=True)
+
+    receipt = models.FileField(
+        upload_to="receipts/items/",
+        null=True,
+        blank=True
+    )
+
+    description = models.TextField(null=True, blank=True)
+
     payment_mode = models.CharField(
         max_length=20,
-        choices=PAYMENT_MODE_STATUS,
+        choices=Expenses.PAYMENT_MODE_STATUS,
         default="upi",
-        
-    )
+    ) 
 
     def __str__(self):
-        return self.product_name   or "None"
+        return f"{self.expenses} - {self.amount}"
 
-    class Meta:
-        verbose_name = "Expense"
-        verbose_name_plural = "Expenses"
-        permissions = [
-            ("expense_manage_permission", "Can manage Expenses"),  
-        ]
-        ordering = ["-created_at"]
-         
+    # =======================
+    # VALIDATION
+    # =======================
+    def clean(self):
+        # ✅ FIX: check expenses_id (raw FK integer) first.
+        # Accessing self.expenses when expenses_id is None raises
+        # RelatedObjectDoesNotExist. self.expenses_id is just None — safe.
+        if not self.expenses_id:
+            return
+ 
+        parent     = self.expenses
+        total_paid = sum(item.amount for item in parent.items.all())
+ 
+        # Editing: exclude this item's own amount to avoid double-counting
+        if self.pk:
+            try:
+                old = ExpensesItems.objects.get(pk=self.pk)
+                total_paid -= old.amount
+            except ExpensesItems.DoesNotExist:
+                pass
+ 
+        if total_paid + self.amount > parent.amount:
+            raise ValidationError(
+                f"Payment ₹{self.amount:.2f} exceeds the remaining balance "
+                f"₹{parent.amount - total_paid:.2f}."
+            )
+ 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Auto-update parent status after every payment save
+        self.expenses.update_status() 

@@ -1,428 +1,880 @@
-
 {% extends 'base/container.html' %}
 {% load static %}
-{% block title %}Expenses {% endblock %}
+{% block title %}Expenses{% endblock %}
+
 {% block style %}
+<style>
+  /* ── Root tokens ───────────────────────────────── */
+  :root {
+    --c-bg:        #f5f6fa;
+    --c-card:      #ffffff;
+    --c-border:    #e4e7ef;
+    --c-primary:   #4f6ef7;
+    --c-primary-d: #3a57d6;
+    --c-success:   #22c55e;
+    --c-warning:   #f59e0b;
+    --c-danger:    #ef4444;
+    --c-info:      #06b6d4;
+    --c-text:      #1e2535;
+    --c-muted:     #6b7280;
+    --c-child-bg:  #f8faff;
+    --radius:      10px;
+    --shadow:      0 2px 12px rgba(0,0,0,.07);
+  }
+
+  /* ── Layout ────────────────────────────────────── */
+  .exp-wrapper        { padding: 20px; }
+  .exp-topbar         { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+  .exp-topbar h4      { font-size:20px; font-weight:700; color:var(--c-text); margin:0; }
+  .exp-topbar-btns    { display:flex; gap:8px; flex-wrap:wrap; }
+
+  /* ── Filter card ───────────────────────────────── */
+  .exp-filter         { background:var(--c-card); border-radius:var(--radius); border:1px solid var(--c-border); padding:16px 20px; margin-bottom:18px; display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; }
+  .exp-filter-group   { display:flex; flex-direction:column; gap:4px; min-width:180px; flex:1; }
+  .exp-filter-group label { font-size:12px; font-weight:600; color:var(--c-muted); text-transform:uppercase; letter-spacing:.5px; }
+  .exp-filter-group select,
+  .exp-filter-group input  { border:1px solid var(--c-border); border-radius:7px; padding:7px 11px; font-size:13px; color:var(--c-text); outline:none; background:#fff; }
+  .exp-filter-group select:focus,
+  .exp-filter-group input:focus { border-color:var(--c-primary); box-shadow:0 0 0 3px rgba(79,110,247,.12); }
+
+  /* ── Summary chips ─────────────────────────────── */
+  .exp-summary        { display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .exp-chip           { background:var(--c-card); border:1px solid var(--c-border); border-radius:8px; padding:10px 18px; display:flex; flex-direction:column; gap:2px; min-width:140px; }
+  .exp-chip span      { font-size:11px; color:var(--c-muted); font-weight:600; text-transform:uppercase; letter-spacing:.4px; }
+  .exp-chip strong    { font-size:20px; font-weight:700; color:var(--c-text); }
+  .exp-chip.c-warn strong  { color:var(--c-warning); }
+  .exp-chip.c-ok strong    { color:var(--c-success); }
+  .exp-chip.c-info strong  { color:var(--c-info); }
+  .exp-chip.c-danger strong{ color:var(--c-danger); }
+
+  /* ── Table card ────────────────────────────────── */
+  .exp-card           { background:var(--c-card); border-radius:var(--radius); border:1px solid var(--c-border); box-shadow:var(--shadow); overflow:hidden; }
+  .exp-table-wrap     { overflow-x:auto; }
+
+  table.exp-table     { width:100%; border-collapse:collapse; font-size:13.5px; }
+  table.exp-table th  { background:#f1f3fb; color:var(--c-muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; padding:11px 14px; border-bottom:1px solid var(--c-border); white-space:nowrap; }
+  table.exp-table td  { padding:11px 14px; border-bottom:1px solid #f0f2f8; color:var(--c-text); vertical-align:middle; }
+  table.exp-table tbody tr.parent-row:hover > td { background:#f7f9ff; }
+  table.exp-table tbody tr.parent-row { cursor:pointer; }
+
+  /* ── Child row ─────────────────────────────────── */
+  tr.child-row td                { padding:0 !important; border-bottom:1px solid #d5d8e5  !important; }
+  .child-inner                   { background:var(--c-child-bg); padding:6px 5px 10px 13px; display:none; }
+  .child-inner.open              { display:block; }
+  .child-inner h6                { font-size:12px; font-weight:700; color:var(--c-primary); text-transform:uppercase; letter-spacing:.5px; margin:0 0 10px; }
+  table.child-table              { width:100%; border-collapse:collapse; font-size:12.5px; }
+  table.child-table th           { background:#eef1fb; color:var(--c-muted); font-size:11px; font-weight:700; text-transform:uppercase; padding:8px 12px; }
+  table.child-table td           { padding:8px 12px !important; border-bottom:1px solid #e8eaf4; color:var(--c-text); }
+  table.child-table tbody tr:last-child td { border-bottom:none; }
+  .child-empty                   { color:var(--c-muted); font-size:12px; font-style:italic; }
+
+  /* ── Chevron toggle ────────────────────────────── */
+  .chev { display:inline-block; transition:transform .2s; font-size:11px; color:var(--c-muted); }
+  .chev.open { transform:rotate(90deg); color:var(--c-primary); }
+
+  /* ── Badges ────────────────────────────────────── */
+  .badge-status { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+  .bs-pending   { background:#fef3c7; color:#92400e; }
+  .bs-partial   { background:#e0f2fe; color:#075985; }
+  .bs-paid      { background:#dcfce7; color:#166534; }
+  .bs-overdue   { background:#fee2e2; color:#991b1b; }
+  .bs-expired   { background:#f3f4f6; color:#374151; }
+  .bs-cancelled { background:#1f2937; color:#e5e7eb; }
+
+  /* ── Action buttons ────────────────────────────── */
+  .btn-act { border:none; border-radius:6px; padding:5px 9px; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:opacity .15s; }
+  .btn-act:hover { opacity:.82; }
+  .btn-edit   { background:#e8edff; color:#3a57d6; }
+  .btn-del    { background:#fee2e2; color:#dc2626; }
+  .btn-pay    { background:#dcfce7; color:#15803d; }
+  .btn-act:disabled { opacity:.4; cursor:not-allowed; }
+
+  /* ── Pagination ─────────────────────────────────── */
+  .exp-pagination { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:1px solid var(--c-border); flex-wrap:wrap; gap:8px; }
+  .pg-info        { font-size:12px; color:var(--c-muted); }
+  .pg-btns        { display:flex; gap:4px; }
+  .pg-btn         { border:1px solid var(--c-border); background:#fff; border-radius:6px; padding:4px 11px; font-size:12px; cursor:pointer; color:var(--c-text); }
+  .pg-btn:hover   { background:#f1f3fb; }
+  .pg-btn.active  { background:var(--c-primary); color:#fff; border-color:var(--c-primary); }
+  .pg-btn:disabled{ opacity:.4; cursor:not-allowed; }
+  .pg-size        { border:1px solid var(--c-border); border-radius:6px; padding:4px 8px; font-size:12px; }
+
+  /* ── Modals ─────────────────────────────────────── */
+  .exp-modal-overlay  { position:fixed; inset:0; background:rgba(15,20,40,.45); z-index:1050; display:none; align-items:center; justify-content:center; padding:16px; }
+  .exp-modal-overlay.open { display:flex; }
+  .exp-modal          { background:#fff; border-radius:14px; width:100%; max-width:580px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.2); animation:modalIn .2s ease; }
+  @keyframes modalIn  { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .exp-modal-header   { display:flex; align-items:center; justify-content:space-between; padding:18px 22px 14px; border-bottom:1px solid var(--c-border); }
+  .exp-modal-header h5{ margin:0; font-size:16px; font-weight:700; color:var(--c-text); }
+  .exp-modal-body     { padding:20px 22px; }
+  .exp-modal-footer   { padding:14px 22px; border-top:1px solid var(--c-border); display:flex; justify-content:flex-end; gap:8px; }
+  .modal-close-btn    { background:none; border:none; font-size:20px; cursor:pointer; color:var(--c-muted); line-height:1; }
+
+  /* ── Form fields ─────────────────────────────────── */
+  .frow { display:grid; grid-template-columns:130px 1fr; gap:8px 12px; align-items:center; margin-bottom:12px; }
+  .frow label { font-size:12px; font-weight:600; color:var(--c-muted); text-transform:uppercase; letter-spacing:.4px; }
+  .frow input, .frow select, .frow textarea {
+    border:1px solid var(--c-border); border-radius:7px; padding:8px 11px;
+    font-size:13px; color:var(--c-text); width:100%; outline:none; background:#fff;
+  }
+  .frow input:focus, .frow select:focus, .frow textarea:focus {
+    border-color:var(--c-primary); box-shadow:0 0 0 3px rgba(79,110,247,.12);
+  }
+  .frow input.is-invalid { border-color:var(--c-danger); }
+  .field-err { font-size:11px; color:var(--c-danger); margin-top:2px; grid-column:2; }
+
+  /* ── Balance info bar ─────────────────────────────── */
+  .bal-bar { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 14px; margin-bottom:16px; display:flex; gap:20px; font-size:13px; flex-wrap:wrap; }
+  .bal-bar span { color:var(--c-muted); }
+  .bal-bar strong { color:var(--c-text); }
+
+  /* ── Buttons ─────────────────────────────────────── */
+  .btn { border:none; border-radius:8px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all .15s; }
+  .btn-primary   { background:var(--c-primary); color:#fff; }
+  .btn-primary:hover { background:var(--c-primary-d); }
+  .btn-secondary { background:#f1f3fb; color:var(--c-text); }
+  .btn-secondary:hover { background:#e4e7ef; }
+  .btn-success   { background:var(--c-success); color:#fff; }
+  .btn-success:hover { background:#16a34a; }
+  .btn-warning-f { background:var(--c-warning); color:#fff; }
+  .btn-warning-f:hover { background:#d97706; }
+  .btn-danger-f  { background:var(--c-danger); color:#fff; }
+
+  /* ── Toast ─────────────────────────────────────────── */
+  #exp-toast { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+  .toast-item { padding:12px 18px; border-radius:10px; font-size:13px; font-weight:600; color:#fff; box-shadow:0 4px 20px rgba(0,0,0,.15); animation:toastIn .25s ease; min-width:240px; }
+  @keyframes toastIn { from{transform:translateX(40px);opacity:0} to{transform:translateX(0);opacity:1} }
+  .toast-ok  { background:#22c55e; }
+  .toast-err { background:#ef4444; }
+
+  /* ── Empty / loading ───────────────────────────────── */
+  .exp-empty { text-align:center; padding:48px 24px; color:var(--c-muted); font-size:14px; }
+  .exp-loading { text-align:center; padding:32px; color:var(--c-muted); font-size:13px; }
+
+  /* ── Receipt link ──────────────────────────────────── */
+  .receipt-link { color:var(--c-primary); text-decoration:none; font-size:12px; }
+  .receipt-link:hover { text-decoration:underline; }
+  .amount-right { text-align:right; font-variant-numeric:tabular-nums; }
+</style>
 {% endblock %}
-{% block body_content %} 
-<div class="wrapper">
-     <div class="wrapper-title">
-       <div class="wrapper-content">Expenses List</div>
-         <div class="wrapper-actions">
-             <a class="btn btn-add" data-bs-toggle="modal" data-bs-target="#expenses-model"><i class="fa fa-plus"></i> Add</a>
-             <a class="btn btn-primary" href="{%url 'expensestype_details' %}">  Expenses Type</a> 
-           <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>  Back</button>
+
+{% block body_content %}
+<div class=" wrapper">
+
+  <!-- Top bar -->
+  <div class="exp-topbar">
+    <h4>💳 Expenses</h4>
+    <div class="exp-topbar-btns">
+      <button class="btn btn-primary" onclick="openModal('add-expense-modal')">
+        <i class="fa fa-plus"></i> Add Expense
+      </button>
+      <a class="btn btn-secondary" href="{% url 'expensestype_details' %}">Expense Types</a>
+      <button class="btn btn-secondary" onclick="history.back()">
+        <i class="fa fa-arrow-left"></i> Back
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="exp-filter">
+    <div class="exp-filter-group">
+      <label>Expense Type</label>
+      <select id="filter-type">
+        <option value="">All Types</option>
+        {% for et in expensestypes %}
+          <option value="{{ et.id }}">{{ et.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="exp-filter-group">
+      <label>Invoice Date</label>
+      <input type="date" id="filter-date">
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:8px;">
+      <button class="btn btn-warning-f" onclick="fetchExpenses()">
+        <i class="fa fa-filter"></i> Filter
+      </button>
+      <button class="btn btn-secondary" onclick="clearFilters()">Clear</button>
+    </div>
+  </div>
+
+  <!-- Summary chips -->
+  <div class="exp-summary" id="summary-bar">
+    <div class="exp-chip"><span>Total Records</span><strong id="s-count">—</strong></div>
+    <div class="exp-chip c-warn"><span>Total Amount</span><strong id="s-total">—</strong></div>
+    <div class="exp-chip c-ok"><span>Total Paid</span><strong id="s-paid">—</strong></div>
+    <div class="exp-chip c-danger"><span>Balance Due</span><strong id="s-balance">—</strong></div>
+  </div>
+
+  <!-- Table card -->
+  <div class="exp-card">
+    <div class="exp-table-wrap">
+      <table class="exp-table" id="main-table">
+        <thead>
+          <tr>
+            <th style="width:30px;"></th>
+            <th style="width:40px;">#</th>
+            <th>Company</th>
+            <th>Product</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Invoice Date</th>
+            <th class="amount-right">Total (₹)</th>
+            <th class="amount-right">Paid (₹)</th>
+            <th class="amount-right">Balance (₹)</th>
+            <th style="width:130px; text-align:center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="11" class="exp-loading">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="exp-pagination">
+      <div class="pg-info" id="pg-info">—</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <select class="pg-size" id="pg-size" onchange="goPage(1)">
+          <option value="10">10 / page</option>
+          <option value="20">20 / page</option>
+          <option value="50">50 / page</option>
+        </select>
+        <div class="pg-btns" id="pg-btns"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- .exp-wrapper -->
+
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: Add / Edit Expense
+══════════════════════════════════════════════════ -->
+<div class="exp-modal-overlay" id="add-expense-modal">
+  <div class="exp-modal">
+    <div class="exp-modal-header">
+      <h5 id="add-expense-title">Add Expense</h5>
+      <button class="modal-close-btn" onclick="closeModal('add-expense-modal')">×</button>
+    </div>
+    <div class="exp-modal-body">
+      <form id="add-expense-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" id="edit-expense-id" name="expense_id" value="">
+
+        <div class="frow">
+          <label>Expense Type</label>
+          <div>
+            <select name="expenses_type" id="ae-type">
+              <option value="">— Select —</option>
+              {% for et in expensestypes %}
+                <option value="{{ et.id }}">{{ et.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
-     </div>
- 
-     <div class="card">
-        <div class="adv-table">
-            <div class="class-filter row" style=" align-items: flex-end;">
-                 <div class="col-3">
-                    <label for="">Expenses-Type</label>
-                     <select class="form-control select2" name="expenses-type-filter" id ="expenses_type_filter"   placeholder="select">
-                         <option value="">All</option> 
-                        {% for expensestype in expensestypes%}
-                         <option value="{{expensestype.id}}">{{expensestype.name}}</option>
-                        {% endfor%}
-                     </select>
-                </div>
-                <div class="col-3">
-                    <label class="form-lable" for="due_date_filter">Due date</label>
-                    <input type="date" class="form-control" id="due_date_filter" name="due_date_filter">
-                </div>
-                 <div class="col-3">                     
-                     <button class="btn btn-warning" type="button"  onclick="fetchQuotations()">Filter</button>   
-                </div>
-            </div>
-            <div class="mt-2" id="ExpenseTable"></div>
+        <div class="frow">
+          <label>Company Name</label>
+          <div>
+            <input type="text" name="company_name" id="ae-company">
+          </div>
         </div>
-     </div>
- 
-     <!-- Model Add Expenses Add Part-->
-        <div class="category-model modal fade" id="expenses-model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="myModal2">Add</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <form class="cmxform form-horizontal tasi-form" id="expenses-add-form" method="post" enctype="multipart/form-data" action="#">
-                            {% csrf_token %}
-                            <!-- Expenses Type -->
-                            <div class="form-group row">
-                                <label for="expenses_type" class="control-label col-lg-2">Expenses Type</label>
-                                <div class="col-lg-10">
-                                    <select name="expenses_type" class="select2 form-control" id="expenses_type">
-                                        <option value="">All</option>
-                                        {% for expensestype in expensestypes %}
-                                            <option value="{{expensestype.id}}">{{expensestype.name}}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                            <!-- Company Name -->
-                            <div class="form-group row">
-                                <label for="company_name" class="control-label col-lg-2">Company Name</label>
-                                <div class="col-lg-10">
-                                    <input class="form-control" id="company_name" name="company_name" type="text" />
-                                </div>
-                            </div>
-                            <!-- Product Name -->
-
-                              <div class="form-group row">
-                                <label for="product_name" class="control-label col-lg-2">Product Name</label>
-                                <div class="col-lg-10">
-                                    <input class="form-control" id="product_name" name="product_name" type="text" />
-                                </div>
-                            </div>
-                            <!-- Amount -->
-                            <div class="form-group row">
-                                <label for="amount" class="control-label col-lg-2">Amount</label>
-                                <div class="col-lg-10">
-                                    <input class="form-control" id="amount" name="amount" type="text" />
-                                </div>
-                            </div>
-                              <!-- Invoice Number -->
-                            <div class="form-group row">
-                                <label for="invoice_number" class="control-label col-lg-2">Invoice Number</label>
-                                <div class="col-lg-10">
-                                    <input class="form-control" id="invoice_number" name="invoice_number" type="text" />
-                                </div>
-                            </div>
-                             <!-- Invoice Name -->
-                            <div class="form-group row">
-                                <label for="invoice_name" class="control-label col-lg-2">Invoice Name</label>
-                                <div class="col-lg-10">
-                                    <input class="form-control" id="invoice_name" name="invoice_name" type="text" />
-                                </div>
-                            </div>
-                            <!-- Due Date -->
-                            <div class="form-group row">
-                                <label for="due_date" class="control-label col-lg-2">Invoice Date</label>
-                                <div class="col-lg-10">
-                                    <input class="form-control" id="due_date" name="due_date" type="date" />
-                                </div>
-                            </div>
-                            <!-- Receipt -->
-                            <div class="form-group row">
-                                <label for="receipt" class="control-label col-lg-2">Receipt</label>
-                                <div class="col-lg-10">
-                                    <input class="form-control" id="receipt" name="receipt" type="file" />
-                                </div>
-                            </div>
-                            <!-- Payment Mode -->
-                            <div class="form-group row">
-                                <label for="receipt" class="control-label col-lg-2">Payment Mode</label>
-                                <div class="col-lg-10">
-                                    <select name="payment_mode" class="form-control" id="payment_mode">
-                                        <option value="upi">UPI</option>
-                                        <option value="cash">Cash</option> 
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Description -->
-                            <div class="form-group row">
-                                <label for="description" class="control-label col-lg-2">Description</label>
-                                <div class="col-lg-10"> 
-                                    <textarea class="form-control" name="description" id="description"></textarea>
-                                </div>
-                            </div>
-                            <!-- Modal Footer -->
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" id="expenses-submit" class="btn btn-primary">Save</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+        <div class="frow">
+          <label>Product Name</label>
+          <div>
+            <input type="text" name="product_name" id="ae-product">
+          </div>
         </div>
-        <!-- Model Add Expenses Add Part-->
-     <!-- Model Add ExpensesType Add Part-->
-        <div class="category-model modal fade" id="expensestype_model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="myModal2">Add</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                           <form class="cmxform form-horizontal tasi-form" id="expensestype-add-form" method="post" action="#">
-                            {% csrf_token %}
-                                <div class="form-group row">
-                                    <label for="name" class="control-label col-lg-2">Name</label>
-                                    <div class="col-lg-10">
-                                        <input class=" form-control" id="name" name="name" type="text" />
-                                    </div>
-                                </div>
-                                <div class="form-group row ">
-                                    <label for="description" class="control-label col-lg-2">Description</label>
-                                    <div class="col-lg-10"> 
-                                        <textarea class=" form-control"  name="description" id="description"></textarea>
-                                    </div>
-                                </div>
-                                  <!-- 🔔 Recurring Reminder Section -->
-                                <hr>
-                                <h6 class="text-primary">Reminder Options</h6>
-                            <!-- Recurring Checkbox -->
-                            <div class="form-group row">
-                                <label for="is_recurring" class="control-label col-lg-2">Recurring?</label>
-                                <div class="col-lg-10">
-                                    <input type="checkbox" id="is_recurring" name="is_recurring" value="true" />
-                                    <small class="form-text text-muted">Check if this expense repeats automatically (EMI, Salary, Rent, etc.)</small>
-                                </div>
-                            </div>
-
-                                <!-- 🔔 Recurrence Options (hidden by default) -->
-                                <div id="recurrence-options" style="display: none;">
-                                    <!-- Recurrence Type -->
-                                    <div class="form-group row">
-                                        <label for="recurrence_type" class="control-label col-lg-2">Recurrence</label>
-                                        <div class="col-lg-10">
-                                            <select id="recurrence_type" name="recurrence_type" class="form-control">
-                                                <option value="none">No Recurrence</option>
-                                                <option value="daily">Daily</option>
-                                                <option value="weekly">Weekly</option>
-                                                <option value="monthly">Monthly</option>
-                                                <option value="yearly">Yearly</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <!-- Recurrence Day -->
-                                    <div class="form-group row">
-                                        <label for="recurrence_day" class="control-label col-lg-2">Recurrence Day</label>
-                                        <div class="col-lg-10">
-                                            <input type="number" class="form-control" id="recurrence_day" name="recurrence_day" placeholder="e.g. 5 = 5th of the month" />
-                                        </div>
-                                    </div>
-
-                                    <!-- Reminder Start -->
-                                    <div class="form-group row">
-                                        <label for="reminder_start" class="control-label col-lg-2">Reminder Start</label>
-                                        <div class="col-lg-10">
-                                            <input class="form-control" id="reminder_start" name="reminder_start" type="date" />
-                                        </div>
-                                    </div>
-
-                                    <!-- Reminder End -->
-                                    <div class="form-group row">
-                                        <label for="reminder_end" class="control-label col-lg-2">Reminder End</label>
-                                        <div class="col-lg-10">
-                                            <input class="form-control" id="reminder_end" name="reminder_end" type="date" />
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                  <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="button" id="expensestype-submit" class="btn btn-primary">Save</button>
-                                </div>
-                            </form>
-                       </div>
-                </div>
-            </div>
+        <div class="frow">
+          <label>Total Amount</label>
+          <div>
+            <input type="number" step="0.01" name="amount" id="ae-amount" required placeholder="0.00">
+          </div>
         </div>
-        <!-- Model Add ExpensesType Add Part-->
+        <div class="frow">
+          <label>Invoice Number</label>
+          <div>
+            <input type="text" name="invoice_number" id="ae-invoice-no">
+          </div>
+        </div>
+        <div class="frow">
+          <label>Deposit Paid</label>
+          <div>
+            <input type="number" step="0.01" name="deposit" id="ae-deposit" placeholder="0.00 (leave blank if unpaid)">
+          </div>
+        </div>
+        <div class="frow">
+          <label>Invoice Date</label>
+          <div>
+            <input type="date" name="due_date" id="ae-date" required>
+          </div>
+        </div>
+        <div class="frow">
+          <label>Payment Mode</label>
+          <div>
+            <select name="payment_mode" id="ae-mode">
+             <option value="transfer">Transfer</option>
+              <option value="upi">UPI</option> 
+              <option value="cash">Cash</option>
+            </select>
+          </div>
+        </div>
+        <div class="frow">
+          <label>Receipt</label>
+          <div>
+            <input type="file" name="receipt" id="ae-receipt">
+          </div>
+        </div>
+        <div class="frow">
+          <label>Description</label>
+          <div>
+            <textarea name="description" id="ae-desc" rows="2"></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="exp-modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('add-expense-modal')">Cancel</button>
+      <button class="btn btn-primary" id="save-expense-btn" onclick="saveExpense()">
+        <i class="fa fa-save"></i> Save
+      </button>
+    </div>
+  </div>
 </div>
 
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: Add Payment (ExpensesItems)
+══════════════════════════════════════════════════ -->
+<div class="exp-modal-overlay" id="add-payment-modal">
+  <div class="exp-modal" style="max-width:480px;">
+    <div class="exp-modal-header">
+      <h5>Add Payment</h5>
+      <button class="modal-close-btn" onclick="closeModal('add-payment-modal')">×</button>
+    </div>
+    <div class="exp-modal-body">
+      <!-- Balance bar -->
+      <div class="bal-bar">
+        <div><span>Total: </span><strong id="pi-total">—</strong></div>
+        <div><span>Paid: </span><strong id="pi-paid">—</strong></div>
+        <div><span>Remaining: </span><strong id="pi-balance" style="color:var(--c-danger);">—</strong></div>
+      </div>
+      <form id="add-payment-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" id="pi-expense-id" name="expense_id">
+
+        <div class="frow">
+          <label>Deposit (₹) *</label>
+          <div>
+            <input type="number" step="0.01" min="0.01" name="amount"
+                   id="pi-deposit" required placeholder="Enter amount">
+            <div class="field-err" id="pi-deposit-err"></div>
+          </div>
+        </div>
+        <div class="frow">
+          <label>Invoice No</label>
+          <div><input type="text" name="invoice_number" id="pi-invoice"></div>
+        </div>
+        <div class="frow">
+          <label>Payment Date *</label>
+          <div><input type="date" name="due_date" id="pi-date" required></div>
+        </div>
+        <div class="frow">
+          <label>Mode</label>
+          <div>
+            <select name="payment_mode" id="pi-mode">
+              <option value="transfer">Transfer</option>
+              <option value="upi">UPI</option>
+              <option value="cash">Cash</option>
+            </select>
+          </div>
+        </div>
+        <div class="frow">
+          <label>Receipt</label>
+          <div><input type="file" name="receipt" id="pi-receipt"></div>
+        </div>
+        <div class="frow">
+          <label>Description</label>
+          <div><textarea name="description" id="pi-desc" rows="2"></textarea></div>
+        </div>
+      </form>
+    </div>
+    <div class="exp-modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('add-payment-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="savePayment()">
+        <i class="fa fa-check"></i> Save Payment
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: Delete Confirm
+══════════════════════════════════════════════════ -->
+<div class="exp-modal-overlay" id="delete-modal">
+  <div class="exp-modal" style="max-width:380px;">
+    <div class="exp-modal-header">
+      <h5>Delete Expense</h5>
+      <button class="modal-close-btn" onclick="closeModal('delete-modal')">×</button>
+    </div>
+    <div class="exp-modal-body" style="padding:24px 22px;">
+      <p style="font-size:14px;color:var(--c-text);margin:0;">
+        Are you sure you want to delete <strong id="del-expense-name">this expense</strong>?
+        This will also remove all its payment records.
+      </p>
+    </div>
+    <div class="exp-modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('delete-modal')">Cancel</button>
+      <button class="btn btn-danger-f" onclick="confirmDelete()">
+        <i class="fa fa-trash"></i> Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="exp-toast"></div>
+
 {% endblock %}
+
+
 {% block js %}
- 
 <script>
-    $(document).ready(function () { $("#is_recurring").change(function () {
-        if ($(this).is(":checked")) {
-            $("#recurrence-options").slideDown(); // show with animation
-        } else {
-            $("#recurrence-options").slideUp();   // hide with animation
-        }
-    });
-});
-$('#category-table').dataTable( {} );  
-//Search  -Filter
-$(function () {
-    const modal = $("#category-model-edit");
-    const form = $("#category-edit-form");
-   $(".edit-category-btn").click(function () {
-    const btn = $(this);
-    const form = $("#category-edit-form");
-    form.attr("data-id", btn.data("id"));
-    form.find("#name").val(btn.data("name"));
-    form.find("#description").val(btn.data("description"));
-    const isChecked = btn.data("status") === "True" || btn.data("status") === true;
-    form.find("#status").prop("checked", isChecked);
+/* ════════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════════ */
+var allData    = [];   // full dataset from backend
+var currentPage = 1;
+var deleteId    = null;
+
+/* ════════════════════════════════════════════════════════
+   FETCH  — load expenses from Django POST view
+════════════════════════════════════════════════════════ */
+function fetchExpenses() {
+  var body = new FormData();
+  var t    = document.getElementById("filter-type").value;
+  var d    = document.getElementById("filter-date").value;
+  if (t) body.append("expenses_type", t);
+  if (d) body.append("due_date", d);
+
+  document.getElementById("table-body").innerHTML =
+    '<tr><td colspan="11" class="exp-loading">Loading…</td></tr>';
+
+  fetch(window.location.href, {
+    method:"POST", body:body,
+    headers:{"X-Requested-With":"XMLHttpRequest","X-CSRFToken":csrf()}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(json){
+    allData = json.data || [];
+    currentPage = 1;
+    updateSummary();
+    renderTable();
+  })
+  .catch(function(){ toast("Failed to load data","err"); });
+}
+
+function clearFilters() {
+  document.getElementById("filter-type").value = "";
+  document.getElementById("filter-date").value = "";
+  fetchExpenses();
+}
+
+/* ════════════════════════════════════════════════════════
+   SUMMARY CHIPS
+════════════════════════════════════════════════════════ */
+function updateSummary() {
+  var total = 0, paid = 0, bal = 0;
+  allData.forEach(function(r){ total += r.amount||0; paid += r.total_paid||0; bal += r.balance||0; });
+  document.getElementById("s-count").textContent   = allData.length;
+  document.getElementById("s-total").textContent   = "₹" + total.toFixed(2);
+  document.getElementById("s-paid").textContent    = "₹" + paid.toFixed(2);
+  document.getElementById("s-balance").textContent = "₹" + bal.toFixed(2);
+}
+
+/* ════════════════════════════════════════════════════════
+   RENDER TABLE  — with pagination
+════════════════════════════════════════════════════════ */
+function renderTable() {
+  var size  = parseInt(document.getElementById("pg-size").value) || 10;
+  var total = allData.length;
+  var pages = Math.max(1, Math.ceil(total / size));
+  if (currentPage > pages) currentPage = pages;
+
+  var start = (currentPage - 1) * size;
+  var slice = allData.slice(start, start + size);
+
+  var tbody = document.getElementById("table-body");
+
+  if (!slice.length) {
+    tbody.innerHTML = '<tr><td colspan="11" class="exp-empty">No records found.</td></tr>';
+    renderPagination(0, 0, 0, 0);
+    return;
+  }
+
+  var html = "";
+  slice.forEach(function(row, i) {
+    var sn      = start + i + 1;
+    var badge   = statusBadge(row.expense_status);
+    var payDis  = (row.balance <= 0) ? " disabled title='Fully paid'" : "";
+    var hasItems = (row.payments && row.payments.length > 0);
+    var chevCls  = hasItems ? "chev" : "chev" ;   // always render, hide if no items
+    var chevVis  = hasItems ? "" : "visibility:hidden;";
+
+    html += '<tr class="parent-row" data-id="' + row.id + '" onclick="toggleChild(this,' + row.id + ')">';
+    html += '<td><span class="' + chevCls + '" id="chev-' + row.id + '" style="' + chevVis + '">&#9658;</span></td>';
+    html += '<td>' + sn + '</td>';
+    html += '<td>' + esc(row.company_name) + '</td>';
+    html += '<td>' + esc(row.product_name) + '</td>';
+    html += '<td>' + esc(row.expenses_type) + '</td>';
+    html += '<td>' + badge + '</td>';
+    html += '<td>' + esc(row.due_date) + '</td>';
+    html += '<td class="amount-right">₹' + fmt(row.amount) + '</td>';
+    html += '<td class="amount-right">₹' + fmt(row.total_paid) + '</td>';
+    html += '<td class="amount-right" style="color:' + (row.balance > 0 ? 'var(--c-danger)' : 'var(--c-success)') + ';">₹' + fmt(row.balance) + '</td>';
+    html += '<td style="text-align:center;" onclick="event.stopPropagation()">';
+    html += '  <button class="btn-act btn-edit"    onclick="editExpense(' + row.id + ')"><i class="fa fa-edit"></i></button> ';
+    html += '  <button class="btn-act btn-del"     onclick="openDelete(' + row.id + ',\'' + esc(row.product_name||row.company_name||'this expense') + '\')"><i class="fa fa-trash"></i></button> ';
+    html += '  <button class="btn-act btn-pay"' + payDis + ' onclick="openAddPayment(' + row.id + ',' + (row.amount||0) + ',' + (row.total_paid||0) + ',' + (row.balance||0) + ')"><i class="fa fa-plus"></i></button>';
+    html += '</td>';
+    html += '</tr>';
+    // Child row placeholder
+    html += '<tr class="child-row" id="child-row-' + row.id + '">';
+    html += '<td colspan="11"><div class="child-inner" id="child-inner-' + row.id + '"></div></td>';
+    html += '</tr>';
+  });
+
+  tbody.innerHTML = html;
+  renderPagination(total, pages, start + 1, Math.min(start + size, total));
+}
+
+/* ════════════════════════════════════════════════════════
+   CHILD ROW  — expand/collapse payments
+════════════════════════════════════════════════════════ */
+function toggleChild(tr, expenseId) {
+  var inner = document.getElementById("child-inner-" + expenseId);
+  var chev  = document.getElementById("chev-" + expenseId);
+  if (!inner) return;
+
+  if (inner.classList.contains("open")) {
+    inner.classList.remove("open");
+    if (chev) chev.classList.remove("open");
+  } else {
+    // Find row data
+    var row = allData.find(function(r){ return r.id == expenseId; });
+    renderChildTable(inner, row ? (row.payments || []) : []);
+    inner.classList.add("open");
+    if (chev) chev.classList.add("open");
+  }
+}
+
+function renderChildTable(container, payments) {
+  if (!payments.length) {
+    container.innerHTML = '<p class="child-empty">No payment records yet.</p>';
+    return;
+  }
+  var h = '<h6>Payment Records (' + payments.length + ')</h6>';
+  h += '<table class="child-table"><thead><tr>';
+  h += '<th>#</th><th>Invoice No</th><th>Date</th><th style="text-align:right;">Amount (₹)</th><th>Mode</th><th>Receipt</th><th>Description</th>';
+  h += '</tr></thead><tbody>';
+  payments.forEach(function(p, i) {
+    var rec = p.receipt
+      ? '<a class="receipt-link" href="' + p.receipt + '" target="_blank"><i class="fa fa-file-o"></i> View</a>'
+      : '<span style="color:var(--c-muted);">—</span>';
+    h += '<tr>';
+    h += '<td>' + (i+1) + '</td>';
+    h += '<td>' + (p.invoice_number || '—') + '</td>';
+    h += '<td>' + (p.due_date       || '—') + '</td>';
+    h += '<td style="text-align:right;">₹' + fmt(p.amount) + '</td>';
+    h += '<td><span style="text-transform:uppercase;font-size:11px;font-weight:700;">' + (p.payment_mode||'—') + '</span></td>';
+    h += '<td>' + rec + '</td>';
+    h += '<td>' + (p.description    || '—') + '</td>';
+    h += '</tr>';
+  });
+  h += '</tbody></table>';
+  container.innerHTML = h;
+}
+
+/* ════════════════════════════════════════════════════════
+   PAGINATION
+════════════════════════════════════════════════════════ */
+function renderPagination(total, pages, from, to) {
+  document.getElementById("pg-info").textContent =
+    total ? ("Showing " + from + " – " + to + " of " + total) : "No records";
+
+  var btns = "";
+  btns += '<button class="pg-btn" onclick="goPage(' + (currentPage-1) + ')" ' + (currentPage<=1?"disabled":"") + '>‹</button>';
+
+  // Smart window
+  var start = Math.max(1, currentPage - 2);
+  var end   = Math.min(pages, currentPage + 2);
+  if (start > 1)     btns += '<button class="pg-btn" onclick="goPage(1)">1</button>' + (start > 2 ? '<span style="padding:0 4px;color:var(--c-muted)">…</span>' : '');
+  for (var p = start; p <= end; p++) {
+    btns += '<button class="pg-btn' + (p===currentPage?" active":"") + '" onclick="goPage(' + p + ')">' + p + '</button>';
+  }
+  if (end < pages) btns += (end < pages-1 ? '<span style="padding:0 4px;color:var(--c-muted)">…</span>' : '') + '<button class="pg-btn" onclick="goPage(' + pages + ')">' + pages + '</button>';
+  btns += '<button class="pg-btn" onclick="goPage(' + (currentPage+1) + ')" ' + (currentPage>=pages?"disabled":"") + '>›</button>';
+
+  document.getElementById("pg-btns").innerHTML = btns;
+}
+
+function goPage(p) {
+  var size  = parseInt(document.getElementById("pg-size").value) || 10;
+  var pages = Math.max(1, Math.ceil(allData.length / size));
+  if (p < 1 || p > pages) return;
+  currentPage = p;
+  renderTable();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+/* ════════════════════════════════════════════════════════
+   ADD / EDIT EXPENSE
+════════════════════════════════════════════════════════ */
+function openModal(id) {
+  document.getElementById(id).classList.add("open");
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove("open");
+}
+// Close on overlay click
+document.querySelectorAll(".exp-modal-overlay").forEach(function(el) {
+  el.addEventListener("click", function(e) {
+    if (e.target === el) el.classList.remove("open");
+  });
 });
 
-    // Optional: reset form on close
-    $('#category-model-edit').on('hidden.bs.modal', function () {  $(this).find("form")[0].reset();});
-    // Submit updated form via AJAX
-    $("#category-edit-submit").click(function () {
-        const id = form.attr("data-id");
-        const url = "{% url 'category_edit' 0 %}".replace("0", id);
-        $.ajax({
-            url: url,
-            type: "POST",
-            data: form.serialize(),
-            headers: {
-                "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
-            },
-            success: function (res) {
-                if (res.success) {
-                    modal.modal("hide");
-                    location.reload();  // OR update DOM without reload
-                } else {
-                    alert("Validation error");
-                    console.log(res.errors);
-                }
-            },
-            error: function (err) {
-                alert("Server error");
-                console.error(err.responseText);
-            }
-        });
-    });
-$("#expenses-submit").click(function () {
-    debugger;
-    const form = document.getElementById("expenses-add-form"); // plain DOM form
-    const modal = $("#expensestype_model");  
-    const url = "{% url 'expense_create' %}";  
-    const formData = new FormData(form); // includes files + text inputs
-    $.ajax({
-        url: url,
-        type: "POST",
-        data: formData,
-        processData: false,   // required for file upload
-        contentType: false,   // required for file upload
-        headers: {
-            "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
-        },
-        success: function (res) {
-            if (res.success) {
-                $("#category-model").modal("hide");
-                DisplayAlert(true, res.message);
-                location.reload();
-            } else {
-                DisplayAlert(false, res.errors);
-                console.log(res.errors);
-            }
-        },
-        error: function (err) {
-            console.log(err);
-            DisplayAlert(false, "Server error");
-            console.error(err.responseText);
-        }
-    });
-});
- 
-  $("#expensestype-submit").click(function () {
-    const form = $("#expensestype-add-form");   // reference form
-    const modal = $("#expensestype_model");     // reference modal
-    const url = "{% url 'expensestype_create' %}";  // create view doesn't need id
+function editExpense(id) {
+  var row = allData.find(function(r){ return r.id == id; });
+  if (!row) return;
+  document.getElementById("add-expense-title").textContent = "Edit Expense";
+  document.getElementById("edit-expense-id").value = id;
+  document.getElementById("ae-company").value   = row.company_name   || "";
+  document.getElementById("ae-product").value   = row.product_name   || "";
+  document.getElementById("ae-amount").value    = row.amount         || "";
+  document.getElementById("ae-date").value      = row.due_date       || "";
+  document.getElementById("ae-desc").value      = row.description    || "";
+  // Select matching type option
+  var sel = document.getElementById("ae-type");
+  for (var i=0; i<sel.options.length; i++) {
+    if (sel.options[i].text == row.expenses_type) { sel.selectedIndex = i; break; }
+  }
+  openModal("add-expense-modal");
+}
 
-    $.ajax({
-        url: url,
-        type: "POST",
-        data: form.serialize(),
-        headers: {
-            "X-CSRFToken": $("[name=csrfmiddlewaretoken]").val()
-        },
-        success: function (res) {
-            if (res.success) { $("#category-model").modal("hide");DisplayAlert(true,res.message);location.reload();        
-              } else {DisplayAlert(false,res.errors);console.log(res.errors);  }          
-        },
-        error: function (err) {
-            console.log(err)
-            DisplayAlert(false,res.errors)
-            console.error(err.responseText);
-        }
-    });
-});
-});
-</script>
-<link rel="stylesheet" href="{% static 'assets/tabulator/css/tabulator.min.css'%}" />
-<script type="text/javascript" src="{% static 'assets/tabulator/js/xlsx.full.min.js'%}"></script>
-<script type="text/javascript" src="{% static 'assets/tabulator/js/tabulator.min.js'%}"></script>
-<script type="text/javascript" src="{% static 'assets/tabulator/js/jspdf.umd.min.js'%}"></script>
-<script type="text/javascript" src="{% static 'assets/tabulator/js/jspdf.plugin.autotable.min.js'%}"></script>
+function saveExpense() {
+  var editId = document.getElementById("edit-expense-id").value.trim();
+  var isEdit = !!editId;
+  var url    = isEdit
+    ? "{% url 'expense_update' 0 %}".replace("0", editId)
+    : "{% url 'expense_create' %}";
 
-<script>
-    // Initialize Tabulator (empty for now)
-    var table = new Tabulator("#ExpenseTable", {
-        layout: "fitColumns",
-        pagination:"local",
-        paginationSize:10,
-        paginationSizeSelector:[3, 6, 8, 10],
-        movableColumns:true,
-        paginationCounter:"rows",
-        responsiveLayout:"collapse",
-        placeholder: "No records found",
-        columns: [
-            {title:"S.No", formatter:"rownum", width:70, hozAlign:"center"},
-            {title:"Company Name", field:"company_name"},
-            {title:"Product Name", field:"product_name"},
-            {title:"Invoice Number", field:"invoice_number"},
-            {title:"Invoice Name", field:"invoice_name"}, 
-            {title:"Payment Mode", field:"payment_mode"},  
-            {title:"Receipt", field:"receipt"},   
-            {title:"Invoice Date", field:"due_date"},
-            {title:"Expenses-Type", field:"expenses_type"},
-            {title:"Amount",field:"amount",hozAlign:"right", },      
-            {title:"Description", field:"description"},      
-        ],
-    });
-fetchQuotations()
-    // Fetch data from Django backend
-    function fetchQuotations() {
-        const formData = new FormData();
-        let expenses_typeVal = document.getElementById("expenses_type_filter").value;
-        let due_dateVal = document.getElementById("due_date_filter").value;
-        if (expenses_typeVal) formData.append("expenses_type", expenses_typeVal);
-        if (due_dateVal) formData.append("due_date", due_dateVal);
+  var form     = document.getElementById("add-expense-form");
+  var formData = new FormData(form);
+  var btn      = document.getElementById("save-expense-btn");
+  btn.disabled = true;
+  btn.textContent = "Saving…";
 
-        fetch(window.location.href, {
-            method: "POST",
-            body: formData,
-            headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "X-CSRFToken": getCookie("csrftoken")
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.data && data.data.length > 0) {
-                table.setData(data.data);   // load data into Tabulator
-            } else {
-                table.clearData();          // clear if no records
-            }
-        })
-        .catch(err => {
-            console.error("Error:", err);
-        });
+  fetch(url, {
+    method:"POST", body:formData,
+    headers:{"X-Requested-With":"XMLHttpRequest","X-CSRFToken":csrf()}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(json){
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa fa-save"></i> Save';
+    if (json.success) {
+      closeModal("add-expense-modal");
+      form.reset();
+      document.getElementById("edit-expense-id").value = "";
+      document.getElementById("add-expense-title").textContent = "Add Expense";
+      toast(json.message || "Saved successfully", "ok");
+      fetchExpenses();
+    } else {
+      toast(flatErrors(json.errors || json.error), "err");
     }
+  })
+  .catch(function(){
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa fa-save"></i> Save';
+    toast("Server error", "err");
+  });
+}
 
-    // Run once on page load
-    fetchQuotations();
+/* ════════════════════════════════════════════════════════
+   DELETE EXPENSE
+════════════════════════════════════════════════════════ */
+function openDelete(id, name) {
+  deleteId = id;
+  document.getElementById("del-expense-name").textContent = name;
+  openModal("delete-modal");
+}
 
-    // CSRF helper for Django POST
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== "") {
-            const cookies = document.cookie.split(";");
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-                if (cookie.startsWith(name + "=")) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
+function confirmDelete() {
+  if (!deleteId) return;
+  var url = "{% url 'expense_delete' 0 %}".replace("0", deleteId);
+  fetch(url, {
+    method:"POST",
+    headers:{"X-Requested-With":"XMLHttpRequest","X-CSRFToken":csrf()}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(json){
+    closeModal("delete-modal");
+    deleteId = null;
+    if (json.success) {
+      toast(json.message || "Deleted", "ok");
+      fetchExpenses();
+    } else {
+      toast(json.message || "Delete failed", "err");
     }
-</script>
+  })
+  .catch(function(){ toast("Server error", "err"); });
+}
 
+/* ════════════════════════════════════════════════════════
+   ADD PAYMENT  (ExpensesItems)
+════════════════════════════════════════════════════════ */
+function openAddPayment(expenseId, total, paid, balance) {
+  document.getElementById("pi-expense-id").value    = expenseId;
+  document.getElementById("pi-total").textContent   = "₹" + fmt(total);
+  document.getElementById("pi-paid").textContent    = "₹" + fmt(paid);
+  document.getElementById("pi-balance").textContent = "₹" + fmt(balance);
+
+  var dep = document.getElementById("pi-deposit");
+  dep.max         = balance;
+  dep.placeholder = "Max ₹" + fmt(balance);
+  dep.value       = "";
+  dep.classList.remove("is-invalid");
+  document.getElementById("pi-deposit-err").textContent = "";
+
+  document.getElementById("add-payment-form").reset();
+  // Re-apply after reset
+  document.getElementById("pi-expense-id").value = expenseId;
+  dep.max = balance;
+
+  openModal("add-payment-modal");
+}
+
+// Live balance validation
+document.getElementById("pi-deposit").addEventListener("input", function() {
+  validateDeposit();
+});
+
+function validateDeposit() {
+  var inp = document.getElementById("pi-deposit");
+  var err = document.getElementById("pi-deposit-err");
+  var val = parseFloat(inp.value) || 0;
+  var max = parseFloat(inp.max)   || 0;
+  if (val <= 0) {
+    inp.classList.add("is-invalid");
+    err.textContent = "Amount must be greater than ₹0.";
+    return false;
+  }
+  if (val > max) {
+    inp.classList.add("is-invalid");
+    err.textContent = "Exceeds remaining balance ₹" + fmt(max) + ".";
+    return false;
+  }
+  inp.classList.remove("is-invalid");
+  err.textContent = "";
+  return true;
+}
+
+function savePayment() {
+  if (!validateDeposit()) return;
+
+  var form     = document.getElementById("add-payment-form");
+  var formData = new FormData(form);
+  var expId    = document.getElementById("pi-expense-id").value;
+
+  fetch("{% url 'expense_item_create' %}", {
+    method:"POST", body:formData,
+    headers:{"X-Requested-With":"XMLHttpRequest","X-CSRFToken":csrf()}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(json){
+    if (json.success) {
+      closeModal("add-payment-modal");
+      form.reset();
+      toast(json.message || "Payment added", "ok");
+
+      // Update the in-memory row — no full reload
+      var d   = json.data;
+      var row = allData.find(function(r){ return r.id == d.expense_id; });
+      if (row) {
+        row.total_paid      = d.paid;
+        row.balance         = d.balance;
+        row.expense_status  = d.status;
+        row.payments        = row.payments || [];
+        row.payments.push(d.new_item);
+      }
+      updateSummary();
+      renderTable();
+
+      // If child row was open, re-render it
+      var inner = document.getElementById("child-inner-" + d.expense_id);
+      if (inner && inner.classList.contains("open")) {
+        renderChildTable(inner, row ? row.payments : []);
+      }
+    } else {
+      toast(flatErrors(json.errors || json.error), "err");
+    }
+  })
+  .catch(function(){ toast("Server error", "err"); });
+}
+
+/* ════════════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════════════ */
+function statusBadge(s) {
+  var map = {
+    pending:   "bs-pending",
+    partial:   "bs-partial",
+    paid:      "bs-paid",
+    overdue:   "bs-overdue",
+    expired:   "bs-expired",
+    cancelled: "bs-cancelled"
+  };
+  var cls = map[s] || "bs-pending";
+  return '<span class="badge-status ' + cls + '">' + (s || "pending") + '</span>';
+}
+
+function fmt(v) {
+  return parseFloat(v || 0).toFixed(2);
+}
+
+function esc(s) {
+  if (!s) return "—";
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function flatErrors(e) {
+  if (!e) return "Unknown error";
+  if (typeof e === "string") return e;
+  if (typeof e === "object") {
+    return Object.values(e).map(function(v){
+      return Array.isArray(v) ? v.map(function(x){ return x.message||x; }).join(", ") : v;
+    }).join(" | ");
+  }
+  return String(e);
+}
+
+function csrf() {
+  var m = document.cookie.match(/csrftoken=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : "";
+}
+
+function toast(msg, type) {
+  var el  = document.createElement("div");
+  el.className  = "toast-item " + (type === "ok" ? "toast-ok" : "toast-err");
+  el.textContent = msg;
+  document.getElementById("exp-toast").appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3500);
+}
+
+/* ════════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════════ */
+fetchExpenses();
+</script>
 {% endblock %}

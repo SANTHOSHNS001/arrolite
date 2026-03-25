@@ -459,9 +459,9 @@ class InvoiceReportPdfView(View):
          # === Right (TOTAL / DEPOSIT / BALANCE) as 2-column inner table ===
         right_inner_table = Table(
             [
-                [Paragraph("total", total_label_style),   Paragraph(f"$ {quotation.total_cost:,.2f}", total_value_style)],
-                [Paragraph("deposit", total_label_style), Paragraph(f"${quotation.advance_amount:,.2f}", total_value_style)],
-                [Paragraph("balance", total_label_style), Paragraph(f"${quotation.balance_due:,.2f}", total_value_style)],
+                [Paragraph("total", total_label_style),   Paragraph(f"<b>$ {quotation.total_cost:,.2f}</b>", total_value_style)],
+                [Paragraph("deposit", total_label_style), Paragraph(f"<b>${quotation.advance_amount:,.2f}</b>", total_value_style)],
+                [Paragraph("balance", total_label_style), Paragraph(f"<b>${quotation.balance_due:,.2f}</b>", total_value_style)],
             ],
             colWidths=[2 * cm, 3 * cm],  # adjust widths to balance text/value
             style=[

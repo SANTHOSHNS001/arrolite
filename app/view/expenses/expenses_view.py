@@ -1,313 +1,286 @@
-
-import calendar
-from datetime import datetime
-from django.db import DatabaseError
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
-from app.forms.expenses.expenses_form import ExpensesForm, ExpensesTypesForm
-from app.models.expenses.expenses_model import Expenses, ExpensesTypes
-from django.db import transaction  
-import datetime
-from django.db.models import Q
-from django.db import transaction
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.db import transaction, DatabaseError
 from django.core.exceptions import ValidationError
-import logging 
-logger = logging.getLogger(__name__)
+from datetime import datetime
+
+from app.forms.expenses.expenses_form import ExpensesForm, ExpensesItemsForm, ExpensesTypesForm
+from app.models.expenses.expenses_model import Expenses, ExpensesItems, ExpensesTypes
+from django.utils import timezone
+# ──────────────────────────────────────────────
+# EXPENSES TYPE VIEWS
+# ──────────────────────────────────────────────
+
 class ExpensesTypeDetail(View):
-    
-    template="pages/expenses/expenses_type_list.html"
+    template = "pages/expenses/expenses_type_list.html"
+
     def get(self, request):
-        expenses = Expenses.active_objects.all()
-        expensestypes = ExpensesTypes.active_objects.all()
-        # pending_list=RecycleEence_datas()
         context = {
-            'expenses': expenses,
-            'expensestypes':expensestypes,
-            # 'expenses_pending':pending_list
+            'expenses': Expenses.objects.select_related('expenses_type').all(),
+            'expensestypes': ExpensesTypes.objects.filter(active=True),
         }
         return render(request, self.template, context)
 
+
 class ExpensesTypesCreate(View):
-    
     def post(self, request):
         form = ExpensesTypesForm(request.POST)
-       
         if form.is_valid():
-            expensestypes = form.save(commit=False)
-            expensestypes.active = True  
-            expensestypes.creator = request.user 
-            # Set status here
-            expensestypes.save()
-            return JsonResponse({
-                'success': True,
-                'message': 'ExpensesTypes Create successfully.',
-                'data': {}                
-            }, status=200)
+            obj = form.save(commit=False)
+            obj.active = True
+            obj.creator = request.user
+            obj.save()
+            return JsonResponse({'success': True, 'message': 'Expense type created successfully.'}, status=200)
+        return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
-        return JsonResponse({
-            'success': False,
-            'errors': form.errors
-        }, status=400)
-     
+
 class ExpensesTypesUpdate(View):
-    def post(self, request,pk):
-        expensestype = get_object_or_404(ExpensesTypes, pk=pk)
-        form = ExpensesTypesForm(request.POST, instance=expensestype)
+    def post(self, request, pk):
+        instance = get_object_or_404(ExpensesTypes, pk=pk)
+        form = ExpensesTypesForm(request.POST, instance=instance)
+
         if form.is_valid():
-            expensestypes = form.save(commit=False)
-            expensestypes.active = True              # Set status here
-            expensestypes.save()
+            obj = form.save(commit=False) 
+            obj.active = True
+            obj.updated_by = request.user   # make sure field exists
+            obj.updated_at = timezone.now() 
+            obj.save()
+
             return JsonResponse({
                 'success': True,
-                'message': 'ExpensesTypes Update successfully.',
-                'data': {}
-                
+                'message': 'Expense type updated successfully.'
             }, status=200)
 
         return JsonResponse({
             'success': False,
             'errors': form.errors
         }, status=400)
+
 
 class ExpensesTypesDelete(View):
     def post(self, request, pk):
-        customer = get_object_or_404(ExpensesTypes, pk=pk)
-
+        instance = get_object_or_404(ExpensesTypes, pk=pk)
         try:
             with transaction.atomic():
-                customer.delete(user=request.user)  # soft delete using your CustomBase method
-            return JsonResponse({
-                'success': True,
-                'message': 'Expensestypes deleted successfully.'
-            }, status=200)
+                instance.delete(user=request.user)
+            return JsonResponse({'success': True, 'message': 'Expense type deleted successfully.'}, status=200)
+        except ValueError as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f"Unexpected error: {str(e)}"}, status=500)
+
+
+# ──────────────────────────────────────────────
+# EXPENSES VIEWS
+# ──────────────────────────────────────────────
+
+class ExpensesViewList(View):
+    template = "pages/expenses/expenses_list.html"
+
+    def get(self, request):
+        context = {
+            'expenses': Expenses.objects.select_related('expenses_type').all(),
+            'expensestypes': ExpensesTypes.objects.filter(active=True),
+        }
+        return render(request, self.template, context)
+
+    def post(self, request):
+        """
+        Returns JSON with parent Expenses rows + nested payments[] from ExpensesItems.
+        Uses prefetch_related to avoid N+1 queries.
+        """
+        try:
+            filters = {}
+
+            expenses_type = request.POST.get("expenses_type", "").strip()
+            due_date_str  = request.POST.get("due_date", "").strip()
+
+            if expenses_type:
+                filters["expenses_type_id"] = expenses_type   # use _id for FK filter (faster)
+
+            if due_date_str:
+                if "to" in due_date_str:
+                    start_str, end_str = [d.strip() for d in due_date_str.split("to")]
+                    filters["due_date__range"] = (
+                        datetime.strptime(start_str, "%d-%m-%Y").date(),
+                        datetime.strptime(end_str,   "%d-%m-%Y").date(),
+                    )
+                else:
+                    filters["due_date"] = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+
+            # prefetch_related loads all ExpensesItems in ONE extra query (not N queries)
+            qs = (
+                Expenses.objects
+                .select_related('expenses_type')
+                .prefetch_related('items')
+                .filter(**filters)
+                .order_by('-due_date')
+            )
+
+            data = []
+            for expense in qs:
+                # Build child payments list from prefetched items (no extra DB hit)
+                payments = [
+                    {
+                        "id":             item.id,
+                        "amount":         item.amount,
+                        "invoice_number": item.invoice_number or "",
+                        "due_date":       str(item.due_date) if item.due_date else "",
+                        "payment_mode":   item.payment_mode or "",
+                        "description":    item.description or "",
+                        "receipt":        item.receipt.url if item.receipt else "",
+                    }
+                    for item in expense.items.all()
+                ]
+
+                data.append({
+                    "id":            expense.id,
+                    "expenses_type": expense.expenses_type.name if expense.expenses_type else "",
+                    "amount":        expense.amount,
+                    "company_name":  expense.company_name or "",
+                    "product_name":  expense.product_name or "",
+                    "description":   expense.description or "",
+                    "due_date":      str(expense.due_date) if expense.due_date else "",
+                    "expense_status": expense.expense_status,
+                    "total_paid":    expense.total_paid(),     # uses prefetched items — no extra query
+                    "balance":       expense.balance_amount(),
+                    "payments":      payments,                 # ← child rows for Tabulator
+                })
+
+            return JsonResponse({"success": True, "count": len(data), "data": data})
 
         except ValueError as e:
-            # Raised when there are related non-deleted objects
-            return JsonResponse({
-                'success': False,
-                'message': str(e)
-            }, status=400)
-
+            return JsonResponse({"error": f"Invalid date format: {str(e)}"}, status=400)
+        except DatabaseError as e:
+            return JsonResponse({"error": f"Database error: {str(e)}"}, status=500)
         except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': f"An unexpected error occurred: {str(e)}"
-            }, status=500)
-    
+            return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
+
 
 class ExpensesCreate(View):
     def post(self, request):
         try:
-            form = ExpensesForm(request.POST, request.FILES) 
-            # 🔹 Validate form
+            form = ExpensesForm(request.POST, request.FILES)
             if not form.is_valid():
-                return JsonResponse({
-                    "success": False,
-                    "message": "Validation failed",
-                    "errors": form.errors.get_json_data()
-                }, status=400)
+                return JsonResponse({"success": False, "errors": form.errors.get_json_data()}, status=400)
 
-            # 🔥 Atomic transaction (VERY IMPORTANT)
             with transaction.atomic():
                 expense = form.save(commit=False)
-                expense.creator = request.user 
-                # Optional: full model validation
-                expense.full_clean() 
+                expense.creator = request.user
                 expense.save()
+
+                # Always create a payment item.
+                # deposit defaults to 0 if the user left it blank (meaning the expense is recorded but not yet paid).
+                deposit = request.POST.get("deposit", "").strip()
+                deposit_amount = float(deposit) if deposit else 0.0
+
+                ExpensesItems.objects.create(
+                    expenses       = expense,
+                    amount         = deposit_amount,
+                    invoice_number = request.POST.get("invoice_number", "").strip() or None,
+                    due_date       = request.POST.get("due_date")  or None,
+                    payment_mode   = request.POST.get("payment_mode", "upi"),
+                    receipt        = request.FILES.get("receipt"),
+                    description    = request.POST.get("description", "").strip() or None,
+                )
+
+                # Update status based on the new payment
+                expense.update_status()
 
             return JsonResponse({
                 "success": True,
-                "message": "Expense created successfully",
+                "message": "Expense created successfully.",
                 "data": {
-                    "id": expense.id,
-                    "name": expense.product_name,
-                    "amount": expense.amount,
+                    "id":       expense.id,
+                    "total":    expense.amount,
+                    "paid":     expense.total_paid(),
+                    "balance":  expense.balance_amount(),
+                    "status":   expense.expense_status,
                 }
             }, status=201)
 
-        # 🔴 Model validation error
         except ValidationError as e:
-            return JsonResponse({
-                "success": False,
-                "message": "Model validation error",
-                "errors": e.message_dict if hasattr(e, "message_dict") else str(e)
-            }, status=400)
-
-        # 🔴 Any unexpected error
+            return JsonResponse({"success": False, "errors": str(e)}, status=400)
         except Exception as e:
-            logger.exception("Expense creation failed")
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
 
-            return JsonResponse({
-                "success": False,
-                "message": "Something went wrong",
-                "error": str(e)  # remove in production if needed
-            }, status=500)
-     
-class ExpensesUpdate(View):
-    def post(self, request,pk):
-        expense = get_object_or_404(Expenses, pk=pk)
-        form = ExpensesTypesForm(request.POST, instance=expense)
-        if form.is_valid():
-            expensestypes = form.save()
-            return JsonResponse({
-                'success': True,
-                'message': 'Expenses Update successfully.',
-                'data': {}
-                
-            }, status=200)
-
-        return JsonResponse({
-            'success': False,
-            'errors': form.errors
-        }, status=400)
-class ExpensesViewList(View):
-    template="pages/expenses/expenses_list.html"
-    def get(self, request):
-        expenses = Expenses.active_objects.all()
-        expensestypes = ExpensesTypes.active_objects.all()
-        # pending_list=RecycleEence_datas()
-        context = {
-            'expenses': expenses,
-            'expensestypes':expensestypes,
-            # 'expenses_pending':pending_list
-        }
-        return render(request, self.template, context)
+# Add ExpensesItems
+class ExpensesItemsCreate(View):
     def post(self, request):
         try:
-            filters = {}
-            
-            expenses_type = request.POST.get("expenses_type")
-            quotation_ids = request.POST.getlist("quotation")
-            request_date_str = request.POST.get("due_date")
-            if quotation_ids:
-                quotation_ids = quotation_ids
-                filters["id__in"] = quotation_ids
-                
-            if expenses_type:
-                filters["expenses_type"] = expenses_type 
-            
-            if request_date_str:
-                try:
-                
-                    if isinstance(request_date_str, list):
-                        request_date_str = request_date_str[0]
-
-                    request_date_str = request_date_str.strip()
-
-                    if "to" in request_date_str:  # Date range case: "01-09-2025 to 06-09-2025"
-                        start_str, end_str = [d.strip() for d in request_date_str.split("to")]
-                        filters["due_date__range"] = (
-                            datetime.strptime(start_str, "%d-%m-%Y").date(),
-                            datetime.strptime(end_str, "%d-%m-%Y").date()
-                        )
-                    else:  # Single date case: "2025-09-06"
-                        filters["due_date"] = datetime.strptime(request_date_str, "%Y-%m-%d").date()
-
-                except ValueError:
-                    return JsonResponse(
-                        {"error": "Invalid date format. Use YYYY-MM-DD or DD-MM-YYYY to DD-MM-YYYY"},
-                        status=400
-                    )
-
-            # Query database
-            expenses_qs = (Expenses.active_objects.filter(**filters))     
-                                          
-            data = [
-                    {
-                        "id": q.id,
-                        "expenses_type":q.expenses_type.name,
-                        "amount":q.amount,
-                        "due_date":q.due_date,
-                        "receipt":q.receipt.url if q.receipt else '',
-                        "description":q.description,
-                        "company_name":q.company_name,
-                        "product_name":q.product_name,
-                        "payment_mode":q.payment_mode,
-                        "invoice_number":q.invoice_number,
-                        "invoice_name":q.invoice_name,
-                        
-                    }
-                        for q in expenses_qs
-            ]
+            expense_id = request.POST.get("expense_id", "").strip()
+            if not expense_id:
+                return JsonResponse(
+                    {"success": False, "errors": "expense_id is required."},
+                    status=400
+                )
+ 
+            expense = get_object_or_404(Expenses, pk=expense_id)
+ 
+            # Pass expense= so form.clean_amount() can check the balance
+            form = ExpensesItemsForm(
+                request.POST,
+                request.FILES,
+                expense=expense,
+            )
+ 
+            if not form.is_valid():
+                return JsonResponse(
+                    {"success": False, "errors": form.errors.get_json_data()},
+                    status=400
+                )
+ 
+            with transaction.atomic():
+                item          = form.save(commit=False)  # expenses not set yet — that's fine
+                item.expenses = expense                  # set it NOW, before .save()
+                item.creator  = request.user
+                item.save()                              # model.clean() runs here, expenses_id is set
+ 
             return JsonResponse({
-                "message": "Invoice fetched successfully",
-                "count": len(data),
-                "data": data
-            })
-
-        except DatabaseError as db_err:
-            return JsonResponse({"error": f"Database error: {str(db_err)}"}, status=500)
-        
+                "success": True,
+                "message": "Payment added successfully.",
+                "data": {
+                    "expense_id": expense.id,
+                    "total":      expense.amount,
+                    "paid":       expense.total_paid(),
+                    "balance":    expense.balance_amount(),
+                    "status":     expense.expense_status,
+                    "new_item": {
+                        "id":             item.id,
+                        "amount":         item.amount,
+                        "invoice_number": item.invoice_number or "",
+                        "due_date":       str(item.due_date) if item.due_date else "",
+                        "payment_mode":   item.payment_mode  or "",
+                        "description":    item.description   or "",
+                        "receipt":        item.receipt.url   if item.receipt else "",
+                    },
+                },
+            }, status=201)
+ 
+        except ValidationError as e:
+            return JsonResponse({"success": False, "errors": str(e)}, status=400)
         except Exception as e:
-            return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+        
+class ExpensesUpdate(View):
+    def post(self, request, pk):
+        expense = get_object_or_404(Expenses, pk=pk)
+        form = ExpensesForm(request.POST, request.FILES, instance=expense)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True, 'message': 'Expense updated successfully.'}, status=200)
+        return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
 
 class ExpensesDelete(View):
-    pass
-def RecycleEence_datas():
-    today = datetime.date.today()
-    current_year, current_month, current_day = today.year, today.month, today.day
-    current_weekday = today.weekday()
-
-    result = {}
-
-    expenses_types = ExpensesTypes.active_objects.filter(is_recurring=True).distinct()
-
-    for et in expenses_types:
-        recurrence_type = et.recurrence_type
-        recurrence_day = et.recurrence_day
-        start_date, end_date = et.reminder_start, et.reminder_end
-
-        # default
-        status, due_date = "No Recurrence", None
-
-        # check reminder range
-        if start_date and today < start_date:
-            result[et.name] = {"status": "Not Started", "due_date": str(start_date)}
-            continue
-        if end_date and today > end_date:
-            result[et.name] = {"status": "Expired", "due_date": str(end_date)}
-            continue
-
-        # ---------------- Due date calculation ----------------
-        if recurrence_type == "daily":
-            due_date = today
-
-        elif recurrence_type == "weekly":
-            days_ahead = (recurrence_day - current_weekday) % 7
-            due_date = today + datetime.timedelta(days=days_ahead)
-
-        elif recurrence_type == "monthly":
-            try:
-                due_date = datetime.date(current_year, current_month, recurrence_day)
-            except ValueError:
-                last_day = calendar.monthrange(current_year, current_month)[1]
-                due_date = datetime.date(current_year, current_month, last_day)
-
-        elif recurrence_type == "yearly":
-            recurrence_month = recurrence_day or current_month
-            due_date = datetime.date(current_year, recurrence_month, 1)
-
-        # ---------------- Expense check ----------------
-        if due_date:
-            exists = Expenses.active_objects.filter(
-                expenses_type=et,
-                due_date=due_date
-            ).exists()
-
-            if exists:
-                status = "Complete"
-            else:
-                if due_date < today:
-                    status = "Pending"
-                elif due_date == today:
-                    status = "Pending"
-                else:
-                    status = "Upcoming"
-
-        result[et.name] = {"status": status, "due_date": str(due_date) if due_date else None}
-
-    return result
-# sample 
-# # "EMI":{"status:"pending"","due_date":"date"}
-# }
+    def post(self, request, pk):
+        expense = get_object_or_404(Expenses, pk=pk)
+        try:
+            with transaction.atomic():
+                expense.delete(user=request.user)
+            return JsonResponse({'success': True, 'message': 'Expense deleted successfully.'}, status=200)
+        except ValueError as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f"Unexpected error: {str(e)}"}, status=500)

@@ -60,21 +60,15 @@ class CustomUserRegister(LoginRequiredMixin, CreateView):
         return context
 
     def form_invalid(self, form):
-         
         messages.error(self.request, form.errors)
         return super().form_invalid(form)
 
     def form_valid(self, form):
-        user = form.save(commit=False)
-        raw_password = form.cleaned_data.get("password")
-        if raw_password:
-            user.set_password(raw_password)  # ensures password is hashed
-        user.save()
-        if hasattr(form, 'save_m2m'):
-            form.save_m2m()
+        form.save()  # ✅ everything handled in form
+
         messages.success(
             self.request,
-            f'User {form.cleaned_data["email"]} has been added successfully',
+            f'User {form.cleaned_data.get("email")} has been added successfully',
         )
         return super().form_valid(form)
 
@@ -92,12 +86,7 @@ class CustomUserUpdate(LoginRequiredMixin, UpdateView):
         return super().form_invalid(form)
 
     def form_valid(self, form):
-        user = form.save(commit=False)
-        raw_password = form.cleaned_data.get("password")
-        if raw_password:
-            user.set_password(raw_password)  # ensures password is hashed
-        user.save()
-        form.save_m2m()
+        form.save()  # ✅ everything handled inside form
         messages.success(
             self.request,
             f'User {form.cleaned_data["email"]} has been updated successfully',
