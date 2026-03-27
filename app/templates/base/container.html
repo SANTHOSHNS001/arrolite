@@ -166,12 +166,12 @@
                     </li>
                     <!-- user login dropdown start-->
                     <li class="dropdown">
-                        <a  class="profile-datas" data-toggle="dropdown" href="#" style="border-radius: 25px;">
+                        <a  class="profile-datas" data-bs-toggle="dropdown" href="#" style="border-radius: 25px;">
                             <i class="material-icons">account_circle</i>
                             <span class="username">{{request.user.get_full_name}}</span>
                             <b class="caret"></b>
                         </a>
-                        <ul class="dropdown-menu extended logout dropdown-menu-right">
+                        <ul class="dropdown-menu extended logout dropdown-menu-end">
                             <div class="log-arrow-up"></div>
                             <li><a href="{% url 'user_update' request.user.id %}"><i class=" fa fa-suitcase"></i>Profile</a></li>
                             <li><a href="#"><i class="fa fa-cog"></i> Settings</a></li>
