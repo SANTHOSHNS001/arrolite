@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.db import models
+from django.forms import ValidationError
 from app.models.base_model.basemodel import CustomBase
 from app.models.category.category_model import Category
 from app.models.customer_model.customer_model import CustomUser
@@ -66,9 +67,13 @@ class Invoice(CustomBase):
         help_text="Discount amount or percentage to apply"
     )
     is_percentage = models.BooleanField(
-    default=False,
+        default=False,
     help_text="If true, discount_value is a percentage instead of a fixed amount"
-)
+    ) 
+    allow_percentage_discount = models.BooleanField(
+        default=False,
+        help_text="If true, discount_value is a percentage instead of a fixed amount allowed"
+    )
     isosize = models.ForeignKey("ISOSize", on_delete=models.SET_NULL, null=True, blank=True)
     advance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -115,29 +120,36 @@ class Invoice(CustomBase):
     @property
     def discount_amount(self):
         """
-        If is_percentage == True: discount% of total
-        Else: fixed discount amount
+        Fixed discount always applies.
+        Percentage only applies when allow_percentage_discount AND is_percentage are both True.
         """
-        total = self.total_cost or Decimal("0.00")
+        total    = self.total_cost or Decimal("0.00")
         discount = Decimal(str(self.discount or 0))
-        if self.is_percentage:
-            return (discount / Decimal("100.00")) * total
-        return discount
-
+    
+        if discount <= 0:
+            return Decimal("0.00")
+    
+        if self.allow_percentage_discount and self.is_percentage:
+            return (discount / Decimal("100")) * total
+    
+        return discount  # flat always
+    
+    
     @property
     def payable_total(self):
-        """Total after discount (before payments)."""
+        """Total after discount."""
         total = self.total_cost or Decimal("0.00")
         return total - (self.discount_amount or Decimal("0.00"))
-
+    
+    
     @property
     def total_paid(self):
-        """Total received from customer (advance + later payments)."""
-        return (self.advance_amount or Decimal("0.00")) + (self.amount_paid or Decimal("0.00"))
-
+        return (self.advance_amount or Decimal("0.00")) + \
+            (self.amount_paid    or Decimal("0.00"))
+    
+    
     @property
     def balance_due(self):
-        """Remaining amount customer still owes (can go negative if overpaid)."""
         return (self.payable_total or Decimal("0.00")) - self.total_paid
         
             
@@ -177,3 +189,44 @@ class InvoiceItem(CustomBase):  # Singular name is conventional
             "description": self.description,
         }
         
+        
+        
+        
+def default_report_config():
+    return {
+        "show_design_note": True,
+        "show_deposit_note": True,
+        "design_note": "DESIGN PROVIDED BY YOU",
+        "deposit_note": "50% deposit required",
+        "show_footer": True
+    }
+
+def default_report_config():
+    return {
+        "show_design_note": True,
+        "show_deposit_note": True,
+        "design_note": "DESIGN PROVIDED BY YOU",
+        "deposit_note": "50% deposit required",
+        "show_footer": True
+    }
+
+class QuotationReportGenerator(CustomBase):
+    is_tagged = models.BooleanField(default=False)
+
+    # ✅ default config applied automatically
+    label = models.JSONField(default=default_report_config, blank=True, null=True)
+
+    def save(self, *args, **kwargs): 
+        if not self.pk and QuotationReportGenerator.objects.exists():
+            raise ValidationError("Only one config allowed")
+
+        # ✅ merge default + user data
+        default = default_report_config()
+        if self.label:
+            default.update(self.label)
+
+        self.label = default
+        super().save(*args, **kwargs)
+    
+     
+     

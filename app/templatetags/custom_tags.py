@@ -30,10 +30,12 @@ def get_sidebar_menu():
         # QUOTATIONS
         {"url": "quotation_list", "name": "Quotation", "icon": "fa fa-file", "perm": "app.can_manage_quotaion", "parent": "Quotation"},
         {"url": "quotation_waiting", "name": "Approved", "icon": "fa fa-check", "perm": "app.can_approve_quotation", "parent": "Quotation"}, 
-        {"url": "quotaion_report", "name": "Quotaion Report", "icon": "fa fa-file-alt", "perm": "app.can_reports_quotaion", "parent": "Quotation"},
+        # {"url": "quotation_report", "name": "Quotation Report", "icon": "fa fa-file-alt", "perm": "app.can_reports_quotaion", "parent": "Quotation"},
 
         # Invoice
         {"url": "quotation_invoice", "name": "Invoice", "icon": "fa fa-file-text-o", "perm": "app.can_assign_approver_quotation", "parent": "Invoice"}, 
+        {"url": "invoice_paid_report", "name": "Paid", "icon": "fa fa-file-invoice", "perm": "app.can_report_invoice", "parent": "Invoice"},
+
         {"url": "invoice_report", "name": "Invoice Report", "icon": "fa fa-file-invoice", "perm": "app.can_report_invoice", "parent": "Invoice"},
        # Expenses (single menu, not grouped)
         {"url": "expenses_list", "name": "Expenses", "icon": "fa fa-clone", "perm": "app.expense_manage_permission", "parent": "Expenses"},

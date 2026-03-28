@@ -3,6 +3,7 @@ from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
 from app.forms.product.product_form import ProductCreateForm
 from app.models.category.category_model import Category
+from app.models.invoice_model.invoice_model import default_report_config
 from app.models.product.product_model import Product
 from app.models.product.quotation_model import Quotation
 from app.models.sub_category.sub_category_model import SubCategory
@@ -21,6 +22,8 @@ from reportlab.pdfbase.ttfonts import TTFont
 from django.conf import settings
 from django.db import transaction 
 import json,os,io
+
+from app.view.report_config.report_config import get_config
 
 class ProductListView(View):
     template="pages/product/product.html"
@@ -383,7 +386,11 @@ class QuotationReportPdfView(View):
             topMargin=0.7 * cm,
             bottomMargin=3 * cm,
         )
-
+        config = get_config().label or default_report_config()
+        show_design_note   = config.get("show_design_note", True)
+        show_deposit_note  = config.get("show_deposit_note", True)
+        design_note_text   = config.get("design_note", "DESIGN PROVIDED BY YOU")
+        deposit_note_text  = config.get("deposit_note", "50% deposit required")
         frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id='normal')
         def header_with_data(canvas, doc):
             self.header(canvas, doc, quotation)
@@ -433,10 +440,14 @@ class QuotationReportPdfView(View):
             
             [f"Discount ({discount}%)", f"-${discount_amount:.2f}"],
            
-        ], colWidths=[14 * cm, 4* cm], style=[
-            ("ALIGN", (1, 0), (1, -1), "LEFT"),
+        ], colWidths=[14 * cm, 1 * cm], style=[
+
+            ("ALIGN", (0, 0), (0, -1), "LEFT"),   # discount label → left
+            ("ALIGN", (1, 0), (1, -1), "RIGHT"),  # discount amount → right
             ("FONTSIZE", (0, 0), (-1, -1), 8),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#74666a")),
+            ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#74666a")),
+            ("LEFTPADDING",  (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
         ])
          
          
@@ -490,17 +501,23 @@ class QuotationReportPdfView(View):
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ])
         
+       
         elements = [
-            Spacer(1, 6 * cm),
-            body_table,
-            Spacer(1, 0.5 * cm),
-            KeepTogether(total_table),
-            Spacer(1, 0.5 * cm),
-            desc_table,
-            desc_table2,
-            Spacer(1, 1 * cm),
-            # KeepTogether(summary_table),
-        ]
+        Spacer(1, 6 * cm),
+        body_table,
+        Spacer(1, 0.5 * cm),
+        KeepTogether(total_table),
+        Spacer(1, 0.5 * cm),
+         ]
+        if show_design_note:
+            desc_table = Table([[[ Paragraph(f"*{design_note_text}", for_desc_style) ]]],
+                style=[("FONTSIZE", (0,0),(-1,-1), 8)])
+            elements.append(desc_table)
+
+        if show_deposit_note:
+            desc_table2 = Table([[[ Paragraph(f"- {deposit_note_text}", for_desc_style) ]]],
+                style=[("FONTSIZE", (0,0),(-1,-1), 8)])
+            elements.append(desc_table2)
 
         doc.build(elements)
         buffer.seek(0)

@@ -2,13 +2,15 @@
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+from app.view.expenses.expenses_download import ExpenseExportView
 from app.view.expenses.expenses_view import ExpensesCreate, ExpensesDelete, ExpensesItemsCreate, ExpensesTypeDetail, ExpensesTypesCreate, ExpensesTypesDelete, ExpensesTypesUpdate, ExpensesUpdate, ExpensesViewList
 from app.view.home import HomePageView
-from app.view.invoices.invoice_view import InvoiceDetails, InvoiceListView, InvoiceReportPdfView, InvoiceReportView, InvoiceRequestView, ProductReportInvoice
+from app.view.invoices.invoice_view import InvoiceDetails, InvoiceListView, InvoiceReportPdfView, InvoiceReportView, InvoiceRequestDetails, InvoiceRequestMarkPaidView, InvoiceRequestView, ProductReportInvoice
 from app.view.iso_series.iso_view import ISOSizeDelete, ISOSizeEditView, ISOSizeListView
 from app.view.permission.permission import GroupUpdateView, GroupUserAddorUpdateView, PermissionAdd, PermissionSetting
 from app.view.product.product_view import ProductDelete, ProductEditView, ProductListView, QuotationReportPdfView
 from app.view.quotation.quotation_view import QuotationApprovalView,   QuotationListView, QuotationReportView, QuotationRequestView, QuotationView,QuotationApprove
+from app.view.report_config.report_config import QuotationReportConfigView
 from app.view.sub_category.sub_category_view import SubCategoryDelete, SubCategoryEditView, SubCategoryListView
 from app.view.category.category_view import CategoryDelete, CategoryEditView, CategoryListView
 from app.view.customer.customer_view import CustomUserRegister, CustomUserUpdate, CustomerList, CustomerRegister, CustomerUpdate, CustomuserList, Login, UserLogoutView, customerDelete
@@ -40,18 +42,22 @@ urlpatterns = [
                 path("quotation-awaiting/", QuotationApprovalView.as_view(), name="quotation_waiting"),
                 path("quotation-request/", QuotationRequestView.as_view(), name="quotation_request"),
                 
-                path("quotation-test/", QuotationReportPdfView.as_view(), name="quotation_test"),
+                path("quotation-report-pdf/", QuotationReportPdfView.as_view(), name="quotation_test"),
                 path("quotation-items/<int:pk>/", QuotationView.as_view(), name="quotation_items"), 
-                path("quotaion-approval/<int:pk>/", QuotationApprove.as_view(), name="quotaion_approval") , 
-                path("quotaion-report/", QuotationReportView.as_view(), name="quotaion_report") , 
+                path("quotation-approval/<int:pk>/", QuotationApprove.as_view(), name="quotation_approval") , 
+                path("quotation-report/", QuotationReportView.as_view(), name="quotation_report") , 
                 # Customer Path
                 path("customer-list/", CustomerList.as_view(), name="customer_list") , 
                 path("customer-edit/<int:pk>", CustomerUpdate.as_view(), name="customer_edit") , 
                 path("customer-delete/<int:pk>", customerDelete.as_view(), name="customer_delete") , 
+                # Quotation Report Config
+                path("quotation-report-config/", QuotationReportConfigView.as_view(), name="quotation_report_config") ,
                  
                 # Invoice List
                 path("invoice-list/", InvoiceListView.as_view(), name="quotation_invoice"),  
                 path("invoice-request/", InvoiceRequestView.as_view(), name="invoice_request"),
+                path("invoice-paid/", InvoiceRequestMarkPaidView.as_view(), name="invoice_paid_report"),
+                path("invoice-Request-Details/<int:pk>/", InvoiceRequestDetails.as_view(), name="invoice_paid_details"),  
                 path("invoice-details/<int:pk>", InvoiceDetails.as_view(), name="invoice_details"),
                 path("invoice-invoice_bill/", InvoiceReportPdfView.as_view(), name="invoice_bill"),
                 path("Invoice-report/", InvoiceReportView.as_view(), name="invoice_report") , 
@@ -66,7 +72,8 @@ urlpatterns = [
                 path("expenses-create", ExpensesCreate.as_view(), name="expense_create") , 
                 path("expenses-update/<int:pk>", ExpensesUpdate.as_view(), name="expense_update") , 
                 path("expenses-update/<int:pk>", ExpensesDelete.as_view(), name="expense_delete") ,  
-                path("expenses-create-item", ExpensesItemsCreate.as_view(), name="expense_item_create") , 
+                path("expenses-create-item", ExpensesItemsCreate.as_view(), name="expense_item_create") ,
+                path("expenses/export/", ExpenseExportView.as_view(), name="expense_export"), 
                 
                   
                 # Permission Path

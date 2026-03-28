@@ -219,7 +219,7 @@ function submitQuotationAction(id) {
         return;
     }
 
-    const url = "{% url 'quotaion_approval' 0 %}".replace(0, id);
+    const url = "{% url 'quotation_approval' 0 %}".replace(0, id);
  
 
     fetch(url, {

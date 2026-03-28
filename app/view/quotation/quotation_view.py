@@ -26,7 +26,7 @@ class QuotationView(View):
 class QuotationApprovalView(View):
     template = "pages/quotation/quotation_approval_list.html"
     def get(self, request):
-        quotation = Quotation.active_objects.all()
+        quotation = Quotation.active_objects.all().order_by("-created_at")
         context = {
             'quotations':quotation,
         }

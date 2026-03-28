@@ -577,7 +577,7 @@ function submitQuotationAction(id) {
         alert("Discount must be between 0 and 100.");
         return;
     } 
-    const url = "{% url 'quotaion_approval' 0 %}".replace(0, id); 
+    const url = "{% url 'quotation_approval' 0 %}".replace(0, id); 
     fetch(url, {
         method: "POST",
         headers: {

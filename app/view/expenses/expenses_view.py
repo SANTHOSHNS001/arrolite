@@ -80,7 +80,7 @@ class ExpensesViewList(View):
 
     def get(self, request):
         context = {
-            'expenses': Expenses.objects.select_related('expenses_type').all(),
+            'expenses': Expenses.objects.select_related('expenses_type').all().order_by("-created_at"),
             'expensestypes': ExpensesTypes.objects.filter(active=True),
         }
         return render(request, self.template, context)
@@ -115,7 +115,7 @@ class ExpensesViewList(View):
                 .select_related('expenses_type')
                 .prefetch_related('items')
                 .filter(**filters)
-                .order_by('-due_date')
+                .order_by('-created_at')
             )
 
             data = []

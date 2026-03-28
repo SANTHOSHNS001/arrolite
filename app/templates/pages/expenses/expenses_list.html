@@ -169,6 +169,12 @@
         <i class="fa fa-plus"></i> Add Expense
       </button>
       <a class="btn btn-secondary" href="{% url 'expensestype_details' %}">Expense Types</a>
+      <button class="btn btn-download-pdf" id="btn-dl-pdf" onclick="downloadReport('pdf')">
+        <i class="fa fa-file-pdf-o"></i> PDF
+      </button>
+      <button class="btn btn-download-excel" id="btn-dl-excel" onclick="downloadReport('excel')">
+        <i class="fa fa-file-excel-o"></i> Excel
+      </button>
       <button class="btn btn-secondary" onclick="history.back()">
         <i class="fa fa-arrow-left"></i> Back
       </button>
@@ -876,5 +882,66 @@ function toast(msg, type) {
    INIT
 ════════════════════════════════════════════════════════ */
 fetchExpenses();
+
+var EXPORT_URL = "{% url 'expense_export' %}";
+
+function downloadReport(type) {
+  if (!allData.length) { toast("No data to export", "err"); return; }
+
+  // ── show loading state on button ──
+  var btn      = document.getElementById(type === "pdf" ? "btn-dl-pdf" : "btn-dl-excel");
+  var origHTML = btn.innerHTML;
+  btn.disabled  = true;
+  btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Exporting…';
+
+  // ── build FormData with current filters ──
+  var fd = new FormData();
+  fd.append("csrfmiddlewaretoken", csrf());
+  fd.append("export_type", type);
+
+  var filterType = document.getElementById("filter-type").value;
+  var filterDate = document.getElementById("filter-date").value;
+  if (filterType) fd.append("expenses_type", filterType);
+  if (filterDate) fd.append("due_date", filterDate);
+
+  // ── fetch → Blob → trigger download ──
+  fetch(EXPORT_URL, {
+    method: "POST",
+    body: fd,
+    headers: { "X-Requested-With": "XMLHttpRequest" }
+  })
+  .then(function(res) {
+    if (!res.ok) throw new Error("Export failed (" + res.status + ")");
+
+    // read filename from Content-Disposition header if present
+    var disposition = res.headers.get("Content-Disposition") || "";
+    var match       = disposition.match(/filename="?([^";\n]+)"?/);
+    var filename    = match ? match[1] : (type === "pdf" ? "expenses_report.pdf" : "expenses_report.xlsx");
+
+    return res.blob().then(function(blob) {
+      return { blob: blob, filename: filename };
+    });
+  })
+  .then(function(obj) {
+    // create invisible link → click → remove
+    var url  = URL.createObjectURL(obj.blob);
+    var link = document.createElement("a");
+    link.href     = url;
+    link.download = obj.filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);     // free memory
+
+    toast("Downloaded: " + obj.filename, "ok");
+  })
+  .catch(function(err) {
+    toast(err.message || "Download failed", "err");
+  })
+  .finally(function() {
+    btn.disabled  = false;
+    btn.innerHTML = origHTML;
+  });
+}
 </script>
 {% endblock %}

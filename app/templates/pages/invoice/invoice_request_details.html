@@ -146,7 +146,7 @@
             <tfoot>
                 <tr>
                         <th colspan="9" style="text-align:right">
-                            Discount{% if quotation.discount %} ({{ quotation.discount }}{% if quotation.is_percentage %}%{% endif %}){% endif %}:
+                            Discount {% if quotation.discount %} ({{ quotation.discount }}{% if quotation.is_percentage %}%{% endif %}){% endif %}:
                         </th>
                         <th colspan="1" style="text-align:left" id="discount-val">
                             $ {{ quotation.discount_amount|floatformat:2 }}
@@ -177,47 +177,75 @@
         </table>
     
         <div class="card-fooder">
-               {%if quotation.approver_status == "pending" %}
-            <form method="post"  >
-                {% csrf_token %}
-                <div class="action-btn mt-2" style="display: flex;justify-content: space-around;">
-                    <div>
-                        <label><b>Action:</b></label>
-                        <select class="form-control d-inline-block" id="action" name="status" style="width: 150px;">
-                            <option value="">--Select--</option>
-                            <option value="pending">Pending</option>
-                            <option value="pending_payment">Pending Payment</option>
-                            <option value="sent_to_manager">Sent to Manager</option>
-                            <option value="paid">Paid</option>
-                            <option value="rejected">Rejected</option>
-                            <option value="cancelled">Cancel</option>
-                        </select>
-                    </div>
-                    <div>
-                    <label class="ml-3"><b>Deposit:</b></label>
-                    <input type="text" class="form-control d-inline-block" id="deposit" min="0" name="deposit" style="width: 100px;" placeholder="0">
-                    </div>
-                  <div class="mb-3" >
-                    <label class="ml-3" id="discount-label">
-                        <b>Discount:</b>
-                  
-                    </label> 
-                            <input type="text" class="form-control d-inline-block" 
-                              id="discount" min="0" max="100" 
-                              style="width: 100px;" placeholder="0"  name="discount"> 
-                            <input type="checkbox" id="ch"  name="is_discount" {% if quotation.is_discount %}checked{% endif %}>
-                            %
-                        </div>
-                    
-                    <button type="submit" class="btn btn-primary ml-2"  >
-                        Submit
-                    </button>
+            
+            {% if quotation.approver_status != 'paid' %}
+            <form method="post">
+            {% csrf_token %}
+        
+            <div class="d-flex flex-wrap align-items-end" style="gap: 16px;">
+        
+                <!-- Action -->
+                <div>
+                <label class="d-block mb-1"><b>Action</b></label>
+                <select class="form-control" id="action" name="status" style="width: 160px;">
+                    <option value="">-- Select --</option>
+                    <option value="pending_payment">Pending payment</option>
+                    <option value="paid">Paid</option>
+                    <option value="cancelled">Cancel</option>
+                </select>
                 </div>
+        
+                <!-- Deposit -->
+                <div>
+                <label class="d-block mb-1"><b>Deposit</b></label>
+                <input type="text" class="form-control" id="deposit" name="deposit"
+                        style="width: 100px;" placeholder="0" min="0">
+                </div>
+        
+                <!-- Discount -->
+               {{ quotation.discount}} ha{{quotation.is_percentage}}
+                <div>
+                <label class="d-block mb-1" id="discount-label"><b>Discount</b></label>
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <input type="text" class="form-control" id="discount" name="discount"
+                        style="width: 100px;" placeholder="0" min="0" value="{{ quotation.discount|floatformat:2 }}">
+        
+                    <!-- % checkbox — disabled until allow_discount is checked -->
+                    <label id="pct-toggle-label"
+                        style="display:flex;align-items:center;gap:4px;font-size:14px;
+                                cursor:pointer;user-select:none;margin:0;"
+                        title="Apply discount as percentage">
+                    <input type="checkbox" id="ch" name="is_discount" {% if quotation.is_percentage %} checked{% endif %} >
+                    <span>%</span>
+                    </label>
+                </div>
+                </div>
+        
+                <!-- Allow % discount toggle -->
+                <div>
+                <label class="d-block mb-1"><b>Options</b></label>
+                <label style="display:flex;align-items:center;gap:6px;
+                                padding:6px 10px;border:1px solid #dee2e6;
+                                border-radius:6px;font-size:13px;cursor:pointer;
+                                user-select:none;margin:0;">
+                    <input type="checkbox" name="allow_discount"
+                        id="allow_discount" {% if quotation.allow_percentage_discount %}checked{% endif %}>
+                    Allow % discount
+                </label>
+                </div>
+        
+                <!-- Submit -->
+                <div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+        
+            </div>
             </form>
-             {%endif%}
-           
+          {% endif %}
+  </div>
+</div> 
           
-      
+    
         </div>
    
         <div>
@@ -231,82 +259,83 @@
 {% endblock %}
 {% block js %}
 <script>
-     document.addEventListener("DOMContentLoaded", function () {
-    const subtotalEl   = document.getElementById("subtotal-val");
-    const depositEl    = document.getElementById("deposit-val");
-    const discountEl   = document.getElementById("discount-val");
-    const balanceEl    = document.getElementById("balance-val");
-
-    const depositInput   = document.getElementById("deposit");
-    const discountInput  = document.getElementById("discount");
-    const discountCheck  = document.getElementById("ch");
-
-    // Initial values from server
-    const subtotal = parseFloat(subtotalEl.dataset.value) || 0;
-    let currentDeposit = parseFloat(depositEl.dataset.value) || 0;
-
-    function recalc() {
-        let depositNew  = parseFloat(depositInput.value) || 0;
-        let discountNew = parseFloat(discountInput.value) || 0;
-        let isPercent   = discountCheck.checked;
-
-        // Discount calculation
-        let discountAmt = 0;
-        if (discountNew > 0) {
-            discountAmt = isPercent
-                ? subtotal * (discountNew / 100)
-                : discountNew;
-        }
-
-        // Balance check BEFORE deposit
-        let balanceBase = subtotal - discountAmt - currentDeposit;
-
-        // 🚨 Prevent overpayment
-        if (depositNew > balanceBase) {
-            alert("Deposit cannot exceed Balance Due (" + balanceBase.toFixed(2) + ")");
-            depositInput.value = ""; // reset field
-            depositNew = 0;
-        }
-
-        // Total deposit preview
-        let depositTotal = currentDeposit + depositNew;
-
-        // Final balance
-        let balance = subtotal - discountAmt - depositTotal;
-        if (balance < 0) balance = 0;
-
-        // Update DOM
-        depositEl.textContent  = "$ " + depositTotal.toFixed(2);
-        discountEl.textContent = "$ " + discountAmt.toFixed(2);
-        balanceEl.textContent  = "$ " + balance.toFixed(2);
-    }
-
-    depositInput.addEventListener("input", recalc);
-    discountInput.addEventListener("input", recalc);
-    discountCheck.addEventListener("change", recalc);
-});
+document.addEventListener('DOMContentLoaded', function () {
  
-  function setupDiscount(inputId, checkboxId, labelId) {
-    const discountInput = document.getElementById(inputId);
-    const discountLabel = document.getElementById(labelId);
-    const checkbox = document.getElementById(checkboxId);
+    const subtotalEl    = document.getElementById('subtotal-val');
+    const depositEl     = document.getElementById('deposit-val');
+    const discountEl    = document.getElementById('discount-val');
+    const balanceEl     = document.getElementById('balance-val');
+    const depositInput  = document.getElementById('deposit');
+    const discountInput = document.getElementById('discount');
+    const discountCheck = document.getElementById('ch');
+    const allowPctCheck = document.getElementById('allow_discount');
+    const pctBadge      = document.getElementById('pct-badge');
+ 
+    const subtotal       = parseFloat(subtotalEl.dataset.value) || 0;
+    const currentDeposit = parseFloat(depositEl.dataset.value)  || 0;
+ 
+    function recalc() {
+        const isPercent_allowed = allowPctCheck.checked;
+        const isPercent         = isPercent_allowed && discountCheck.checked;
+ 
+        if (pctBadge) pctBadge.style.display = isPercent ? 'inline-block' : 'none';
+ 
+        const discountNew = parseFloat(discountInput.value) || 0;
+ 
+        // Discount amount only counts when allow_discount is ON
+        const discountAmt = isPercent_allowed && discountNew > 0
+            ? (isPercent ? subtotal * (discountNew / 100) : discountNew)
+            : 0;
+ 
+        // Update discount display only when allowed
+        if (isPercent_allowed) {
+            discountEl.textContent = '$ ' + discountAmt.toFixed(2);
+        }
+ 
+        // ── Deposit guard ────────────────────────────────────────────────
+        // Max the user can deposit = subtotal - discount - already paid
+        const maxDeposit = subtotal - discountAmt - currentDeposit;
+        const depositNew = parseFloat(depositInput.value) || 0;
+        const hasDeposit = depositInput.value.trim() !== '';
+ 
+        if (hasDeposit && depositNew > maxDeposit) {
+            // Block it — show exact max allowed, clear input, keep old display
+            alert(
+                'Deposit $' + depositNew.toFixed(2) +
+                ' exceeds balance due.\n' +
+                'Maximum allowed: $' + maxDeposit.toFixed(2)
+            );
+            depositInput.value = '';  // clear the over-amount
+            // Deposit display stays at currentDeposit (already paid)
+            depositEl.textContent = '$ ' + currentDeposit.toFixed(2);
+            // Balance stays as max (no new deposit)
+            balanceEl.textContent = '$ ' + maxDeposit.toFixed(2);
+            return; // stop here — nothing else changes
+        }
+ 
+        // Deposit display only updates when user typed something valid
+        const depositUsed = hasDeposit
+            ? currentDeposit + depositNew
+            : currentDeposit;
+ 
+        if (hasDeposit) {
+            depositEl.textContent = '$ ' + depositUsed.toFixed(2);
+        }
+ 
+        // Balance always updates
+        const balance = Math.max(subtotal - discountAmt - depositUsed, 0);
+        balanceEl.textContent = '$ ' + balance.toFixed(2);
+    }
+ 
+    allowPctCheck.addEventListener('change', recalc);
+    discountCheck.addEventListener('change', recalc);
+    discountInput.addEventListener('input',  recalc);
+    depositInput.addEventListener('input',   recalc);
+ 
+    recalc();
+});
 
-    // Toggle label text
-    checkbox.addEventListener("change", () => {
-      discountLabel.innerHTML = checkbox.checked ? "<b>Discount:</b> %" : "<b>Discount:</b>";
-    });
 
-    // Return reusable function
-    return function(price) {
-      let discount = parseFloat(discountInput.value) || 0;
-      return checkbox.checked 
-        ? price * (1 - discount / 100)  // percentage discount
-        : price - discount;            // flat discount
-    };
-  }
-
-  // Use it
-  const applyDiscount = setupDiscount("discount", "ch", "discount-label");
 function printPart(id) {
     const url = "{% url 'invoice_bill' %}";
 
@@ -363,71 +392,6 @@ function printPart(id) {
     .catch(error => {
         console.error("Error:", error);
         showMessage("Something went wrong!", "danger");
-    });
-}
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Check cookie name
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-function submitQuotationAction(id) {
- 
-    const action = document.querySelector(`#action`).value;
-    const discount = document.querySelector(`#discount`).value;
-
-    if (!action) {
-         
-        DisplayAlert(false,"Please select an action.")
-        return;
-    }
-
-    if (discount && (discount < 0 || discount > 100)) {
-        alert("Discount must be between 0 and 100.");
-        return;
-    }
-
-    const url = "{% url 'quotation_approval' 0 %}".replace(0, id);
- 
-
-    fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "X-CSRFToken": getCookie('csrftoken'),
-        },
-        body: new URLSearchParams({
-            discount: discount,
-      
-
-            status: action
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || "Something went wrong");
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        DisplayAlert(true,data.message)
-        
-        // Optionally reload table or refresh row
-    })
-    .catch(error => {
-        DisplayAlert(false,error.message)
-        
     });
 }
 function quotation_pdf_download(id) {

@@ -314,9 +314,9 @@ function calculateTotal(row) {
                     <option disabled>No Unit available</option>
                 {% endfor %}
             </select>
-            </div>
-            
-             
+                <input type="text" class="form-control" name="description_${counter}" placeholder="Description" />
+
+            </div> 
               
             <input type="text" class="form-control total-cost" name="unit_cost_${counter}" readonly placeholder="Total" />
             <a class="btn-sm remove-row"><i class="text-danger fa fa-minus-square"></i></a>

@@ -26,12 +26,13 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from django.conf import settings
 from decimal import Decimal, InvalidOperation
-
+from django.db import transaction
+from django.core.exceptions import ValidationError
 class InvoiceListView(View):
   
     template = "pages/invoice/invoice_list.html"
     def get(self, request):
-        quotation = Invoice.active_objects.all()  
+        quotation = Invoice.active_objects.all().order_by("-created_at").exclude(approver_status__in=["paid","sent_to_manager"])
         context = {
             'quotations':quotation,
   
@@ -124,6 +125,7 @@ class InvoiceRequestView(View):
                 height = float(post_data.get(f'height_{counter}', 0) or 0)
                 unit_cost = float(post_data.get(f'unit_cost_{counter}', 0) or 0)
                 unit_id = post_data.get(f'unit_{counter}')    
+                description = post_data.get(f'description_{counter}')    
                 unit = Unit.active_objects.get(symbol=unit_id) if unit_id else None
 
                 if qty > 0:
@@ -134,6 +136,7 @@ class InvoiceRequestView(View):
                         'height': height,
                         'unit_cost': unit_cost,
                         'unit': unit,
+                        'description': description,
                          
                     })
             except (Product.DoesNotExist, Unit.DoesNotExist, ValueError):
@@ -163,15 +166,15 @@ class InvoiceDetails(View):
         quotation_items = InvoiceItem.active_objects.filter(invoice=invoice)
         context = {
             'quotation': invoice,
-            'quotationsitems': quotation_items,
+            'quotations_items': quotation_items,
         }
         return render(request, self.template, context)
 
     def post(self, request, pk):
-            quotation = get_object_or_404(Invoice, id=pk)
-            
+            quotation = get_object_or_404(Invoice, id=pk) 
 
             # --- Read inputs ---
+            print("Psot data:", request.POST)  # Debug log
             status_str   = request.POST.get('status')
             discount_str = request.POST.get('discount')
             deposit_str  = request.POST.get('deposit')
@@ -262,9 +265,155 @@ class InvoiceDetails(View):
                 "error": msg,
             })
     
-    
-    
-    
+# Invoice Paid List Manager Access Only
+class InvoiceRequestMarkPaidView(View):
+ 
+    template = "pages/invoice/invoice_paid.html"
+    def get(self, request): 
+        quotation = Invoice.active_objects.all()  
+        context = {
+            'quotations':quotation, 
+        }
+        return render(request, self.template, context)
+ 
+# Invoice paid Details
+
+class InvoiceRequestDetails(View):
+    template = "pages/invoice/invoice_request_details.html"
+ 
+    def get(self, request, pk):
+        invoice         = get_object_or_404(Invoice.active_objects, id=pk)
+        quotation_items = InvoiceItem.active_objects.filter(invoice=invoice)
+        return render(request, self.template, {
+            'quotation':       invoice,
+            'quotations_items': quotation_items,
+        })
+ 
+    def post(self, request, pk):
+        quotation = get_object_or_404(Invoice, id=pk)
+ 
+        # ── Read inputs ──────────────────────────────────────────────────
+        status_str     = request.POST.get('status',      '').strip()
+        discount_str   = request.POST.get('discount',    '').strip()
+        deposit_str    = request.POST.get('deposit',     '').strip()
+        is_disc_flag   = request.POST.get('is_discount',  'off') == 'on'
+        allow_discount = request.POST.get('allow_discount', 'off') == 'on' 
+        # ── Validate status ──────────────────────────────────────────────
+        if not status_str:
+            return self._error(request, quotation, "Status is required.")
+ 
+        try:
+            with transaction.atomic():
+ 
+                update_fields = ['approver_status', 'updater']
+ 
+                # ── Discount (managers only) ─────────────────────────────
+                new_discount_amt = Decimal("0.00")
+ 
+                if discount_str not in (None, ""):
+                    if not request.user.has_perm("app.can_manager_access"):
+                        raise ValidationError("You are not allowed to set a discount.")
+ 
+                    try:
+                        discount_val = Decimal(discount_str)
+                    except (InvalidOperation, TypeError, ValueError):
+                        raise ValidationError("Invalid discount amount.")
+ 
+                    # Validate bounds
+                    if allow_discount and is_disc_flag:
+                        if not (Decimal("0") <= discount_val <= Decimal("100")):
+                            raise ValidationError("Percentage discount must be between 0 and 100.")
+                    else:
+                        if discount_val < 0:
+                            raise ValidationError("Fixed discount must be 0 or more.")
+ 
+                    # % only active when manager explicitly allowed it
+                    quotation.discount      = discount_val
+                    quotation.is_percentage = is_disc_flag and allow_discount
+                    quotation.allow_percentage_discount = allow_discount
+ 
+                    if discount_val > 0:
+                        quotation.manager = request.user
+                        update_fields.append('manager')
+ 
+                    update_fields += ['discount', 'is_percentage', 'allow_percentage_discount']
+ 
+                    # Compute new discount amount in memory (before save)
+                    if allow_discount and is_disc_flag:
+                        new_discount_amt = (discount_val / Decimal("100")) * quotation.total_cost
+                    else:
+                        new_discount_amt = discount_val
+ 
+                else:
+                    # No discount change — use existing saved discount amount
+                    new_discount_amt = quotation.discount_amount or Decimal("0.00")
+ 
+                # ── Parse deposit ────────────────────────────────────────
+                try:
+                    advance = Decimal(deposit_str or "0")
+                except (InvalidOperation, TypeError, ValueError):
+                    raise ValidationError("Invalid deposit amount.")
+ 
+                # ── Overpayment check (in-memory, before any save) ───────
+                new_payable = quotation.total_cost - new_discount_amt
+                already_paid = (quotation.advance_amount or Decimal("0.00")) + \
+                               (quotation.amount_paid    or Decimal("0.00"))
+                balance_due = round(new_payable - already_paid, 2)
+ 
+                if advance > balance_due:
+                    raise ValidationError(
+                        f"Deposit (${advance}) cannot exceed balance due (${balance_due})."
+                    )
+ 
+                # ── Apply deposit ────────────────────────────────────────
+                if advance > 0:
+                    quotation.advance_amount = \
+                        (quotation.advance_amount or Decimal("0.00")) + advance
+                    update_fields.append('advance_amount')
+ 
+                # ── Creator / updater ────────────────────────────────────
+                if not quotation.creator:
+                    quotation.creator = request.user
+                    update_fields.append('creator')
+                quotation.updater = request.user
+ 
+                # ── Final balance after deposit applied ──────────────────
+                total_paid_now = (quotation.advance_amount or Decimal("0.00")) + \
+                                 (quotation.amount_paid    or Decimal("0.00"))
+                final_balance  = new_payable - total_paid_now
+ 
+                # ── Status logic ─────────────────────────────────────────
+                if status_str == "paid":
+                    if final_balance <= Decimal("1.00"):
+                        quotation.approver_status = "paid"
+                        quotation.advance_amount  = new_payable   # clear tiny remainder
+                        if 'advance_amount' not in update_fields:
+                            update_fields.append('advance_amount')
+                    else:
+                        raise ValidationError(
+                            f"Balance ${final_balance} must be cleared before marking as paid."
+                        )
+                else:
+                    quotation.approver_status = "paid" if final_balance <= 0 else status_str
+ 
+                # ── Single atomic save — all fields or nothing ───────────
+                quotation.save(update_fields=list(set(update_fields)))
+ 
+        except ValidationError as e:
+            # Atomic block rolled back — nothing was saved
+            return self._error(request, quotation, e.message)
+ 
+        return redirect("invoice_paid_report")
+ 
+    # ── Helper ───────────────────────────────────────────────────────────
+    def _error(self, request, quotation, msg):
+        quotation_items = InvoiceItem.objects.filter(invoice=quotation)
+        messages.error(request, msg)
+        return render(request, self.template, {
+            "quotation":        quotation,
+            "quotations_items": quotation_items,
+            "error":            msg,
+        })
 class InvoiceReportPdfView(View):
     def __init__(self, **kwargs):
         self.company_name = "ARROLITE"
@@ -283,7 +432,7 @@ class InvoiceReportPdfView(View):
                     "unit_price" :float(qs.product.price),
                     "total_cost" : round(qs.unit_cost, 2),
                     "unit": qs.unit or "-",  # Default to dash if None
-                    "descriptioan":qs.description or '',    
+                    "description":qs.description or '',    
                 })
        
             if not data:
@@ -459,9 +608,9 @@ class InvoiceReportPdfView(View):
          # === Right (TOTAL / DEPOSIT / BALANCE) as 2-column inner table ===
         right_inner_table = Table(
             [
-                [Paragraph("total", total_label_style),   Paragraph(f"<b>$ {quotation.total_cost:,.2f}</b>", total_value_style)],
-                [Paragraph("deposit", total_label_style), Paragraph(f"<b>${quotation.advance_amount:,.2f}</b>", total_value_style)],
-                [Paragraph("balance", total_label_style), Paragraph(f"<b>${quotation.balance_due:,.2f}</b>", total_value_style)],
+                [Paragraph("total", total_label_style),   Paragraph(f"<b><font size='10'>$ {quotation.total_cost:,.2f}</font></b>", total_value_style)],
+                [Paragraph("deposit", total_label_style), Paragraph(f"<b><font size='10'>${quotation.advance_amount:,.2f}</font></b>", total_value_style)],
+                [Paragraph("balance", total_label_style), Paragraph(f"<b><font size='10'>${quotation.balance_due:,.2f}</font></b>", total_value_style)],
             ],
             colWidths=[2 * cm, 3 * cm],  # adjust widths to balance text/value
             style=[
@@ -584,6 +733,7 @@ class InvoiceReportPdfView(View):
 
         # Sample data
         body_data =  quotationitems
+        
 
         table_data = [[
             Paragraph("<b>description</b>", header_style),
@@ -593,8 +743,12 @@ class InvoiceReportPdfView(View):
         ]]
 
         for item in body_data:
+            product_text = f"""
+                <b>{item['product']}</b><br/>
+                <font size="7" color="#9e9e9e">- {item.get('description', '')}</font>
+            """
             table_data.append([
-                Paragraph(item["product"], normal_style),
+                Paragraph(product_text, normal_style),
                 Paragraph(f"${item['unit_price']}", normal_style),
                 Paragraph(f"{item['quantity']}", normal_style),
                 Paragraph(f"${item['total_cost']}", normal_style),
