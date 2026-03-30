@@ -27,6 +27,7 @@ class QuotationApprovalView(View):
     template = "pages/quotation/quotation_approval_list.html"
     def get(self, request):
         quotation = Quotation.active_objects.all().order_by("-created_at")
+     
         context = {
             'quotations':quotation,
         }
@@ -133,6 +134,7 @@ class QuotationRequestView(View):
                 unit_cost = float(post_data.get(f'unit_cost_{counter}', 0) or 0)
                 unit_id = post_data.get(f'unit_{counter}')    
                 unit = Unit.active_objects.get(symbol=unit_id) if unit_id else None
+                description = post_data.get(f'description_{counter}', '').strip()
 
                 if qty > 0:
                     items.append({
@@ -142,7 +144,7 @@ class QuotationRequestView(View):
                         'height': height,
                         'unit_cost': unit_cost,
                         'unit': unit,
-                         
+                        'description': description
                     })
             except (Product.DoesNotExist, Unit.DoesNotExist, ValueError):
                 pass  # skip this row if anything is invalid

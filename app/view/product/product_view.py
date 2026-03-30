@@ -115,7 +115,7 @@ class QuotationReportPdfView(View):
                     "unit_price" :float(qs.product.price),
                     "total_cost" : round(qs.unit_cost, 2),
                     "unit": qs.unit or "-",  # Default to dash if None
-                    "descriptioan":qs.description or '',    
+                    "description":qs.description or '',    
                 })
        
             if not data:
@@ -414,8 +414,13 @@ class QuotationReportPdfView(View):
         ]]
 
         for item in body_data:
+            print(item)
+            product_text = f"""
+                <b>{item['product']}</b><br/>
+                <font size="7" color="#9e9e9e">- {item.get('description', '')}</font>
+            """
             table_data.append([
-                Paragraph(item["product"], normal_style),
+                Paragraph(product_text, normal_style),
                 Paragraph(f"${item['unit_price']}", normal_style),
                 Paragraph(f"{item['quantity']}", normal_style),
                 Paragraph(f"${item['total_cost']}", normal_style),

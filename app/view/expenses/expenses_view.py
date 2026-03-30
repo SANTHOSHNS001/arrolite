@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.db import transaction, DatabaseError
 from django.core.exceptions import ValidationError
 from datetime import datetime
-
+from django.db.models import Prefetch
 from app.forms.expenses.expenses_form import ExpensesForm, ExpensesItemsForm, ExpensesTypesForm
 from app.models.expenses.expenses_model import Expenses, ExpensesItems, ExpensesTypes
 from django.utils import timezone
@@ -83,69 +83,96 @@ class ExpensesViewList(View):
             'expenses': Expenses.objects.select_related('expenses_type').all().order_by("-created_at"),
             'expensestypes': ExpensesTypes.objects.filter(active=True),
         }
-        return render(request, self.template, context)
+        return render(request, self.template, context) 
 
     def post(self, request):
-        """
-        Returns JSON with parent Expenses rows + nested payments[] from ExpensesItems.
-        Uses prefetch_related to avoid N+1 queries.
-        """
         try:
             filters = {}
 
             expenses_type = request.POST.get("expenses_type", "").strip()
             due_date_str  = request.POST.get("due_date", "").strip()
 
+            item_filters = {}
+
             if expenses_type:
-                filters["expenses_type_id"] = expenses_type   # use _id for FK filter (faster)
+                filters["expenses_type_id"] = expenses_type
+
+            def parse_date(val):
+                for fmt in ("%Y-%m-%d", "%d-%m-%Y"):
+                    try:
+                        return datetime.strptime(val, fmt).date()
+                    except ValueError:
+                        continue
+                raise ValueError("Invalid date")
 
             if due_date_str:
                 if "to" in due_date_str:
-                    start_str, end_str = [d.strip() for d in due_date_str.split("to")]
-                    filters["due_date__range"] = (
-                        datetime.strptime(start_str, "%d-%m-%Y").date(),
-                        datetime.strptime(end_str,   "%d-%m-%Y").date(),
-                    )
-                else:
-                    filters["due_date"] = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+                    start_str, end_str = [d.strip() for d in due_date_str.split("to", 1)]
+                    try:
+                        start_date = parse_date(start_str)
+                        end_date = parse_date(end_str)
 
-            # prefetch_related loads all ExpensesItems in ONE extra query (not N queries)
+                        # ✅ parent filter
+                        filters["items__due_date__range"] = (start_date, end_date)
+
+                        # ✅ child filter (IMPORTANT FIX)
+                        item_filters["due_date__range"] = (start_date, end_date)
+
+                    except ValueError:
+                        pass
+                else:
+                    try:
+                        single_date = parse_date(due_date_str)
+
+                        filters["items__due_date"] = single_date
+                        item_filters["due_date"] = single_date
+
+                    except ValueError:
+                        pass
+
+            # ✅ Apply filtered prefetch
             qs = (
                 Expenses.objects
                 .select_related('expenses_type')
-                .prefetch_related('items')
+                .prefetch_related(
+                    Prefetch(
+                        'items',
+                        queryset=ExpensesItems.objects.filter(**item_filters)
+                    )
+                )
                 .filter(**filters)
+                .distinct()   # 🔥 IMPORTANT to avoid duplicates
                 .order_by('-created_at')
             )
 
             data = []
             for expense in qs:
-                # Build child payments list from prefetched items (no extra DB hit)
+
                 payments = [
                     {
-                        "id":             item.id,
-                        "amount":         item.amount,
+                        "id": item.id,
+                        "amount": item.amount,
                         "invoice_number": item.invoice_number or "",
-                        "due_date":       str(item.due_date) if item.due_date else "",
-                        "payment_mode":   item.payment_mode or "",
-                        "description":    item.description or "",
-                        "receipt":        item.receipt.url if item.receipt else "",
+                        "due_date": str(item.due_date) if item.due_date else "",
+                        "payment_mode": item.payment_mode or "",
+                        "description": item.description or "",
+                        "receipt": item.receipt.url if item.receipt else "",
                     }
-                    for item in expense.items.all()
+                    for item in expense.items.all()   # ✅ now filtered
                 ]
 
                 data.append({
-                    "id":            expense.id,
+                    "id": expense.id,
                     "expenses_type": expense.expenses_type.name if expense.expenses_type else "",
-                    "amount":        expense.amount,
-                    "company_name":  expense.company_name or "",
-                    "product_name":  expense.product_name or "",
-                    "description":   expense.description or "",
-                    "due_date":      str(expense.due_date) if expense.due_date else "",
+                    "amount": expense.amount,
+                    "company_name": expense.company_name or "",
+                    "product_name": expense.product_name or "",
+                    "description": expense.description or "",
+                    "due_date": str(expense.due_date) if expense.due_date else "",
                     "expense_status": expense.expense_status,
-                    "total_paid":    expense.total_paid(),     # uses prefetched items — no extra query
-                    "balance":       expense.balance_amount(),
-                    "payments":      payments,                 # ← child rows for Tabulator
+                    "total_paid": expense.total_paid(),
+                    "balance": expense.balance_amount(),
+                    "payments": payments,
                 })
 
             return JsonResponse({"success": True, "count": len(data), "data": data})

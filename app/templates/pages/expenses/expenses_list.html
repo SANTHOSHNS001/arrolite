@@ -193,8 +193,11 @@
       </select>
     </div>
     <div class="exp-filter-group">
-      <label>Invoice Date</label>
-      <input type="date" id="filter-date">
+      <label>Invoice Date(*<small style="color: #177c8c;">Use either single date or range.</small>)</label>
+      <div style="display:flex;gap:8px;">
+        <input type="date" id="filter-date-from" placeholder="From">
+        <input type="date" id="filter-date-to" placeholder="To">
+      </div> 
     </div>
     <div style="display:flex;align-items:flex-end;gap:8px;">
       <button class="btn btn-warning-f" onclick="fetchExpenses()">
@@ -460,9 +463,17 @@ var deleteId    = null;
 function fetchExpenses() {
   var body = new FormData();
   var t    = document.getElementById("filter-type").value;
-  var d    = document.getElementById("filter-date").value;
+  var from = document.getElementById("filter-date-from").value;
+  var to   = document.getElementById("filter-date-to").value;
+
   if (t) body.append("expenses_type", t);
-  if (d) body.append("due_date", d);
+  if (from && to) {
+    body.append("due_date", from + " to " + to);
+  } else if (from) {
+    body.append("due_date", from);
+  } else if (to) {
+    body.append("due_date", to);
+  }
 
   document.getElementById("table-body").innerHTML =
     '<tr><td colspan="11" class="exp-loading">Loading…</td></tr>';
@@ -483,7 +494,8 @@ function fetchExpenses() {
 
 function clearFilters() {
   document.getElementById("filter-type").value = "";
-  document.getElementById("filter-date").value = "";
+  document.getElementById("filter-date-from").value = "";
+  document.getElementById("filter-date-to").value = "";
   fetchExpenses();
 }
 
@@ -559,16 +571,21 @@ function renderTable() {
    CHILD ROW  — expand/collapse payments
 ════════════════════════════════════════════════════════ */
 function toggleChild(tr, expenseId) {
-  var inner = document.getElementById("child-inner-" + expenseId);
-  var chev  = document.getElementById("chev-" + expenseId);
+  if (!tr) return;
+
+  var childRow = tr.nextElementSibling;
+  if (!childRow || !childRow.classList.contains("child-row")) return;
+
+  var inner = childRow.querySelector(".child-inner");
+  var chev  = tr.querySelector(".chev");
   if (!inner) return;
 
   if (inner.classList.contains("open")) {
     inner.classList.remove("open");
     if (chev) chev.classList.remove("open");
   } else {
-    // Find row data
-    var row = allData.find(function(r){ return r.id == expenseId; });
+    // Find row data by ID; allow string/int match
+    var row = allData.find(function(r){ return String(r.id) === String(expenseId); });
     renderChildTable(inner, row ? (row.payments || []) : []);
     inner.classList.add("open");
     if (chev) chev.classList.add("open");
@@ -900,9 +917,16 @@ function downloadReport(type) {
   fd.append("export_type", type);
 
   var filterType = document.getElementById("filter-type").value;
-  var filterDate = document.getElementById("filter-date").value;
+  var from = document.getElementById("filter-date-from").value;
+  var to   = document.getElementById("filter-date-to").value;
   if (filterType) fd.append("expenses_type", filterType);
-  if (filterDate) fd.append("due_date", filterDate);
+  if (from && to) {
+    fd.append("due_date", from + " to " + to);
+  } else if (from) {
+    fd.append("due_date", from);
+  } else if (to) {
+    fd.append("due_date", to);
+  }
 
   // ── fetch → Blob → trigger download ──
   fetch(EXPORT_URL, {

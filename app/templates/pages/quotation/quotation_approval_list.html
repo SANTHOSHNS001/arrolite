@@ -70,6 +70,7 @@
    </div>
     <div class="card ">
           <!--Qoutaion List Table Start-->
+        
                  <div class="adv-table">
                        <table class="display table table-bordered" id="hidden-table-info">
                             <thead>
@@ -163,9 +164,7 @@
                 const dataitems = data;
                 const quotationId = $(nTr).find("th[data-id]").data("id");
                 const approver = $(nTr).find("th[data-user]").data("user");
-                const approvestatus = $(nTr).find("th[data-status]").data("status");
-
-                console.log(dataitems)
+                const approvestatus = $(nTr).find("th[data-status]").data("status");  
                 try {
                     const htmlContent = $('<div>').html(data[6]).text();
 
@@ -212,12 +211,7 @@
 
             $(document).ready(function() {
               
-                $('#dynamic-table').dataTable( {
-                    "aaSorting": [[ 4, "desc" ]]
-                } );
-                $('#approve-table').dataTable({
-                    "aaSorting": [[2, "asc"]]  // Example
-                });
+               
                 const plusIcon = `<i class="fa fa-plus-square  text-success" style="font-size:22px;"></i>`;
                 const minusIconClass = "fa-minus-square";
                 const plusIconClass = "fa-plus-square";
@@ -241,7 +235,7 @@
                     "aoColumnDefs": [
                         { "bSortable": false, "aTargets": [ 0 ] }
                     ],
-                    "aaSorting": [[1, 'asc']]
+                   
                 });
 
                 /* Add event listener for opening and closing details
