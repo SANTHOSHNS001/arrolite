@@ -187,6 +187,8 @@ class ExpenseExportView(View):
                 "due_date":       str(exp.due_date) if exp.due_date else "—",
                 "payment_mode":   (exp.payment_mode or "—").upper(),
                 "amount":         float(exp.amount or 0),
+                "total_amount":         float(expense.amount or 0),
+                
                 "total_paid":     float(expense.total_paid() or 0),
                 "balance":        float(expense.balance_amount() or 0),
             })
@@ -224,29 +226,30 @@ class ExpenseExportView(View):
         TOT_L   = _sty("TL", fontName="Helvetica-Bold", fontSize=8,   textColor=WHITE,    alignment=TA_LEFT)
         TOT_R   = _sty("TR", fontName="Helvetica-Bold", fontSize=8,   textColor=WHITE,    alignment=TA_RIGHT)
 
-        # ── 10 columns — widths must sum exactly to doc.width ──
+        # ── 11 columns — widths must sum exactly to doc.width ──
         #   Col:  1-Company | 2-Product | 3-Type | 4-Status | 5-Invoice No.
-        #         6-Date    | 7-Payment | 8-Total | 9-Paid  | 10-Balance
+        #         6-Date    | 7-Payment | 8-Item | 9-Expense | 10-Paid | 11-Balance
         W = doc.width
         col_w = [
-            W * 0.16,   # 1  Company Name
-            W * 0.13,   # 2  Product / Service
+            W * 0.145,  # 1  Company Name
+            W * 0.12,   # 2  Product / Service
             W * 0.09,   # 3  Expense Type
-            W * 0.075,  # 4  Status
+            W * 0.065,  # 4  Status
             W * 0.09,   # 5  Invoice No.
-            W * 0.08,   # 6  Invoice Date
-            W * 0.08,   # 7  Payment Mode
-            W * 0.082,  # 8  Total (Rs.)
-            W * 0.082,  # 9  Paid (Rs.)
-            W * 0.082,  # 10 Balance (Rs.)
+            W * 0.075,  # 6  Invoice Date
+            W * 0.075,  # 7  Payment Mode
+            W * 0.08,   # 8  Item Total (Rs.)
+            W * 0.08,   # 9  Expense Total (Rs.)
+            W * 0.08,   # 10 Paid (Rs.)
+            W * 0.08,   # 11 Balance (Rs.)
         ]
         col_w[-1] = W - sum(col_w[:-1])   # absorb floating-point rounding
 
-        # ── Table header row — 10 columns ──
+        # ── Table header row — 11 columns ──
         HDR = [
             "Company Name", "Product / Service", "Expense Type",
             "Status", "Invoice No.", "Invoice Date",
-            "Payment Mode", "Total (Rs.)", "Paid (Rs.)", "Balance (Rs.)",
+            "Payment Mode", "Item Total (Rs.)", "Expense Total (Rs.)", "Paid (Rs.)", "Balance (Rs.)",
         ]
         table_data = [[Paragraph(h, H_STYLE) for h in HDR]]
         row_styles = []
@@ -265,7 +268,7 @@ class ExpenseExportView(View):
                            textColor=RED_TEXT if row["balance"] > 0 else GRN_TEXT,
                            alignment=TA_RIGHT, leading=10)
 
-            # ── 10 cells — must match col_w exactly ──
+            # ── 11 cells — must match col_w exactly ──
             table_data.append([
                 Paragraph(f"<b>{row['company_name']}</b>",        C_STYLE),  # 1
                 Paragraph(row["product_name"],                     C_STYLE),  # 2
@@ -274,9 +277,10 @@ class ExpenseExportView(View):
                 Paragraph(row["invoice_number"],                   C_STYLE),  # 5
                 Paragraph(row["due_date"],                         C_STYLE),  # 6
                 Paragraph(row["payment_mode"],                     C_STYLE),  # 7
-                Paragraph(f"Rs.{row['amount']:,.2f}",              amt_sty),  # 8
-                Paragraph(f"Rs.{row['total_paid']:,.2f}",          pay_sty),  # 9
-                Paragraph(f"Rs.{row['balance']:,.2f}",             bal_sty),  # 10
+                Paragraph(f"Rs.{row['amount']:,.2f}",              amt_sty),  # 8  Item amount
+                Paragraph(f"Rs.{row['total_amount']:,.2f}",        amt_sty),  # 9  Expense total
+                Paragraph(f"Rs.{row['total_paid']:,.2f}",          pay_sty),  # 10 Paid
+                Paragraph(f"Rs.{row['balance']:,.2f}",             bal_sty),  # 11 Balance
             ])
             row_styles += [
                 ("BACKGROUND", (0, ri), (-1, ri), bg),
@@ -287,7 +291,7 @@ class ExpenseExportView(View):
             total_paid += row["total_paid"]
             total_bal  += row["balance"]
 
-        # ── Grand-total footer row — 10 cells ──
+        # ── Grand-total footer row — 11 cells ──
         table_data.append([
             Paragraph("GRAND TOTAL",           TOT_L),   # 1
             Paragraph("",                       TOT_L),   # 2
@@ -297,8 +301,9 @@ class ExpenseExportView(View):
             Paragraph("",                       TOT_L),   # 6
             Paragraph("",                       TOT_L),   # 7
             Paragraph(f"Rs.{total_amt:,.2f}",   TOT_R),   # 8
-            Paragraph(f"Rs.{total_paid:,.2f}",  TOT_R),   # 9
-            Paragraph(f"Rs.{total_bal:,.2f}",   TOT_R),   # 10
+            Paragraph(f"Rs.{sum(r['total_amount'] for r in rows):,.2f}", TOT_R), # 9
+            Paragraph(f"Rs.{total_paid:,.2f}",  TOT_R),   # 10
+            Paragraph(f"Rs.{total_bal:,.2f}",   TOT_R),   # 11
         ])
         row_styles.append(("BACKGROUND", (0, ri), (-1, ri), NAVY))
 
@@ -442,14 +447,14 @@ class ExpenseExportView(View):
         border = Border(left=thin, right=thin, top=thin, bottom=thin)
         thick  = Border(left=medium, right=medium, top=medium, bottom=medium)
 
-        # ── 10 columns A–J ──
+        # ── 11 columns A–K ──
         #   A=Company | B=Product | C=Type | D=Status | E=Invoice No.
-        #   F=Date    | G=Payment | H=Total | I=Paid  | J=Balance
-        col_widths = [28, 22, 16, 12, 16, 14, 14, 15, 15, 15]
+        #   F=Date    | G=Payment | H=Item Total | I=Expense Total | J=Paid | K=Balance
+        col_widths = [26, 20, 15, 11, 14, 12, 13, 12, 12, 13, 13]
         for i, w in enumerate(col_widths, 1):
             ws.column_dimensions[get_column_letter(i)].width = w
 
-        # ── Row 1: Title (A1:J1) ──
+        # ── Row 1: Title (A1:K1) ──
         ws.merge_cells("A1:J1")
         c = ws["A1"]
         c.value     = f"{COMPANY_FULL.upper()}  -  EXPENSE REPORT"
@@ -493,7 +498,7 @@ class ExpenseExportView(View):
             cell.border    = Border(left=thin, right=thin, top=thin, bottom=thin)
         ws.row_dimensions[3].height = 20
 
-        # ── Row 4: Column headers — 10 columns ──
+        # ── Row 4: Column headers — 11 columns ──
         headers = [
             "Company Name",      # A col 1
             "Product / Service", # B col 2
@@ -502,9 +507,10 @@ class ExpenseExportView(View):
             "Invoice No.",       # E col 5
             "Invoice Date",      # F col 6
             "Payment Mode",      # G col 7
-            "Total (Rs.)",       # H col 8
-            "Paid (Rs.)",        # I col 9
-            "Balance (Rs.)",     # J col 10
+            "Item Total (Rs.)",  # H col 8
+            "Expense Total (Rs.)", # I col 9
+            "Paid (Rs.)",        # J col 10
+            "Balance (Rs.)",     # K col 11
         ]
         for ci, header in enumerate(headers, 1):
             c           = ws.cell(row=4, column=ci, value=header)
@@ -527,7 +533,7 @@ class ExpenseExportView(View):
             bg       = C_ALT if is_even else C_WHITE
             exp_fill = PatternFill("solid", fgColor=bg)
 
-            # 10 values — same order as headers above
+            # 11 values — same order as headers above
             values = [
                 row["company_name"],    # A  col 1
                 row["product_name"],    # B  col 2
@@ -537,8 +543,9 @@ class ExpenseExportView(View):
                 row["due_date"],        # F  col 6
                 row["payment_mode"],    # G  col 7
                 row["amount"],          # H  col 8
-                row["total_paid"],      # I  col 9
-                row["balance"],         # J  col 10
+                row["total_amount"],    # I  col 9
+                row["total_paid"],      # J  col 10
+                row["balance"],         # K  col 11
             ]
             for ci, value in enumerate(values, 1):
                 c           = ws.cell(row=cur_row, column=ci, value=value)
@@ -546,7 +553,7 @@ class ExpenseExportView(View):
                 c.border    = border
                 c.alignment = Alignment(
                     vertical="center",
-                    horizontal="right"  if ci >= 8 else
+                    horizontal="right"  if ci >= 9 else
                                "center" if ci in (4, 5, 6, 7) else "left",
                 )
                 if ci == 1:    # Company — bold
@@ -555,9 +562,9 @@ class ExpenseExportView(View):
                     txt_c, bg_c = status_colors.get(str(value).upper(), ("333333", "EEEEEE"))
                     c.font  = Font(name="Calibri", bold=True, size=9, color=txt_c)
                     c.fill  = PatternFill("solid", fgColor=bg_c)
-                elif ci in (8, 9, 10):  # Amount columns
+                elif ci in (8, 9, 10, 11):  # Amount columns
                     c.number_format = '"Rs."#,##0.00'
-                    if ci == 10 and isinstance(value, (int, float)):
+                    if ci == 11 and isinstance(value, (int, float)):
                         c.font = Font(name="Calibri", bold=True, size=9,
                                       color=(C_RED if value > 0 else C_GREEN))
                     else:
@@ -568,12 +575,12 @@ class ExpenseExportView(View):
             ws.row_dimensions[cur_row].height = 18
             cur_row += 1
 
-        # ── Grand Total row — 10 cells ──
+        # ── Grand Total row — 11 cells ──
         tot_fill = PatternFill("solid", fgColor=C_DARK)
         tot_vals = [
             "GRAND TOTAL", "", "", "",          # A–D  cols 1–4
             f"{len(rows)} items", "", "",        # E–G  cols 5–7
-            total_amt, total_paid, total_bal,    # H–J  cols 8–10
+            total_amt, sum(r["total_amount"] for r in rows), total_paid, total_bal,    # H–K  cols 8–11
         ]
         for ci, value in enumerate(tot_vals, 1):
             c           = ws.cell(row=cur_row, column=ci, value=value)
@@ -584,11 +591,11 @@ class ExpenseExportView(View):
                 vertical="center",
                 horizontal="right" if ci >= 8 else "left",
             )
-            if ci in (8, 9, 10):
+            if ci in (8, 9, 10, 11):
                 c.number_format = '"Rs."#,##0.00'
         ws.row_dimensions[cur_row].height = 22
 
-        ws.auto_filter.ref = f"A4:J{cur_row - 1}"
+        ws.auto_filter.ref = f"A4:K{cur_row - 1}"
 
         buf = io.BytesIO()
         wb.save(buf)
