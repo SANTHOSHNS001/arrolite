@@ -34,12 +34,21 @@ DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
- 
+
 CSRF_TRUSTED_ORIGINS = [
      'https://arrolite-production.up.railway.app',
      'https://arrolite-env.up.railway.app'
-     
-] 
+]
+
+# Essential for Railway/Proxies
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
+# Also helpful for security
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+ 
+
 # Application definition
 
 INSTALLED_APPS = [
