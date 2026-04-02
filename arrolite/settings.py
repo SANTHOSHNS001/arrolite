@@ -100,7 +100,7 @@ WSGI_APPLICATION = 'arrolite.wsgi.application'
 DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.mysql",
-            "NAME": os.environ.get("DATABASE_NAME", "your_local_db_name"),
+            "NAME": os.environ.get("DATABASE_NAME", "railway"),
             "USER": os.environ.get("DATABASE_USER", "root"),
             "PASSWORD": os.environ.get("DATABASE_PASSWORD", ""),
             "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
