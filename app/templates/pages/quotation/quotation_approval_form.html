@@ -69,7 +69,10 @@
     <div class="wrapper-title">
     <div class="wrapper-content">Quotation Bill</div>
     <div class="wrapper-actions">
-        <button id="edit-category-btn" data-bs-toggle="modal" data-bs-target="#pdf-config-create"class="btn btn-primary" style="display: inline-flex;gap:2px;"><i class="fa fa-file-pdf-o">&nbsp;PDF-Config</i></button>
+                <button class="btn btn-info" style="display: inline-flex;gap:2px;" onclick="printPart({{ quotation.id }})">  <i class="material-icons">print</i>print</button>
+        <button class="btn btn-primary" style="display: inline-flex;gap:2px;" onclick="quotation_pdf_download({{ quotation.id }})">  <i class="material-icons">download</i>download</button>
+
+        <button id="edit-category-btn" data-bs-toggle="modal" data-bs-target="#pdf-config-create"class="btn btn-danger" style="display: inline-flex;gap:2px;"><i class="material-icons">picture_as_pdf</i>PDF-CONFIG</button>
 
         <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
@@ -202,8 +205,6 @@
        {%if quotation.approver_status == "approved" %}
      
         {%endif%} 
-      <button type="button" class="btn btn-info"   onclick="printPart({{ quotation.id }})"><i class="fa fa-print"></i> Print </button>
-      <button type="button" class="btn btn-success"   onclick="quotation_pdf_download({{ quotation.id }})"><i class="fa fa-download"></i> Download PDF </button>
     </div>
   </div>
 </div>

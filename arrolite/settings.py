@@ -36,7 +36,9 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
  
 CSRF_TRUSTED_ORIGINS = [
-     'https://arrolite-production.up.railway.app'
+     'https://arrolite-production.up.railway.app',
+     'https://arrolite-env.up.railway.app'
+     
 ] 
 # Application definition
 

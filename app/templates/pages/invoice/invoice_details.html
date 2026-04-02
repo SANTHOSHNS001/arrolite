@@ -65,6 +65,9 @@
     <div class="wrapper-title">
     <div class="wrapper-content">Invoice Bill</div>
     <div class="wrapper-actions">
+                <button class="btn btn-info" style="display: inline-flex;gap:2px;" onclick="printPart({{ quotation.id }})">  <i class="material-icons">print</i>print</button>
+        <button class="btn btn-primary" style="display: inline-flex;gap:2px;" onclick="quotation_pdf_download({{ quotation.id }})">  <i class="material-icons">download</i>download</button>
+
         <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
    </div>
@@ -221,8 +224,6 @@
         </div>
    
         <div>
-        <button type="button" class="btn btn-info"   onclick="printPart({{ quotation.id }})"><i class="fa fa-print"></i> Print </button>
-        <button type="button" class="btn btn-success"   onclick="quotation_pdf_download({{ quotation.id }})"><i class="fa fa-download"></i> Download PDF </button>
         </div>
   </div>
 

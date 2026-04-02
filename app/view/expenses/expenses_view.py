@@ -144,10 +144,8 @@ class ExpensesViewList(View):
                 .distinct()   # 🔥 IMPORTANT to avoid duplicates
                 .order_by('-created_at')
             )
-
             data = []
             for expense in qs:
-
                 payments = [
                     {
                         "id": item.id,
