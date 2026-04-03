@@ -89,13 +89,14 @@ class ExpensesViewList(View):
         try:
             filters = {}
 
-            expenses_type = request.POST.get("expenses_type", "").strip()
+            invoice_number = request.POST.get("expenses_type", "").strip()
             due_date_str  = request.POST.get("due_date", "").strip()
+            
 
             item_filters = {}
 
-            if expenses_type:
-                filters["expenses_type_id"] = expenses_type
+            if invoice_number:
+                filters["invoice_number"] = invoice_number
 
             def parse_date(val):
                 for fmt in ("%Y-%m-%d", "%d-%m-%Y"):
@@ -163,6 +164,8 @@ class ExpensesViewList(View):
                     "id": expense.id,
                     "expenses_type": expense.expenses_type.name if expense.expenses_type else "",
                     "amount": expense.amount,
+                    
+                    "invoice_number": expense.invoice_number or "",
                     "company_name": expense.company_name or "",
                     "product_name": expense.product_name or "",
                     "description": expense.description or "",
@@ -203,8 +206,7 @@ class ExpensesCreate(View):
                 ExpensesItems.objects.create(
                     expenses       = expense,
                     amount         = deposit_amount,
-                    invoice_number = request.POST.get("invoice_number", "").strip() or None,
-                    due_date       = request.POST.get("due_date")  or None,
+                    due_date       = request.POST.get("paid_date")  or None,
                     payment_mode   = request.POST.get("payment_mode", "upi"),
                     receipt        = request.FILES.get("receipt"),
                     description    = request.POST.get("description", "").strip() or None,

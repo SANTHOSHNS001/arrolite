@@ -36,6 +36,8 @@ class ExpensesForm(forms.ModelForm):
             'expenses_type',
             'product_name',
             'company_name',
+            'invoice_number',
+            'due_date',
             'amount',
             'description'
         ]
@@ -43,6 +45,9 @@ class ExpensesForm(forms.ModelForm):
         widgets = {
             'expenses_type': forms.Select(attrs={'class': 'form-control'}),
             'product_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'invoice_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'due_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            
             'company_name': forms.TextInput(attrs={'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
@@ -53,6 +58,9 @@ class ExpensesForm(forms.ModelForm):
 
         # ✅ Required fields
         self.fields['product_name'].required = True
+        self.fields['invoice_number'].required = True
+        self.fields['invoice_number'].required = True
+        self.fields['due_date'].required = True
         self.fields['amount'].required = True
 
         # ✅ Optional
@@ -77,7 +85,6 @@ class ExpensesItemsForm(forms.ModelForm):
         model = ExpensesItems
         fields = [
             'amount',
-            'invoice_number',
             'due_date',
             'payment_mode',
             'receipt',
