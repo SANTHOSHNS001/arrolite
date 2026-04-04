@@ -290,16 +290,75 @@ class ExpensesItemsCreate(View):
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)}, status=500)
         
+from django.db import transaction
+
 class ExpensesUpdate(View):
     def post(self, request, pk):
         expense = get_object_or_404(Expenses, pk=pk)
         form = ExpensesForm(request.POST, request.FILES, instance=expense)
-        if form.is_valid():
-            form.save()
-            return JsonResponse({'success': True, 'message': 'Expense updated successfully.'}, status=200)
-        return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
+        if not form.is_valid():
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
+        try:
+            with transaction.atomic():
+                # ✅ Save main expense
+                form.save()
+
+                receipt_files = request.FILES
+
+                import re
+                indexes = set()
+                for key in request.POST.keys():
+                    match = re.match(r'expense_item_amount\[(.+)\]', key)
+                    if match:
+                        indexes.add(match.group(1))
+
+                for idx in indexes:
+                    item_id      = request.POST.get(f'expense_item_id[{idx}]', '').strip()
+                    amount       = request.POST.get(f'expense_item_amount[{idx}]')
+                    date         = request.POST.get(f'expense_item_date[{idx}]') or None
+                    mode         = request.POST.get(f'expense_item_payment_mode[{idx}]')
+                    description  = request.POST.get(f'expense_item_description[{idx}]', '')
+                    receipt      = receipt_files.get(f'expense_item_receipt[{idx}]')
+
+                    if item_id and not idx.startswith('new_'):
+                        # ✅ Update existing
+                        item = ExpensesItems.objects.filter(id=item_id).first()
+                        if item:
+                            item.amount       = amount
+                            item.due_date     = date
+                            item.payment_mode = mode
+                            item.description  = description
+                            if receipt:
+                                item.receipt  = receipt
+                            item.full_clean()  # ✅ runs model clean() validation
+                            item.updater      = request.user    # ✅
+                            item.updated_at   = timezone.now()  # ✅
+                            item.save()
+                    else:
+                        # ✅ Create new
+                        item = ExpensesItems(
+                            expenses     = expense,
+                            amount       = amount,
+                            due_date     = date,
+                            payment_mode = mode,
+                            description  = description,
+                            receipt      = receipt
+                        )
+                        item.full_clean()  # ✅ runs model clean() validation
+                        item.save()
+
+                # ✅ Update status after all items saved
+                expense.update_status()
+
+        except ValidationError as e:
+            return JsonResponse({'success': False, 'errors': e.message_dict}, status=400)
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'errors': str(e)}, status=500)
+
+        return JsonResponse({'success': True, 'message': 'Expense updated successfully.'}, status=200)
 class ExpensesDelete(View):
     def post(self, request, pk):
         expense = get_object_or_404(Expenses, pk=pk)

@@ -37,6 +37,7 @@
     <div class="wrapper-actions">
         <button class="btn btn-info" style="display: inline-flex;gap:2px;" onclick="printPart({{ quotation.id }})">  <i class="material-icons">print</i>print</button>
         <button class="btn btn-primary" style="display: inline-flex;gap:2px;" onclick="quotation_pdf_download({{ quotation.id }})">  <i class="material-icons">download</i>download</button>
+        <button id="edit-category-btn" data-bs-toggle="modal" data-bs-target="#pdf-config-create"class="btn btn-danger" style="display: inline-flex;gap:2px;"><i class="material-icons">picture_as_pdf</i>PDF-CONFIG</button>
 
         <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
@@ -125,6 +126,45 @@
             </tfoot>
         </table>
     </div>
+</div>
+<div class="modal fade" id="pdf-config-create" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">PDF Report Config</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Design Note -->
+        <div class="mb-3">
+          <div class="form-check form-switch mb-1">
+            <input class="form-check-input" type="checkbox" id="show_design_note">
+            <label class="form-check-label fw-bold" for="show_design_note">Show Design Note</label>
+          </div>
+          <div id="design_note_wrap">
+            <input type="text" class="form-control" id="design_note" placeholder="e.g. DESIGN PROVIDED BY YOU">
+          </div>
+        </div>
+
+        <!-- Deposit Note -->
+        <div class="mb-3">
+          <div class="form-check form-switch mb-1">
+            <input class="form-check-input" type="checkbox" id="show_deposit_note">
+            <label class="form-check-label fw-bold" for="show_deposit_note">Show Deposit Note</label>
+          </div>
+          <div id="deposit_note_wrap">
+            <input type="text" class="form-control" id="deposit_note" placeholder="e.g. 50% deposit required">
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" id="pdf-config-save">Save</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 </div>
@@ -251,5 +291,66 @@ function quotation_pdf_download(id) {
         showMessage("Something went wrong!", "danger");
     });
 }
+// Pdf config model
+const PDF_CONFIG_URL = "{% url 'quotation_report_config' %}";  // ← change to your URL
+
+// ── helpers ──────────────────────────────────────────────────
+function syncWrap(checkboxId, wrapId) {
+  const cb   = document.getElementById(checkboxId);
+  const wrap = document.getElementById(wrapId);
+  wrap.style.display = cb.checked ? "block" : "none";
+  cb.addEventListener("change", () => {
+    wrap.style.display = cb.checked ? "block" : "none";
+  });
+}
+
+// ── load config when modal opens ─────────────────────────────
+document.getElementById("pdf-config-create").addEventListener("show.bs.modal", async () => {
+  const res  = await fetch(PDF_CONFIG_URL);
+  const json = await res.json();
+  const lbl  = json.data.label;
+
+  // populate toggles
+  document.getElementById("show_design_note").checked  = lbl.show_design_note  ?? true;
+  document.getElementById("show_deposit_note").checked = lbl.show_deposit_note ?? true;
+
+  // populate text fields
+  document.getElementById("design_note").value  = lbl.design_note  ?? "";
+  document.getElementById("deposit_note").value = lbl.deposit_note ?? "";
+
+  // sync wrap visibility AFTER setting checked state
+  syncWrap("show_design_note",  "design_note_wrap");
+  syncWrap("show_deposit_note", "deposit_note_wrap");
+});
+
+// ── save ─────────────────────────────────────────────────────
+document.getElementById("pdf-config-save").addEventListener("click", async () => {
+  const payload = {
+    label: {
+      show_design_note:  document.getElementById("show_design_note").checked,
+      show_deposit_note: document.getElementById("show_deposit_note").checked,
+      design_note:       document.getElementById("design_note").value.trim(),
+      deposit_note:      document.getElementById("deposit_note").value.trim(),
+    }
+  };
+
+  const res  = await fetch(PDF_CONFIG_URL, {
+    method: "POST",
+       headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie('csrftoken'),
+        },
+  
+    body: JSON.stringify(payload)
+  });
+  const json = await res.json();
+
+  if (json.success) {
+    bootstrap.Modal.getInstance(document.getElementById("pdf-config-create")).hide();
+    DisplayAlert(true,"Saved!");
+  } else {
+    DisplayAlert(false,"Error: " + json.error);
+  }
+});
 </script>
 {% endblock %}
