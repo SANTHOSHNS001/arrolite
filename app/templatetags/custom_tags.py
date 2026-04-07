@@ -22,7 +22,7 @@ def get_sidebar_menu():
         # Setting
         {"url": "permission_setting", "name": "Permission", "icon": "fa fa-cog", "perm": "app.client_manege_access", "parent": "Setting"},
         {"url": "unit_list", "name": "Unit", "icon": "fa fa-ruler", "perm": "app.manage_unit", "parent": "Setting"},
-        {"url": "iso_list", "name": "ISO-Size", "icon": "fa fa-cubes", "perm": "app.can_manage_isosize", "parent": "Setting"},
+        # {"url": "iso_list", "name": "ISO-Size", "icon": "fa fa-cubes", "perm": "app.can_manage_isosize", "parent": "Setting"},
         # Product (single menu, not grouped)
         {"url": "product_list", "name": "Product", "icon": "fa fa-shopping-cart", "perm": "app.can_manage_product", "parent": "Product"},
         {"url": "invoice_product_report", "name": "Product-Report", "icon": "fa fa-shopping-cart", "perm": "app.can_report_invoice", "parent": "Product"},

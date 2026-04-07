@@ -436,7 +436,7 @@
         <input type="hidden" id="pi-expense-id" name="expense_id">
 
         <div class="frow">
-          <label>Deposit ( ) *</label>
+          <label>Deposit (₹) *</label>
           <div>
             <input type="number" step="0.01" min="0.01" name="amount"
                    id="pi-deposit" required placeholder="Enter amount">
@@ -566,7 +566,7 @@ function updateSummary() {
   var total = 0, paid = 0, bal = 0;
   allData.forEach(function(r){ total += r.amount||0; paid += r.total_paid||0; bal += r.balance||0; });
   document.getElementById("s-count").textContent   = allData.length;
-  document.getElementById("s-total").textContent   = " " + total.toFixed(2);
+  document.getElementById("s-total").textContent   = "₹" + total.toFixed(2);
   document.getElementById("s-paid").textContent    = " " + paid.toFixed(2);
   document.getElementById("s-balance").textContent = " " + bal.toFixed(2);
 }
@@ -889,7 +889,7 @@ function openAddPayment(expenseId, total, paid, balance) {
 
   var dep = document.getElementById("pi-deposit");
   dep.max         = balance;
-  dep.placeholder = "Max  " + fmt(balance);
+  dep.placeholder = "Max ₹" + fmt(balance);
   dep.value       = "";
   dep.classList.remove("is-invalid");
   document.getElementById("pi-deposit-err").textContent = "";
@@ -914,12 +914,12 @@ function validateDeposit() {
   var max = parseFloat(inp.max)   || 0;
   if (val <= 0) {
     inp.classList.add("is-invalid");
-    err.textContent = "Amount must be greater than  0.";
+    err.textContent = "Amount must be greater than ₹0.";
     return false;
   }
   if (val > max) {
     inp.classList.add("is-invalid");
-    err.textContent = "Exceeds remaining balance  " + fmt(max) + ".";
+    err.textContent = "Exceeds remaining balance ₹" + fmt(max) + ".";
     return false;
   }
   inp.classList.remove("is-invalid");
