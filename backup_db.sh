@@ -4,7 +4,7 @@
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Define the relative path to the .env file
-ENV_PATH="$BASE_DIR/project/.env"
+ENV_PATH="$BASE_DIR/arrolite/.env"
 
 # 1. Load the .env file
 if [ -f "$ENV_PATH" ]; then
