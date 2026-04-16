@@ -7,59 +7,61 @@ from app.models.product.product_model import Product
 from app.models.product.quotation_model import Quotation
 from app.models.sub_category.sub_category_model import SubCategory
 from django.utils import timezone
-from datetime import timedelta
  
 class HomePageView(View):
     template_name = 'pages/dashboard/dashboard.html'
+
     def get(self, request):
-        today = timezone.now()
-        # Get the first day of this month
+        today = timezone.now().date()
         first_day_this_month = today.replace(day=1)
-        # Range: this month (from 1st until now)
-        start_date = first_day_this_month
-        end_date = today 
+
         subcategories = SubCategory.active_objects.all()
         categories = Category.active_objects.all()
-        Products = Product.active_objects.all()
-        Customers=Customer.active_objects.all()
-        quotations = Quotation.active_objects.all() 
-        Invoices = Invoice.active_objects.all() 
-        
-        if not request.user.is_superuser:
-            quotations = quotations.filter(approver =request.user)
-        else:
-            quotations = quotations
-            
-        if not request.user.is_superuser:
-            Invoices = Invoices.filter(approver =request.user)
-        else:
-            Invoices = Invoices
+        products = Product.active_objects.all()
+        customers = Customer.active_objects.all()
 
-        qus={
-            "list_quotations":quotations.count(),
-            "quotations_invoice":quotations.filter(approver_status="approved").count(),
-            "quotations_reject":quotations.filter(approver_status="rejected").count(),
-            "quotations_pending":quotations.filter(approver_status="pending").count(),
+        month_filters = {
+            'request_date__date__range': (first_day_this_month, today)
         }
-        Ins = {
-            "list_invoice": Invoices.count(),
-            "pending_invoice": Invoices.filter(approver_status="pending",).count(),
-            "payment_pending_invoice": Invoices.filter(approver_status="pending_payment",).count(),
-            "paid_invoices": Invoices.filter(approver_status="paid").count(),
+        quotations = Quotation.active_objects.filter(**month_filters)
+        invoices = Invoice.active_objects.filter(**month_filters)
+
+        if not request.user.is_superuser:
+            quotations = quotations.filter(approver=request.user)
+            invoices = invoices.filter(approver=request.user)
+
+        qus = {
+            'list_quotations': quotations.count(),
+            'quotations_invoice': quotations.filter(approver_status='approved').count(),
+            'quotations_reject': quotations.filter(approver_status='rejected').count(),
+            'quotations_pending': quotations.filter(approver_status='pending').count(),
         }
-  
+        ins = {
+            'list_invoice': invoices.count(),
+            'pending_invoice': invoices.filter(approver_status='pending').count(),
+            'payment_pending_invoice': invoices.filter(approver_status='pending_payment').count(),
+            'paid_invoices': invoices.filter(approver_status='paid').count(),
+        }
+
         context = {
-            'categories' :categories,
-            'categories_total' :categories.count(),
+            'categories': categories,
+            'categories_total': categories.count(),
             'subcategories': subcategories,
             'subcategories_total': subcategories.count(),
-            'Products':Products,
-            'Products_total':Products.count(),
-            'customers':Customers,
-            'customers_total':Customers.count(),
-            'qus':qus,
-            'invoice':Ins
+            'products': products,
+            'products_total': products.count(),
+            'customers': customers,
+            'customers_total': customers.count(),
+            'qus': qus,
+            'invoice': ins,
+            'current_month_quotations': quotations.order_by('-request_date'),
+            'current_month_invoices': invoices.order_by('-request_date'),
+            'current_month_start': first_day_this_month,
+            'current_month_end': today,
         }
-        return render(request, self.template_name,context)
+        
+        return render(request, self.template_name, context)
+
+ 
 
  
