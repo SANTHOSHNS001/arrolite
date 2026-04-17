@@ -24,3 +24,6 @@ deploy: migrate static restart_nginx
 restart_nginx:
 	sudo nginx -t
 	sudo systemctl restart nginx
+# Backup the database using the provided script
+backup:
+	bash backup_db.sh
