@@ -1,5 +1,6 @@
-# Run the Django application using Gunicorn
+# Stop old Gunicorn and start again
 run:
+	pkill gunicorn || true
 	gunicorn arrolite.wsgi:application --bind 0.0.0.0:8000
 
 # Create and apply database migrations
@@ -7,8 +8,9 @@ migrate:
 	python3 manage.py makemigrations
 	python3 manage.py migrate
 
-# Collect static files (Required for Nginx to show CSS/Images)
+# Collect static files (clean + collect)
 static:
+	rm -rf staticfiles/*
 	python3 manage.py collectstatic --noinput
 
 # Clear Django cache and bytecode
@@ -17,13 +19,18 @@ clear:
 	find . -name "__pycache__" -delete
 	python3 manage.py shell -c "from django.core.cache import cache; cache.clear()"
 
-# Full deploy: Migrate, Collect Static, and Restart Nginx
-deploy: migrate static restart_nginx
+# Restart Gunicorn
+restart_gunicorn:
+	pkill gunicorn || true
 
-# Test the Nginx configuration and restart the service
+# Restart Nginx
 restart_nginx:
-	sudo nginx -t
-	sudo systemctl restart nginx
-# Backup the database using the provided script
+	nginx -t
+	systemctl restart nginx
+
+# Full deploy (FIXED)
+deploy: migrate static clear restart_gunicorn restart_nginx
+
+# Backup database
 backup:
 	bash backup_db.sh

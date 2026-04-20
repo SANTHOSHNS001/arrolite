@@ -15,7 +15,7 @@ class Invoice(CustomBase):
             ("draft", "Draft"),
             ("sent", "Sent to Customer"),
             ("pending", "Pending"),
-            ("sent_to_manager", "Sent to Manager"),
+            ("sent_to_manager", "Sent to Approver"),
             ("approved", "Approved"),
             ("rejected", "Rejected"),
             ("cancelled", "Cancelled"),
