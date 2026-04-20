@@ -75,12 +75,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-]
-
-ROOT_URLCONF = 'arrolite.urls'
-
-TEMPLATES = [
-    
+] 
+ROOT_URLCONF = 'arrolite.urls' 
+TEMPLATES = [ 
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': ["templates"],

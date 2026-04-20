@@ -25,9 +25,30 @@ import io,os
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from django.conf import settings
+from django.contrib.staticfiles import finders
 from decimal import Decimal, InvalidOperation
 from django.db import transaction
 from django.core.exceptions import ValidationError
+
+
+def get_static_asset_path(*parts):
+    """Resolve static asset path using staticfiles finders, then STATIC_ROOT or BASE_DIR/static."""
+    relative_path = os.path.join(*parts)
+    resolved = finders.find(relative_path)
+    if resolved:
+        return resolved
+    candidates = [
+        os.path.join(settings.STATIC_ROOT, relative_path),
+        os.path.join(settings.BASE_DIR, 'static', relative_path),
+    ]
+    for candidate in candidates:
+        if os.path.exists(candidate):
+            return candidate
+    raise FileNotFoundError(
+        f"Static asset not found: {relative_path}. "
+        "Ensure the file exists in STATICFILES_DIRS or STATIC_ROOT, and run collectstatic if needed."
+    )
+
 class InvoiceListView(View):
   
     template = "pages/invoice/invoice_list.html"
@@ -447,15 +468,15 @@ class InvoiceReportPdfView(View):
  
     def header(self, canvas, doc, quotation):
         canvas.saveState()
-        font_new = os.path.join(settings.STATIC_ROOT,   'fonts', 'montserrat', 'Montserrat-Black.ttf')
-        titles_header_fonts = os.path.join(settings.STATIC_ROOT,  'fonts', 'montserrat', 'GothamBold.ttf')
-        titles_header_fontss = os.path.join(settings.STATIC_ROOT,   'fonts', 'montserrat', 'Gotham-Bold.ttf')
-        titles_add = os.path.join(settings.STATIC_ROOT,  'fonts', 'montserrat', 'GothamLight.ttf')
+        font_new = get_static_asset_path('fonts', 'montserrat', 'Montserrat-Black.ttf')
+        titles_header_fonts = get_static_asset_path('fonts', 'montserrat', 'GothamBold.ttf')
+        titles_header_fontss = get_static_asset_path('fonts', 'montserrat', 'Gotham-Bold.ttf')
+        titles_add = get_static_asset_path('fonts', 'montserrat', 'GothamLight.ttf')
         pdfmetrics.registerFont(
             TTFont("Montserrat-Black", font_new)
         )
         pdfmetrics.registerFont(
-            TTFont("Gotham-Bold", font_new)
+            TTFont("Gotham-Bold", titles_header_fonts)
         )
         pdfmetrics.registerFont(
             TTFont("GothamLight", titles_add)
@@ -499,11 +520,8 @@ class InvoiceReportPdfView(View):
         ])
  
         # Right Block (logo + address)
-        logo_path = os.path.join(settings.STATIC_ROOT, 'img', 'logos', 'LOGO.png')
-        if os.path.exists(logo_path):
-            logo = Image(logo_path, width=8.3 * cm, height=1.4 * cm)
-        else:
-            logo = Paragraph("<b>ARROLITE</b>", title_style)
+        logo_path = get_static_asset_path('img', 'logos', 'LOGO.png')
+        logo = Image(logo_path, width=8.3 * cm, height=1.4 * cm)
 
         address = Paragraph("#01-21 Centrum Square 320 Serangoon Rd, Singapore 218108", address_style)
         care = Paragraph(
@@ -654,7 +672,7 @@ class InvoiceReportPdfView(View):
         canvas.rect(doc.leftMargin - 0.5 * cm, 0.9 * cm, doc.width + 1 * cm, 2.1 * cm, stroke=0, fill=1)
 
         # OCBC Logo
-        ocbc_img_path = os.path.join(settings.STATIC_ROOT,  'ac-imgs', 'ocbc_logo.png')
+        ocbc_img_path = get_static_asset_path('ac-imgs', 'ocbc_logo.png')
         canvas.drawImage(ocbc_img_path, doc.leftMargin, 1.3 * cm, width=1.2 * cm, height=1.3 * cm, mask='auto')
         
 
@@ -676,7 +694,7 @@ class InvoiceReportPdfView(View):
         canvas.drawString(doc.leftMargin + 5 * cm, 2.0 * cm, "or")
 
         # PayNow logo
-        paynow_img_path = os.path.join(settings.STATIC_ROOT, 'ac-imgs', 'paynow.png')
+        paynow_img_path = get_static_asset_path('ac-imgs', 'paynow.png')
         canvas.drawImage(paynow_img_path, doc.leftMargin + 7 * cm, 1.5 * cm, width=1.2 * cm, height=1 * cm, mask='auto')
 
         # UEN and company name
@@ -694,13 +712,7 @@ class InvoiceReportPdfView(View):
         canvas.drawString(doc.leftMargin + 12.2 * cm, 2.0 * cm, "or")
 
         # Scan Me image
-        scan_img_path = os.path.join(settings.STATIC_ROOT, 'ac-imgs', 'scan_me.png')
-        canvas.drawImage(scan_img_path, doc.leftMargin + 14 * cm, 1.4 * cm, width=2* cm, height=1.6 * cm, mask='auto')
- 
-        qr_img_path = os.path.join(settings.STATIC_ROOT, 'ac-imgs', 'qr_img.jpeg')
-        canvas.drawImage(qr_img_path, doc.leftMargin + 16 * cm, 0.6 * cm, width=3 * cm, height=3 * cm, mask='auto')
-
-        # Disclaimer
+        scan_img_path = get_static_asset_path('ac-imgs', 'scan_me.png')
         canvas.setFont("Helvetica", 8)
         canvas.setFillColor(colors.red)
         canvas.drawString(doc.leftMargin, 0.6 * cm, "This is a computer generated and no signature is required.")

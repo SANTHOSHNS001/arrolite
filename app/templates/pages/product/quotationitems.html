@@ -4,44 +4,94 @@
 {% block title %}Quotation Bill{% endblock %}
 
 {% block style %}
+<style>
+    .wrapper-title {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
 
+    .wrapper-content {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .wrapper-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 115px;
+        padding: 0.6rem 0.9rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 0.65rem;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
+    }
+
+    .detail-card {
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+        border-radius: 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+        padding: 1rem;
+        box-shadow: 0 1rem 1.75rem rgba(15, 23, 42, 0.06);
+    }
+
+    .detail-icon {
+        padding: 0.85rem;
+        background-color: #f3f4f6;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+    }
+
+    .adv-table table {
+        margin-bottom: 0;
+    }
+</style>
 {% endblock %}
 {% block body_content %}
-<style>
-
-    .detail-card{
-    background-color: #ffffff;
-    
-    display: flex;
-    /* align-content: flex-start; */
-    /* flex-wrap: wrap; */
-    flex-direction: row;
-    align-items: center;
-    gap: 11px;
-    border-radius: 16px;
-    
-    font-size: 18px;
-    font-weight: 700;
-    }
-   .detail-icon {
-    padding: 12px;
-    background-color: #edebeb;
-    display: grid;
-    border-radius: 56%;
-    /* font-size: 7px; */
-}
-</style>
  <div class="wrapper">
     <div class="wrapper-title">
-    <div class="wrapper-content">Quotation Bill</div>
-    <div class="wrapper-actions">
-        <button class="btn btn-info" style="display: inline-flex;gap:2px;" onclick="printPart({{ quotation.id }})">  <i class="material-icons">print</i>print</button>
-        <button class="btn btn-primary" style="display: inline-flex;gap:2px;" onclick="quotation_pdf_download({{ quotation.id }})">  <i class="material-icons">download</i>download</button>
-        <button id="edit-category-btn" data-bs-toggle="modal" data-bs-target="#pdf-config-create"class="btn btn-danger" style="display: inline-flex;gap:2px;"><i class="material-icons">picture_as_pdf</i>PDF-CONFIG</button>
-
-        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
+        <div class="wrapper-content">Quotation Bill</div>
+        <div class="wrapper-actions">
+            <button type="button" class="btn btn-outline-info btn-action" onclick="printPart({{ quotation.id }})">
+                <i class="material-icons">print</i>
+                Print
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-action" onclick="quotation_pdf_download({{ quotation.id }})">
+                <i class="material-icons">download</i>
+                Download
+            </button>
+            <button id="edit-category-btn" type="button" data-bs-toggle="modal" data-bs-target="#pdf-config-create" class="btn btn-outline-danger btn-action">
+                <i class="material-icons">picture_as_pdf</i>
+                PDF Config
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-action" onclick="history.back()">
+                <i class="material-icons">arrow_circle_left</i>
+                Back
+            </button>
+        </div>
     </div>
-   </div>
     <div class="row">
        <div class="col-lg-3 col-sm-6">
         <div class="card detail-card">

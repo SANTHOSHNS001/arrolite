@@ -8,7 +8,52 @@
 
 {% endblock %}
 {% block body_content %}
-<style>
+<style> 
+    .wrapper-title {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .wrapper-content {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .wrapper-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    
+
+    .detail-card {
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+        border-radius: 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+        padding: 1rem;
+        box-shadow: 0 1rem 1.75rem rgba(15, 23, 42, 0.06);
+    }
+
+    .detail-icon {
+        padding: 0.85rem;
+        background-color: #f3f4f6;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+    }
+
+     
     .detail-card{
         background-color: #ffffff;
         display: flex;
@@ -64,11 +109,11 @@
  <div class="wrapper">
     <div class="wrapper-title">
     <div class="wrapper-content">Invoice Bill</div>
+    
     <div class="wrapper-actions">
-                <button class="btn btn-info" style="display: inline-flex;gap:2px;" onclick="printPart({{ quotation.id }})">  <i class="material-icons">print</i>print</button>
-        <button class="btn btn-primary" style="display: inline-flex;gap:2px;" onclick="quotation_pdf_download({{ quotation.id }})">  <i class="material-icons">download</i>download</button>
-
-        <button class="btn btn-secondary" style="display: inline-flex;gap:2px;" onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
+        <button class="btn btn-outline-info btn-action"   onclick="printPart({{ quotation.id }})">  <i class="material-icons">print</i>Print</button>
+        <button class="btn btn-outline-primary btn-action" onclick="quotation_pdf_download({{ quotation.id }})">  <i class="material-icons">download</i>Download</button>
+        <button class="btn btn-outline-secondary btn-action"   onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
    </div>
     <div class="row">

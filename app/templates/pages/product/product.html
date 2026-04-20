@@ -103,7 +103,7 @@
                                         <div class="form-group row">
                                             <label for="name" class="control-label col-lg-2">Category Name</label>
                                             <div class="col-lg-10">
-                                                <select class="form-control" id="category" name="category">
+                                                <select class="form-control" id="category" name="category" required>
                                                     {% for category in categories %}
                                                         <option value="{{ category.id }}">{{ category.name }}</option>
                                                     {% empty %}
