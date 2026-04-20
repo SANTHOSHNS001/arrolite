@@ -35,12 +35,18 @@ DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 ALLOWED_HOSTS = ['66.116.232.45', 'localhost', '127.0.0.1', '0.0.0.0']
 
-CSRF_TRUSTED_ORIGINS = [ 
+ 
+CSRF_TRUSTED_ORIGINS = [
+    "http://ararrolitesg.com",
+    "https://www.ararrolitesg.com",
     "http://66.116.232.45",
-    "https://66.116.232.45", 
+    "https://66.116.232.45",
+    "http://66.116.232.45:8000",
+    "https://66.116.232.45:8000",
     "http://localhost",
     "https://localhost",
-    "http://127.0.0.1", 
+    "http://127.0.0.1",
+    "https://127.0.0.1",
     "http://localhost:8000",
     "https://localhost:8000",
 ]
