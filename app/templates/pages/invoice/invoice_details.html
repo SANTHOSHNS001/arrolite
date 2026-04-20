@@ -8,7 +8,7 @@
 {% endblock %}
 {% block body_content %}
 <style> 
-    .wrapper-title {
+      .wrapper-title {
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
@@ -29,6 +29,22 @@
         justify-content: flex-end;
     }
 
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 115px;
+        padding: 0.6rem 0.9rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 0.65rem;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
+    }
     
 
     .detail-card {
