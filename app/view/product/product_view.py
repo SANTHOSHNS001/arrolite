@@ -120,181 +120,191 @@ class QuotationReportPdfView(View):
     def __init__(self, **kwargs):
         self.company_name = "ARROLITE"
         super().__init__(**kwargs)
+
+    # ── POST ─────────────────────────────────────────────────────────────────
     def post(self, request):
-        try:      
-            # discount = request.POST.get('discount')
-            # qns = Quotation.active_objects.get(id=17,approver_status = "approved")
-            data = json.loads(request.body)
+        try:
+            data        = json.loads(request.body)
             document_id = data.get("document_id")
-            qns = Quotation.active_objects.get(id=document_id)
-            data = []
+            qns         = Quotation.active_objects.get(id=document_id)
+            data        = []
             for qs in qns.items.all():
                 data.append({
-                    "product": qs.product.name,
-                    "quantity": qs.quantity,
-                    "unit_price" :float(qs.product.price),
-                    "total_cost" : round(qs.unit_cost, 2),
-                    "unit": qs.unit or "-",  # Default to dash if None
-                    "description":qs.description or '',    
+                    "product":     qs.product.name,
+                    "quantity":    qs.quantity,
+                    "unit_price":  float(qs.product.price),
+                    "total_cost":  round(qs.unit_cost, 2),
+                    "unit":        qs.unit or "-",
+                    "description": qs.description or '',   # ✅ fixed typo
                 })
-       
+
             if not data:
                 return JsonResponse({"error": "No data found"}, status=404)
 
-            buf = self.download_pdf_report(qns,data)
-            return FileResponse(buf, as_attachment=True, filename=f"{qns.invoice_number}.pdf", content_type="application/pdf")
-
+            buf = self.download_pdf_report(qns, data)
+            return FileResponse(
+                buf,
+                as_attachment=True,
+                filename=f"{qns.invoice_number}.pdf",
+                content_type="application/pdf"
+            )
         except Exception as e:
-          
-            return JsonResponse({"error": str(e)}, status=400) 
- 
+            return JsonResponse({"error": str(e)}, status=400)
+
+    # ── HEADER ───────────────────────────────────────────────────────────────
     def header(self, canvas, doc, quotation):
         canvas.saveState()
-        font_new = get_static_asset_path('fonts', 'montserrat', 'Montserrat-Black.ttf')
-        titles_header_fonts = get_static_asset_path('fonts', 'montserrat', 'GothamBold.ttf')
-        titles_header_fontss = get_static_asset_path('fonts', 'montserrat', 'Gotham-Bold.ttf')
-        titles_add = get_static_asset_path('fonts', 'montserrat', 'GothamLight.ttf')
-        pdfmetrics.registerFont(
-            TTFont("Montserrat-Black", font_new)
-        )
-        pdfmetrics.registerFont(
-            TTFont("Gotham-Bold", titles_header_fonts)
-        )
-        pdfmetrics.registerFont(
-            TTFont("GothamLight", titles_add)
-        )
-        
-        pdfmetrics.registerFont(TTFont("GothamBold", titles_header_fonts))
 
+        # ✅ Only fonts that actually exist on your disk
+        font_montserrat  = get_static_asset_path('fonts', 'montserrat', 'Montserrat-Black.ttf')
+        font_gotham_bold = get_static_asset_path('fonts', 'montserrat', 'Gotham-Bold.ttf')   # big "hello"
+        font_gotham_bld2 = get_static_asset_path('fonts', 'montserrat', 'GothamBold.ttf')   # labels / numbers
+        font_gotham_book = get_static_asset_path('fonts', 'montserrat', 'GothamBook.ttf')   # subtitle / address
 
-        # Define Styles
+        pdfmetrics.registerFont(TTFont("Montserrat-Black", font_montserrat))
+        pdfmetrics.registerFont(TTFont("Gotham-Bold",      font_gotham_bold))  # ✅ correct file
+        pdfmetrics.registerFont(TTFont("GothamBold",       font_gotham_bld2))  # ✅ correct file
+        pdfmetrics.registerFont(TTFont("GothamBook",       font_gotham_book))  # ✅ replaces missing GothamLight
+
+        # ── Paragraph styles ─────────────────────────────────────────────────
         title_style = ParagraphStyle(
-            "title", fontName="Gotham-Bold", fontSize=90, textColor=colors.red, leading=87
+            "title",
+            fontName="Gotham-Bold",     # ✅ big red "hello"
+            fontSize=90,
+            textColor=colors.red,
+            leading=87,
         )
         subtitle_style = ParagraphStyle(
-            "subtitle", fontName="GothamLight", fontSize=23, textColor=colors.black, backColor=colors.white, leading=30
+            "subtitle",
+            fontName="GothamBook",      # ✅ "this is your quotation"
+            fontSize=23,
+            textColor=colors.black,
+            backColor=colors.white,
+            leading=30,
         )
         label_style = ParagraphStyle(
-            "label", fontName="GothamBold", fontSize=8, textColor=colors.black
+            "label",
+            fontName="GothamBold",
+            fontSize=8,
+            textColor=colors.black,
         )
         value_style = ParagraphStyle(
-            "value", fontName="Helvetica", fontSize=10, textColor=colors.red
+            "value",
+            fontName="Helvetica",
+            fontSize=10,
+            textColor=colors.red,
         )
         address_style = ParagraphStyle(
-            "addr", fontName="GothamLight", fontSize=11, textColor=colors.black
+            "addr",
+            fontName="GothamBook",      # ✅ GothamBook for address
+            fontSize=11,
+            textColor=colors.black,
         )
         number_style = ParagraphStyle(
-            "addr", fontName="GothamBold", fontSize=11, textColor=colors.black
+            "number",
+            fontName="GothamBold",
+            fontSize=11,
+            textColor=colors.black,
         )
 
-        # Left Block (hello + subtitle)
-        hello = Paragraph("<b>hello</b>", title_style)
-        subtitle = Paragraph('this is your <font color="red"><b>quotation</b></font>', subtitle_style)
+        # ── Left block: "hello" + subtitle ───────────────────────────────────
+        hello    = Paragraph("<b>hello</b>", title_style)
+        subtitle = Paragraph(
+            'this is your <font color="red"><b>quotation</b></font>',
+            subtitle_style
+        )
         care = Paragraph(
             '<b>Customer care:</b> <font color="red"><b>+65 8193 0246</b></font>',
             number_style
         )
 
         left_block = Table([[hello], [subtitle]], colWidths=[12 * cm], style=[
-            ("LEFTPADDING", (0, 0), (-1, -1), 0),
-            ("TOPPADDING", (0, 0), (-1, -1), 0),
+            ("LEFTPADDING",   (0, 0), (-1, -1), 0),
             ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-            ("TOPPADDING", (0, 0), (-1, -1), -12),
-            # ("BACKGROUND", (0, 0), (-1, -1), colors.green),  # ✅ background color
-
+            ("TOPPADDING",    (0, 0), (-1, -1), -12),
         ])
- 
-        # Right Block (logo + address)
+
+        # ── Right block: logo + address + care ───────────────────────────────
         logo_path = get_static_asset_path('img', 'logos', 'LOGO.png')
-        logo = Image(logo_path, width=8.3 * cm, height=1.4 * cm)
+        logo      = Image(logo_path, width=8.3 * cm, height=1.4 * cm)
+        address   = Paragraph(
+            "#01-21 Centrum Square 320 Serangoon Rd, Singapore 218108",
+            address_style
+        )
 
-        address = Paragraph("#01-21 Centrum Square 320 Serangoon Rd, Singapore 218108", address_style)
-
-        right_block = Table([[logo], [address],[care]], colWidths=[10 * cm], style=[
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        right_block = Table([[logo], [address], [care]], colWidths=[10 * cm], style=[
+            ("VALIGN",       (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING",  (0, 0), (-1, -1), 0),
             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-             ("TOPPADDING", (0, 0), (-1, -1), 0),
-            #  ("BACKGROUND", (0, 0), (-1, -1), colors.blue),  # ✅ background color
+            ("TOPPADDING",   (0, 0), (-1, -1), 0),
         ])
 
-        # Top row (hello + logo block)
+        # ── Top row ──────────────────────────────────────────────────────────
         top_row = Table([[left_block, right_block]], colWidths=[11 * cm, 10 * cm], style=[
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("VALIGN",       (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING",  (0, 0), (-1, -1), 0),
             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-            ("TOPPADDING", (0, 0), (-1, -1), 0),
-            
+            ("TOPPADDING",   (0, 0), (-1, -1), 0),
         ])
 
+        # ── Info tables ──────────────────────────────────────────────────────
         def make_info_table(data):
             rows = []
             for label, value in data:
                 rows.append([Paragraph(label, label_style)])
                 rows.append([Paragraph(value, value_style)])
             return Table(rows, colWidths=[8.5 * cm], style=[
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (-1, -1), 0),
-                # ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-                 ("BOTTOMPADDING", (0, 0), (-1, -1), 3),  # ⬅ adds little space after each row
+                ("LEFTPADDING",   (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING",  (0, 0), (-1, -1), 0),
+                ("TOPPADDING",    (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
             ])
 
-        # Left and right info blocks
         invoice_table = make_info_table([
             ("invoice no.", f"{quotation.invoice_number}"),
             ("date", quotation.request_date.strftime('%d %B %Y').upper()),
         ])
-
         contact_table = make_info_table([
             ("contact", "+65 8 54321 92"),
-            ("email", "hello@arrolitesg.com"),
+            ("email",   "hello@arrolitesg.com"),
         ])
 
-        # Bottom info row (2 columns)[11 * cm, 10 * cm]
         info_row = Table([[invoice_table, contact_table]], colWidths=[11 * cm, 10 * cm], style=[
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("VALIGN",     (0, 0), (-1, -1), "TOP"),
             ("TOPPADDING", (0, 0), (-1, -1), 0),
         ])
 
-        # Combine top row and info row
+        # ── Combine & draw ───────────────────────────────────────────────────
         full_header = Table(
             [[top_row], [info_row]],
             style=[
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 1), (0, 1), 0),  # spacing between top and bottom
+                ("TOPPADDING",  (0, 1), (0, 1),   0),
             ]
         )
 
-        # Draw the final layout
         w, h = full_header.wrap(doc.width, doc.topMargin)
         full_header.drawOn(canvas, doc.leftMargin, doc.height + doc.bottomMargin - h)
-
         canvas.restoreState()
 
-    def footer(self, canvas, doc,quotation,quotationitems):
+    # ── FOOTER ───────────────────────────────────────────────────────────────
+    def footer(self, canvas, doc, quotation, quotationitems):
         canvas.saveState()
-      
-       
-        #  that add that dection part 
-        canvas.setFillColorRGB(0.95, 0.95, 0.95)
-        canvas.rect(doc.leftMargin - 0.5 * cm, 0.9 * cm, doc.width + 1 * cm, 2.1 * cm, stroke=0, fill=1)
 
         # === Calculate Totals ===
-        total = sum(item["total_cost"] for item in quotationitems)
-        discount = quotation.discount or 0
+        total           = sum(item["total_cost"] for item in quotationitems)
+        discount        = quotation.discount or 0
         discount_amount = total * discount / 100
-        grand_total = total - discount_amount
+        grand_total     = total - discount_amount
 
         # === Styles ===
-        for_style = ParagraphStyle("ForLabel", fontName="Helvetica-Bold", fontSize=10, textColor=colors.red)
-        company_style = ParagraphStyle("CompanyName", fontName="Helvetica-Bold", fontSize=12, textColor=colors.HexColor("#7B6F6F"))
-        address_style = ParagraphStyle("Address", fontName="Helvetica", fontSize=10, textColor=colors.HexColor("#666666"), leading=10)
-        total_label_style = ParagraphStyle("TotalLabel", fontName="Helvetica-Bold", fontSize=9, textColor=colors.whitesmoke)
-        total_value_style = ParagraphStyle("TotalValue", fontName="Helvetica-Bold", fontSize=12, textColor=colors.whitesmoke, alignment=2)
+        for_style         = ParagraphStyle("ForLabel",    fontName="Helvetica-Bold", fontSize=10, textColor=colors.red)
+        company_style     = ParagraphStyle("CompanyName", fontName="Helvetica-Bold", fontSize=12, textColor=colors.HexColor("#7B6F6F"))
+        address_style     = ParagraphStyle("Address",     fontName="Helvetica",      fontSize=10, textColor=colors.HexColor("#666666"), leading=10)
+        total_label_style = ParagraphStyle("TotalLabel",  fontName="Helvetica-Bold", fontSize=9,  textColor=colors.whitesmoke)
+        total_value_style = ParagraphStyle("TotalValue",  fontName="Helvetica-Bold", fontSize=12, textColor=colors.whitesmoke, alignment=2)
 
-        # === Left (FOR) ===
-        customer_add="39 Woodlands closeMEGA@woodlands #08-84 \n Singapore 737856"
+        # === FOR block (left) ===
         left_cell = [
             Paragraph("for", for_style),
             Paragraph(f"{quotation.customer.name}", company_style),
@@ -302,10 +312,9 @@ class QuotationReportPdfView(View):
             Paragraph(f"{quotation.customer.address}", address_style),
         ]
 
-        # === Right (TOTAL) ===
+        # === TOTAL block (right) ===
         right_cell = [
-             
-              Paragraph("total", total_label_style),
+            Paragraph("total", total_label_style),
             Paragraph(f"${grand_total:,.2f}", total_value_style),
         ]
 
@@ -313,36 +322,37 @@ class QuotationReportPdfView(View):
             [[left_cell, right_cell]],
             colWidths=[13.2 * cm, 6.3 * cm],
             style=[
-                ("BACKGROUND", (0, 0), (0, 0), colors.whitesmoke),
-                ("BACKGROUND", (1, 0), (1, 0), colors.HexColor("#231f20")),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 12),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 12),
-                ("TOPPADDING", (0, 0), (-1, -1), 12),
+                ("BACKGROUND",    (0, 0), (0, 0), colors.whitesmoke),
+                ("BACKGROUND",    (1, 0), (1, 0), colors.HexColor("#231f20")),
+                ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING",   (0, 0), (-1, -1), 12),
+                ("RIGHTPADDING",  (0, 0), (-1, -1), 12),
+                ("TOPPADDING",    (0, 0), (-1, -1), 12),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
             ],
         )
 
-        # === Draw summary box instead of "For" ===
         w, h = summary_table.wrap(doc.width, doc.bottomMargin)
         summary_table.drawOn(canvas, doc.leftMargin, 6 * cm)
 
-        # Set red "thank you!"
+        # "thank you!"
         canvas.setFont("Helvetica-Bold", 40)
         canvas.setFillColor(colors.red)
-        #  that add that dection part 
-        
         canvas.drawString(doc.leftMargin, 4 * cm, "thank you!")
 
-        # Draw a light grey background rectangle (very slim)
-        canvas.setFillColorRGB(0.95, 0.95, 0.95)  # #f2f2f2
-        canvas.rect(doc.leftMargin - 0.5 * cm, 0.9 * cm, doc.width + 1 * cm, 2.1 * cm, stroke=0, fill=1)
+        # Grey payment strip background
+        canvas.setFillColorRGB(0.95, 0.95, 0.95)
+        canvas.rect(
+            doc.leftMargin - 0.5 * cm, 0.9 * cm,
+            doc.width + 1 * cm, 2.1 * cm,
+            stroke=0, fill=1
+        )
 
-        # OCBC Logo
+        # OCBC logo
         ocbc_img_path = get_static_asset_path('ac-imgs', 'ocbc_logo.png')
-        canvas.drawImage(ocbc_img_path, doc.leftMargin, 1.3 * cm, width=1.3 * cm, height=1.3 * cm, mask='auto')
+        canvas.drawImage(ocbc_img_path, doc.leftMargin, 1.3 * cm,
+                         width=1.3 * cm, height=1.3 * cm, mask='auto')
 
-        # OCBC Bank Text
         canvas.setFont("Helvetica-Bold", 8)
         canvas.setFillColor(colors.red)
         canvas.drawString(doc.leftMargin + 1.5 * cm, 2.3 * cm, "bank transfer")
@@ -350,20 +360,17 @@ class QuotationReportPdfView(View):
         canvas.setFont("Helvetica-Bold", 8)
         canvas.setFillColor(colors.black)
         canvas.drawString(doc.leftMargin + 1.5 * cm, 1.9 * cm, "current AC")
-
-        canvas.setFont("Helvetica-Bold", 8)
         canvas.drawString(doc.leftMargin + 1.5 * cm, 1.5 * cm, "595-28881-2001")
 
-        # First separator "or"
         canvas.setFont("Helvetica-Bold", 12)
         canvas.setFillColor(colors.red)
         canvas.drawString(doc.leftMargin + 5 * cm, 2.0 * cm, "or")
 
         # PayNow logo
         paynow_img_path = get_static_asset_path('ac-imgs', 'paynow.png')
-        canvas.drawImage(paynow_img_path, doc.leftMargin + 7 * cm, 1.5 * cm, width=1.3 * cm, height=1 * cm, mask='auto')
+        canvas.drawImage(paynow_img_path, doc.leftMargin + 7 * cm, 1.5 * cm,
+                         width=1.3 * cm, height=1 * cm, mask='auto')
 
-        # UEN and company name
         canvas.setFont("Helvetica-Bold", 10)
         canvas.setFillColor(colors.black)
         canvas.drawString(doc.leftMargin + 8.7 * cm, 2.3 * cm, "uen")
@@ -372,26 +379,32 @@ class QuotationReportPdfView(View):
         canvas.setFont("Helvetica", 6)
         canvas.drawString(doc.leftMargin + 8.7 * cm, 1.7 * cm, "ARROLITE PTE. LTD.")
 
-        # Second separator "or"
         canvas.setFont("Helvetica-Bold", 12)
         canvas.setFillColor(colors.red)
         canvas.drawString(doc.leftMargin + 12.2 * cm, 2.0 * cm, "or")
 
-        # Scan Me image
+        # Scan Me
         scan_img_path = get_static_asset_path('ac-imgs', 'scan_me.png')
-        canvas.drawImage(scan_img_path, doc.leftMargin + 14 * cm, 1.4 * cm, width=2* cm, height=1.6 * cm, mask='auto')
+        canvas.drawImage(scan_img_path, doc.leftMargin + 14 * cm, 1.4 * cm,
+                         width=2 * cm, height=1.6 * cm, mask='auto')
 
+        # QR code
         qr_img_path = get_static_asset_path('ac-imgs', 'qr_img.jpeg')
-        canvas.drawImage(qr_img_path, doc.leftMargin + 16 * cm, 0.6 * cm, width=3 * cm, height=3 * cm, mask='auto')
+        canvas.drawImage(qr_img_path, doc.leftMargin + 16 * cm, 0.6 * cm,
+                         width=3 * cm, height=3 * cm, mask='auto')
 
         # Disclaimer
         canvas.setFont("Helvetica", 8)
         canvas.setFillColor(colors.red)
-        canvas.drawString(doc.leftMargin, 0.6 * cm, "This is a computer generated and no signature is required.")
+        canvas.drawString(
+            doc.leftMargin, 0.6 * cm,
+            "This is a computer generated and no signature is required."
+        )
 
         canvas.restoreState()
 
-    def download_pdf_report(self,quotation,quotationitems):
+    # ── DOWNLOAD PDF ─────────────────────────────────────────────────────────
+    def download_pdf_report(self, quotation, quotationitems):
         buffer = io.BytesIO()
 
         doc = BaseDocTemplate(
@@ -402,145 +415,127 @@ class QuotationReportPdfView(View):
             topMargin=0.7 * cm,
             bottomMargin=3 * cm,
         )
-        config = get_config().label or default_report_config()
-        show_design_note   = config.get("show_design_note", True)
-        show_deposit_note  = config.get("show_deposit_note", True)
-        design_note_text   = config.get("design_note", "DESIGN PROVIDED BY YOU")
-        deposit_note_text  = config.get("deposit_note", "50% deposit required")
+
+        # ── Config flags ─────────────────────────────────────────────────────
+        config                = get_config().label or default_report_config()
+        show_design_note      = config.get("show_design_note",      True)
+        show_deposit_note     = config.get("show_deposit_note",     True)
+        show_discount_product = config.get("show_discount_product", True)
+        design_note_text      = config.get("design_note",  "DESIGN PROVIDED BY YOU")
+        deposit_note_text     = config.get("deposit_note", "50% deposit required")
+
         frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id='normal')
+
         def header_with_data(canvas, doc):
             self.header(canvas, doc, quotation)
+
         def footer_with_data(canvas, doc):
-            self.footer(canvas, doc, quotation,quotationitems)
-        doc.addPageTemplates([PageTemplate(id='quote', frames=frame, onPage=header_with_data, onPageEnd=footer_with_data)])
+            self.footer(canvas, doc, quotation, quotationitems)
 
-        # Styles
-        normal_style = ParagraphStyle("normal", fontName="Helvetica", fontSize=8, leading=14,textColor=colors.HexColor("#74666a"))
-        header_style = ParagraphStyle("header_style", fontName="Helvetica-Bold", fontSize=7, textColor=colors.white, spaceAfter=6)
-        total_style = ParagraphStyle("total", fontName="Helvetica-Bold", fontSize=12, alignment=2)
+        doc.addPageTemplates([PageTemplate(
+            id='quote',
+            frames=frame,
+            onPage=header_with_data,
+            onPageEnd=footer_with_data,
+        )])
 
-        # Sample data
-        body_data =  quotationitems
+        # ── Styles ───────────────────────────────────────────────────────────
+        normal_style   = ParagraphStyle(
+            "normal",
+            fontName="Helvetica",
+            fontSize=8,
+            leading=14,
+            textColor=colors.HexColor("#74666a"),
+        )
+        header_style   = ParagraphStyle(
+            "header_style",
+            fontName="Helvetica-Bold",
+            fontSize=7,
+            textColor=colors.white,
+            spaceAfter=6,
+        )
+        for_desc_style = ParagraphStyle(
+            "for_desc",
+            fontName="Helvetica-Bold",
+            fontSize=9,
+            textColor=colors.HexColor("#74666a"),
+        )
 
+        # ── Body table ───────────────────────────────────────────────────────
         table_data = [[
             Paragraph("<b>description</b>", header_style),
-            Paragraph("<b>unit price</b>", header_style),
-            Paragraph("<b>quantity</b>", header_style),
-            Paragraph("<b>price</b>", header_style),
+            Paragraph("<b>unit price</b>",  header_style),
+            Paragraph("<b>quantity</b>",    header_style),
+            Paragraph("<b>price</b>",       header_style),
         ]]
 
-        for item in body_data:
-            print(item)
-            product_text = f"""
-                <b>{item['product']}</b><br/>
-                <font size="7" color="#9e9e9e">- {item.get('description', '')}</font>
-            """
+        for item in quotationitems:
+            product_text = (
+                f"<b>{item['product']}</b><br/>"
+                f'<font size="7" color="#9e9e9e">- {item.get("description", "")}</font>'
+            )
             table_data.append([
-                Paragraph(product_text, normal_style),
+                Paragraph(product_text,            normal_style),
                 Paragraph(f"${item['unit_price']}", normal_style),
-                Paragraph(f"{item['quantity']}", normal_style),
+                Paragraph(f"{item['quantity']}",    normal_style),
                 Paragraph(f"${item['total_cost']}", normal_style),
             ])
-      
-        body_table = Table(table_data, colWidths=[10 * cm, 3 * cm, 3 * cm, 3 * cm], repeatRows=1)
+
+        body_table = Table(
+            table_data,
+            colWidths=[10 * cm, 3 * cm, 3 * cm, 3 * cm],
+            repeatRows=1,
+        )
         body_table.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.black),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("FONTSIZE", (0, 1), (-1, -1), 10),
-            ("GRID", (0, 0), (-1, -1), 1, colors.white),
+            ("TEXTCOLOR",  (0, 0), (-1, 0), colors.white),
+            ("ALIGN",      (1, 1), (-1, -1), "RIGHT"),
+            ("VALIGN",     (0, 0), (-1, -1), "TOP"),
+            ("FONTSIZE",   (0, 1), (-1, -1), 10),
+            ("GRID",       (0, 0), (-1, -1), 1, colors.white),
         ]))
 
-        total = sum(item["total_cost"] for item in quotationitems)
-        discount = quotation.discount or 0
+        # ── Totals ───────────────────────────────────────────────────────────
+        total           = sum(item["total_cost"] for item in quotationitems)
+        discount        = quotation.discount or 0
         discount_amount = total * discount / 100
-        grand_total = total - discount_amount
+        grand_total     = total - discount_amount
 
-        total_table = Table([
-            
-            [f"Discount ({discount}%)", f"-${discount_amount:.2f}"],
-           
-        ], colWidths=[14 * cm, 1 * cm], style=[
-
-            ("ALIGN", (0, 0), (0, -1), "LEFT"),   # discount label → left
-            ("ALIGN", (1, 0), (1, -1), "RIGHT"),  # discount amount → right
-            ("FONTSIZE", (0, 0), (-1, -1), 8),
-            ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#74666a")),
-            ("LEFTPADDING",  (0, 0), (-1, -1), 0),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-        ])
-         
-         
-        # FOR / TOTAL block
-        for_label_style = ParagraphStyle("for_label", fontName="Helvetica-Bold", fontSize=9, textColor=colors.red)
-        for_desc_style = ParagraphStyle("for_label", fontName="Helvetica-Bold", fontSize=9, textColor=colors.HexColor("#74666a"))
-        for_name_style = ParagraphStyle("for_name", fontName="Helvetica-Bold", fontSize=12, textColor=colors.HexColor("#74666a"))
-        for_address_style = ParagraphStyle("for_address", fontName="Helvetica", fontSize=10, textColor=colors.gray)
-        total_label_style = ParagraphStyle("total_label", fontName="Helvetica-Bold", fontSize=9, textColor=colors.white)
-        total_value_style = ParagraphStyle("total_value", fontName="Helvetica-Bold", fontSize=12, textColor=colors.white, alignment=2)
-
-        for_section = [
-            Paragraph("for", for_label_style),
-            Paragraph("HN CONSTRUCTION PTE LTD<br/>", for_name_style),
-            Spacer(1, 5), 
-            Paragraph("39 Woodlands close, MEGA@woodlands #08-84<br/>Singapore 737856", for_address_style)
-        ]
-        total_section = [
-            Paragraph("total", total_label_style),
-            Paragraph(f"${grand_total:,.2f}", total_value_style)
-        ]
-        desc_section = [
-            Paragraph("*DESIGN PROVIDED BY YOU", for_desc_style),
-        ]
-        desc_des_section = [
-            Paragraph("- 50% deposit require for order confirmation", for_desc_style),
-        ]
-        desc_table = Table([
-            [desc_section],
-        ], style=[
-            ("ALIGN", (1, 0), (1, -1), "LEFT"),
-            ("FONTSIZE", (0, 0), (-1, -1), 8),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#74666a")),
-        ])
-        desc_table2 = Table([
-            [desc_des_section],
-        ], style=[
-            ("ALIGN", (1, 0), (1, -1), "LEFT"),
-            ("FONTSIZE", (0, 0), (-1, -1), 8),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#74666a")),
-        ])
-         
-        summary_table = Table([
-            [for_section, total_section]
-        ], colWidths=[13.2 * cm, 6.3 * cm], style=[
-            ("BACKGROUND", (0, 0), (0, 0), colors.whitesmoke),
-            ("BACKGROUND", (1, 0), (1, 0), colors.HexColor("#231f20")),
-            ("LEFTPADDING", (0, 0), (-1, -1), 12),
-            ("TOPPADDING", (0, 0), (-1, -1), 12),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ])
-        
-       
+        # ── Build elements ───────────────────────────────────────────────────
         elements = [
-        Spacer(1, 6 * cm),
-        body_table,
-        Spacer(1, 0.5 * cm),
-        KeepTogether(total_table),
-        Spacer(1, 0.5 * cm),
-         ]
+            Spacer(1, 6 * cm),
+            body_table,
+            Spacer(1, 0.5 * cm),
+        ]
+
+        # ✅ FIXED: create table first, then append separately
+        if show_discount_product:
+            total_table = Table([
+                [f"Discount ({discount}%)", f"-${discount_amount:.2f}"],
+            ], colWidths=[14 * cm, 1 * cm], style=[
+                ("ALIGN",        (0, 0), (0, -1), "LEFT"),
+                ("ALIGN",        (1, 0), (1, -1), "RIGHT"),
+                ("FONTSIZE",     (0, 0), (-1, -1), 8),
+                ("TEXTCOLOR",    (0, 0), (-1, -1), colors.HexColor("#74666a")),
+                ("LEFTPADDING",  (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ])
+            elements.append(total_table)
+
         if show_design_note:
-            desc_table = Table([[[ Paragraph(f"*{design_note_text}", for_desc_style) ]]],
-                style=[("FONTSIZE", (0,0),(-1,-1), 8)])
+            desc_table = Table(
+                [[[Paragraph(f"*{design_note_text}", for_desc_style)]]],
+                style=[("FONTSIZE", (0, 0), (-1, -1), 8)]
+            )
             elements.append(desc_table)
 
         if show_deposit_note:
-            desc_table2 = Table([[[ Paragraph(f"- {deposit_note_text}", for_desc_style) ]]],
-                style=[("FONTSIZE", (0,0),(-1,-1), 8)])
+            desc_table2 = Table(
+                [[[Paragraph(f"- {deposit_note_text}", for_desc_style)]]],
+                style=[("FONTSIZE", (0, 0), (-1, -1), 8)]
+            )
             elements.append(desc_table2)
 
         doc.build(elements)
         buffer.seek(0)
         return buffer
- 

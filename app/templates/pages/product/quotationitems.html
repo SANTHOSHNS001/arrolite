@@ -125,7 +125,7 @@
         <table id ="quotation-table" class="display table table-bordered">
             <thead>
                 <tr>
-                    <th>SNO</th>
+                    <th>S.NO</th>
                     <th>Product</th>
                     <th>Customer</th>
                     <th>Unit Price</th>
@@ -206,6 +206,13 @@
           <div id="deposit_note_wrap">
             <input type="text" class="form-control" id="deposit_note" placeholder="e.g. 50% deposit required">
           </div>
+        </div>
+         <div class="mb-3">
+          <div class="form-check form-switch mb-1">
+            <input class="form-check-input" type="checkbox" id="show_discount_product" name="discount_product">
+            <label class="form-check-label fw-bold" for="show_discount_product">Show Discount</label>
+          </div>
+           
         </div>
 
       </div>
@@ -363,6 +370,8 @@ document.getElementById("pdf-config-create").addEventListener("show.bs.modal", a
   // populate toggles
   document.getElementById("show_design_note").checked  = lbl.show_design_note  ?? true;
   document.getElementById("show_deposit_note").checked = lbl.show_deposit_note ?? true;
+  document.getElementById("show_discount_product").checked = lbl.show_discount_product ?? true;
+
 
   // populate text fields
   document.getElementById("design_note").value  = lbl.design_note  ?? "";
@@ -379,6 +388,8 @@ document.getElementById("pdf-config-save").addEventListener("click", async () =>
     label: {
       show_design_note:  document.getElementById("show_design_note").checked,
       show_deposit_note: document.getElementById("show_deposit_note").checked,
+      show_discount_product: document.getElementById("show_discount_product").checked,
+
       design_note:       document.getElementById("design_note").value.trim(),
       deposit_note:      document.getElementById("deposit_note").value.trim(),
     }
@@ -389,8 +400,7 @@ document.getElementById("pdf-config-save").addEventListener("click", async () =>
        headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": getCookie('csrftoken'),
-        },
-  
+        }, 
     body: JSON.stringify(payload)
   });
   const json = await res.json();
