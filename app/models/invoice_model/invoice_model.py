@@ -90,21 +90,7 @@ class Invoice(CustomBase):
         ordering = ["-created_at"]
     def __str__(self):
         return f"{self.invoice_number}"
-    @property
-    def to_json(self):
-        return {
-            "id": self.id,
-            "invoice_number": self.invoice_number,
-            "request_date": self.request_date.strftime("%Y-%m-%d %H:%M:%S") if self.request_date else None,
-            "description": self.description,
-            "customers": [user.name for user in self.customer.all()],
-            "items": [item.to_json for item in self.invoiceitems.all()]
-        }
-    @property
-    def items_to_json(self):
-        return {
-            "items": [item.to_json for item in self.invoiceitems.all()]
-        }
+
 
     @property
     def total_cost(self):

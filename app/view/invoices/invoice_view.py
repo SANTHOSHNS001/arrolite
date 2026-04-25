@@ -467,15 +467,17 @@ class InvoiceReportPdfView(View):
             return JsonResponse({"error": str(e)}, status=400) 
  
     def header(self, canvas, doc, quotation):
-        canvas.saveState()
+        canvas.saveState() 
+         
         font_new = get_static_asset_path('fonts', 'montserrat', 'Montserrat-Black.ttf')
+    
         titles_header_fonts = get_static_asset_path('fonts', 'montserrat', 'GothamBold.ttf') 
         titles_add = get_static_asset_path('fonts', 'montserrat', 'GothamLight.ttf')
         pdfmetrics.registerFont(
             TTFont("Montserrat-Black", font_new)
         )
         pdfmetrics.registerFont(
-            TTFont("Gotham-Bold", titles_header_fonts)
+            TTFont("GothamBold", titles_header_fonts)
         )
         pdfmetrics.registerFont(
             TTFont("GothamLight", titles_add)
@@ -486,8 +488,8 @@ class InvoiceReportPdfView(View):
 
         # Define Styles
         title_style = ParagraphStyle(
-            "title", fontName="Gotham-Bold", fontSize=89, textColor=colors.red, leading=87
-        )
+            "title", fontName="Montserrat-Black", fontSize=93, textColor=colors.red, leading=90    
+)
         subtitle_style = ParagraphStyle(
             "subtitle", fontName="GothamLight", fontSize=26, textColor=colors.black, backColor=colors.white, leading=30
         )
@@ -506,7 +508,7 @@ class InvoiceReportPdfView(View):
         
 
         # Left Block (hello + subtitle)
-        hello = Paragraph("<b>hello</b>", title_style)
+        hello = Paragraph("hello", title_style)
         subtitle = Paragraph('this is your <font name="GothamBold" color="red" >invoice</font>', subtitle_style)
 
         left_block = Table([[hello], [subtitle]], colWidths=[12 * cm], style=[

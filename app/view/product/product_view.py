@@ -160,7 +160,7 @@ class QuotationReportPdfView(View):
         font_gotham_bold = get_static_asset_path('fonts', 'montserrat', 'Gotham-Bold.ttf')   # big "hello"
         font_gotham_bld2 = get_static_asset_path('fonts', 'montserrat', 'GothamBold.ttf')   # labels / numbers
         font_gotham_book = get_static_asset_path('fonts', 'montserrat', 'GothamBook.ttf')   # subtitle / address
-
+        
         pdfmetrics.registerFont(TTFont("Montserrat-Black", font_montserrat))
         pdfmetrics.registerFont(TTFont("Gotham-Bold",      font_gotham_bold))  # ✅ correct file
         pdfmetrics.registerFont(TTFont("GothamBold",       font_gotham_bld2))  # ✅ correct file
@@ -169,7 +169,7 @@ class QuotationReportPdfView(View):
         # ── Paragraph styles ─────────────────────────────────────────────────
         title_style = ParagraphStyle(
             "title",
-            fontName="Gotham-Bold",     # ✅ big red "hello"
+            fontName="Montserrat-Black",     # ✅ big red "hello"
             fontSize=90,
             textColor=colors.red,
             leading=87,

@@ -48,3 +48,11 @@ def get_sidebar_menu():
 @register.filter
 def has_perm(user, perm_name):
     return user.has_perm(perm_name)
+
+
+@register.simple_tag(takes_context=True)
+def has_permission(context, perm_name):
+    request = context.get('request')
+    if request and request.user:
+        return request.user.has_perm(perm_name)
+    return False

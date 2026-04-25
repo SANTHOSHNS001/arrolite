@@ -145,7 +145,49 @@
               
             </div>
           </div>
-      </div>
+      </div>  
+      {%if pending_invoice_list %} 
+        <div class="card">
+          <div class="card-header dash-card-header" style="display: flex;justify-content: space-between;">
+            <div>Pending Invoice</div>
+            <div class="float-right" style="font-size: small;">  <a href="{% url 'invoice_paid_report' %}">More</a></div>
+          </div>
+          <div class="card-body">
+          
+            <table class="table dataTable"> 
+              <thead> 
+                <tr>
+                  <th>S.No</th>
+                  <th>Invoice No</th>
+                  <th>Request Date</th>
+                  <th>Customer</th>
+                  <th>Customer Email</th>
+                  <th>Customer Email</th>
+                  <th>Invoice Amount</th>  
+                </tr>
+              </thead>
+              <tbody>
+                {% for invoice in pending_invoice_list %}
+                <tr >
+                  <td>{{forloop.counter}}</td>
+                  <td>{{invoice.invoice_number}}</td>
+                  <td>{{invoice.request_date}}</td>
+                  <td>{{invoice.customer}}</td>
+                  <td>{{invoice.customer_email}}</td>
+                  <td>{{invoice.total_cost}}</td> 
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center">No pending invoices</td>
+                </tr>
+              
+                {% endfor %}  
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+     {%endif%}
   </div>
        
 </section>
