@@ -37,8 +37,7 @@ ALLOWED_HOSTS = ['66.116.232.45', 'localhost', '127.0.0.1', '0.0.0.0']
 
  
 CSRF_TRUSTED_ORIGINS = [
-    "http://ararrolitesg.com",
-    "https://www.ararrolitesg.com",
+    ".sgprinter.info"
     "http://66.116.232.45",
     "https://66.116.232.45",
     "http://66.116.232.45:8000",
