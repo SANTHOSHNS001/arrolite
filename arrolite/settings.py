@@ -33,9 +33,7 @@ DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ['66.116.232.45', 'localhost', '127.0.0.1', '0.0.0.0']
-
- 
+ALLOWED_HOSTS = ['66.116.232.45', 'localhost', '127.0.0.1', '0.0.0.0',  ".sgprinter.info"] 
 CSRF_TRUSTED_ORIGINS = [
     ".sgprinter.info"
     "http://66.116.232.45",
