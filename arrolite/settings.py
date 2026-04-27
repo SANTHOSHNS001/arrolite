@@ -33,9 +33,10 @@ DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ['66.116.232.45', 'localhost', '127.0.0.1', '0.0.0.0',  ".sgprinter.info"] 
+ALLOWED_HOSTS = ['66.116.232.45', 'localhost', '127.0.0.1', '0.0.0.0',  ".sgprinter.info",".sgprinter.com"] 
 CSRF_TRUSTED_ORIGINS = [
-    ".sgprinter.info"
+    ".sgprinter.com",
+    ".sgprinter.info", 
     "http://66.116.232.45",
     "https://66.116.232.45",
     "http://66.116.232.45:8000",
@@ -48,8 +49,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://localhost:8000",
 ]
 # Essential for Railway/Proxies
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
 
 # Also helpful for security
 SESSION_COOKIE_SECURE = False
@@ -170,9 +171,12 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 WHITENOISE_MANIFEST_STRICT = False
 
 # Security (production)
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_SECURE = True
-# SECURE_BROWSER_XSS_FILTER = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# SECURE_HSTS_SECONDS = 315360000
-# SECURE_SSL_REDIRECT = not DEBUG
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_HSTS_SECONDS = 315360000
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_REFERRER_POLICY = "same-origin"  
