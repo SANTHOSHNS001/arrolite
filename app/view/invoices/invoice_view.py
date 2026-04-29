@@ -712,8 +712,13 @@ class InvoiceReportPdfView(View):
         canvas.setFillColor(colors.red)
         canvas.drawString(doc.leftMargin + 12.2 * cm, 2.0 * cm, "or")
 
-        # Scan Me image
-        scan_img_path = get_static_asset_path('ac-imgs', 'scan_me.png')
+        
+        # QR code
+        qr_img_path = get_static_asset_path('ac-imgs', 'qr_img.jpeg')
+        canvas.drawImage(qr_img_path, doc.leftMargin + 16 * cm, 0.6 * cm,
+                         width=3 * cm, height=3 * cm, mask='auto')
+
+        
         canvas.setFont("Helvetica", 8)
         canvas.setFillColor(colors.red)
         canvas.drawString(doc.leftMargin, 0.6 * cm, "This is a computer generated and no signature is required.")

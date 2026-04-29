@@ -227,9 +227,49 @@ class QuotationApprove(View):
         }
         return render(request, self.template, context)
     
-    
-  
- 
+class QuotationEditView(View):
+    template = "pages/quotation/quotation_edit.html"
+
+    def get(self, request, pk):
+        quotation = get_object_or_404(Quotation.active_objects, id=pk)
+        # Block viewers entirely
+        if not request.user.is_superuser and quotation.approver != request.user:
+            messages.error(request, "You don't have permission to edit this quotation.")
+            return redirect('quotation_list')
+        context = {
+            'quotation': quotation,
+            'customers': Customer.active_objects.all(),
+            'users': CustomUser.active_objects.all(),
+        }
+        return render(request, self.template, context)
+
+    def post(self, request, pk):
+        quotation = get_object_or_404(Quotation.active_objects, id=pk)
+        
+        if request.user.is_superuser:
+            # Full edit
+            quotation.invoice_number = request.POST.get('invoice_number', quotation.invoice_number)
+            quotation.description = request.POST.get('description', quotation.description)
+            customer_id = request.POST.get('customer')
+            if customer_id:
+                quotation.customer = get_object_or_404(Customer, id=customer_id)
+            approver_id = request.POST.get('approver')
+            if approver_id:
+                quotation.approver = get_object_or_404(CustomUser, id=approver_id)
+        
+        if request.user.is_superuser or quotation.approver == request.user:
+            # Status + discount
+            status = request.POST.get('status')
+            if status:
+                quotation.approver_status = status
+            discount = request.POST.get('discount')
+            if discount:
+                quotation.discount = discount
+        
+        quotation.save()
+        messages.success(request, "Quotation updated successfully.")
+        return redirect('quotation_list')
+
 class QuotationReportView(View):
     template = "pages/quotation/quotation_report.html"
     def get(self, request):

@@ -146,8 +146,7 @@
             <thead>
                 <tr>
                     <th>SNO</th>
-                    <th>Product</th>
-                    <th>Customer</th>
+                    <th>Product</th> 
                     <th>Unit Price</th>
                     <th>Quantity</th>
                     <th>Unit</th>
@@ -162,8 +161,7 @@
                 {% for quotationsitem in quotationsitems %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td>{{ quotationsitem.product.name }}</td>
-                    <td>{{ quotationsitem.product.name }}</td>
+                    <td>{{ quotationsitem.product.name }}</td> 
                     <td>${{ quotationsitem.product.price }}</td>
                     <td>{{ quotationsitem.quantity }}</td>
                     <td>{{ quotationsitem.unit.symbol }}</td>

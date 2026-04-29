@@ -39,6 +39,7 @@ from app.view.product.product_view import (
 )
 from app.view.quotation.quotation_view import (
     QuotationApprovalView,
+    QuotationEditView,
     QuotationListView,
     QuotationReportView,
     QuotationRequestView,
@@ -115,6 +116,7 @@ urlpatterns = [
         name="quotation_approval",
     ),
     path("quotation-report/", QuotationReportView.as_view(), name="quotation_report"),
+    path("quotation-edit/<int:pk>/", QuotationEditView.as_view(), name="quotation_edit"),
     # Customer Path
     path("customer-list/", CustomerList.as_view(), name="customer_list"),
     path("customer-edit/<int:pk>", CustomerUpdate.as_view(), name="customer_edit"),

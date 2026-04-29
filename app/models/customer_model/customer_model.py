@@ -124,8 +124,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin, CustomBase):
 
 
 class Customer(CustomBase):
-    email = models.EmailField(unique=True, verbose_name="Email Address")
-    phone_number = models.CharField(max_length=18, unique=True)
+    email = models.EmailField(unique=True, verbose_name="Email Address", blank=True, null=True)
+    phone_number = models.CharField(max_length=18, unique=True, blank=True, 
+        null=True)
     phone_prefix = models.CharField(max_length=5, blank=True, null=True)
     name = models.CharField(max_length=30, verbose_name="Name", blank=True, null=True)
     address = models.TextField(verbose_name="Address", blank=True, null=True)
