@@ -61,6 +61,10 @@ class Quotation(CustomBase):
             ("can_assign_approver_quotation", "Can assign approver"),
             ("can_manage_quotaion","Can manage Quotaions"),
             ("can_reports_quotaion","Can Report Quotaions"),
+            ("can_modify_quotaion","Can Modify Quotaions"),
+            ("can_delete_quotaion","Can Delete Quotaions"),
+            
+            
             
             
         ]

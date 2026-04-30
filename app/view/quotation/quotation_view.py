@@ -165,7 +165,6 @@ class QuotationRequestView(View):
         }
         return render(request, self.template, context)
  
- 
 class QuotationApprove(View):
     template = "pages/quotation/quotation_approval_form.html"
 
@@ -228,48 +227,125 @@ class QuotationApprove(View):
         return render(request, self.template, context)
     
 class QuotationEditView(View):
-    template = "pages/quotation/quotation_edit.html"
+    """
+    Edit an existing Quotation.
+    
+    Key behaviours
+    --------------
+    * GET  – loads the quotation with its items pre-filled.
+             The customer dropdown is locked to the quotation's own customer
+             (only that one customer is passed to the template).
+    * POST – validates header fields, re-extracts items using the same
+             counter-based naming as QuotationRequestView, then replaces
+             all QuotationItem rows atomically.
+    """
+    template = "pages/quotation/quotation_edit_form.html"
 
+    # ------------------------------------------------------------------ GET --
     def get(self, request, pk):
-        quotation = get_object_or_404(Quotation.active_objects, id=pk)
-        # Block viewers entirely
-        if not request.user.is_superuser and quotation.approver != request.user:
-            messages.error(request, "You don't have permission to edit this quotation.")
-            return redirect('quotation_list')
+        quotation = get_object_or_404(
+            Quotation.objects.prefetch_related("items"),
+            id=pk,
+        )
+        products      = Product.active_objects.all()
+        units         = Unit.active_objects.all()
+        existing_items = quotation.items.all()
+
         context = {
-            'quotation': quotation,
-            'customers': Customer.active_objects.all(),
-            'users': CustomUser.active_objects.all(),
+            "quotation":      quotation,
+            "products":       products,
+            "units":          units,
+            # ⚠️  Only the quotation's own customer — NOT all customers.
+            #     The template renders a single locked <option>.
+            "locked_customer": quotation.customer,
+            "existing_items": existing_items,
         }
         return render(request, self.template, context)
 
+    # ----------------------------------------------------------------- POST --
     def post(self, request, pk):
-        quotation = get_object_or_404(Quotation.active_objects, id=pk)
-        
-        if request.user.is_superuser:
-            # Full edit
-            quotation.invoice_number = request.POST.get('invoice_number', quotation.invoice_number)
-            quotation.description = request.POST.get('description', quotation.description)
-            customer_id = request.POST.get('customer')
-            if customer_id:
-                quotation.customer = get_object_or_404(Customer, id=customer_id)
-            approver_id = request.POST.get('approver')
-            if approver_id:
-                quotation.approver = get_object_or_404(CustomUser, id=approver_id)
-        
-        if request.user.is_superuser or quotation.approver == request.user:
-            # Status + discount
-            status = request.POST.get('status')
-            if status:
-                quotation.approver_status = status
-            discount = request.POST.get('discount')
-            if discount:
-                quotation.discount = discount
-        
-        quotation.save()
-        messages.success(request, "Quotation updated successfully.")
-        return redirect('quotation_list')
+        quotation = get_object_or_404(Quotation, id=pk)
 
+        requite_date = request.POST.get("requite_date")
+        description  = request.POST.get("description")
+
+        if not requite_date:
+            messages.error(request, "Request date is required.")
+            return self._render_with_context(request, quotation)
+
+        items = self._extract_valid_items(request.POST)
+
+        if not items:
+            messages.error(request, "At least one product must be added.")
+            return self._render_with_context(request, quotation)
+
+        # ✅ Update quotation header fields.
+        #    Customer is NOT changed on edit (locked to original).
+        quotation.request_date = requite_date
+        quotation.description  = description
+        quotation.save()
+
+        # ✅ Replace all items atomically: delete old → insert new.
+        with transaction.atomic():
+            quotation.items.all().delete()
+            for item in items:
+                QuotationItem.objects.create(quotation=quotation, **item)
+
+        messages.success(request, "Quotation updated successfully.")
+        return redirect("quotation_list")
+
+    # -------------------------------------------------------- helpers --------
+    def _extract_valid_items(self, post_data):
+        """
+        Identical extraction logic to QuotationRequestView.extract_valid_items.
+        Reads product_1/qty_1/width_1/height_1/unit_1/unit_cost_1/description_1
+        and increments until no product_N key is found.
+        """
+        items   = []
+        counter = 1
+        while True:
+            product_id = post_data.get(f"product_{counter}")
+            if not product_id:
+                break
+            try:
+                product   = Product.objects.get(id=product_id)
+                qty       = float(post_data.get(f"qty_{counter}",       0))
+                width     = float(post_data.get(f"width_{counter}",     0) or 0)
+                height    = float(post_data.get(f"height_{counter}",    0) or 0)
+                unit_cost = float(post_data.get(f"unit_cost_{counter}", 0) or 0)
+                unit_id   = post_data.get(f"unit_{counter}")
+                unit      = Unit.active_objects.get(symbol=unit_id) if unit_id else None
+                description = post_data.get(f"description_{counter}", "").strip()
+
+                if qty > 0:
+                    items.append({
+                        "product":     product,
+                        "quantity":    qty,
+                        "width":       width,
+                        "height":      height,
+                        "unit_cost":   unit_cost,
+                        "unit":        unit,
+                        "description": description,
+                    })
+            except (Product.DoesNotExist, Unit.DoesNotExist, ValueError):
+                pass  # skip invalid rows
+
+            counter += 1
+        return items
+
+    def _render_with_context(self, request, quotation):
+        """Re-render the form with validation errors."""
+        existing_items = quotation.quotationitem_set.all()
+        products       = Product.active_objects.all()
+        units          = Unit.active_objects.all()
+        context = {
+            "quotation":       quotation,
+            "products":        products,
+            "units":           units,
+            "locked_customer": quotation.customer,
+            "existing_items":  existing_items,
+        }
+        return render(request, self.template, context)
 class QuotationReportView(View):
     template = "pages/quotation/quotation_report.html"
     def get(self, request):

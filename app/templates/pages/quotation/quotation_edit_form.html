@@ -1,0 +1,563 @@
+{% extends 'base/container.html' %}
+{% load static %}
+{% block title %}Edit Quotation – {{ quotation.invoice_number }}{% endblock %}
+
+{% block style %}
+<style>
+.card-custom-header {
+    display: flex;
+    align-content: center;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 800;
+}
+.custom-row-data {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding: 0px 10px 0px 12px;
+    align-items: center;
+}
+.form-body {
+    padding: 12px;
+    background-color: #f4f4f4;
+    border-radius: 5px;
+}
+.group-icon-f {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.group-icon-f i {
+    background-color: #94939300;
+    font-size: 25px;
+}
+.har-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.action-btn {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+}
+/* Locked customer badge */
+.locked-customer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-weight: 600;
+    color: #495057;
+    width: 100%;
+}
+.locked-customer-badge i {
+    color: #6c757d;
+}
+</style>
+    <link href="{% static 'assets/advanced-datatable/media/css/demo_page.css' %}" rel="stylesheet" />
+    <link href="{% static 'assets/advanced-datatable/media/css/demo_table.css' %}" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'assets/data-tables/DT_bootstrap.css' %}" />
+{% endblock %}
+
+{% block body_content %}
+<div class="wrapper">
+
+    <div class="wrapper-title">
+        <div class="wrapper-content">Edit Quotation &mdash; {{ quotation.invoice_number }}</div>
+        <div class="wrapper-actions">
+            <button class="btn btn-secondary" style="display:inline-flex;gap:2px;" onclick="history.back()">
+                <i class="material-icons">arrow_circle_left</i>Back
+            </button>
+        </div>
+    </div>
+
+    <div class="card">
+        <form class="cmxform form-horizontal tasi-form" id="project-edit-form"
+              method="post" action="{% url 'quotation_edit' quotation.id %}">
+            {% csrf_token %}
+
+            {# ═══════════════════════ HEADER ═══════════════════════ #}
+            <div class="">
+                <div class="row">
+
+                    {# ── Customer: LOCKED to quotation's customer, not editable ── #}
+                    <div class="col-4">
+                        <label class="control-label">Customer</label>
+                         
+                        <div class="locked-customer-badge">
+                            <i class="fa fa-lock"></i>
+                            {{ locked_customer }}
+                        </div>
+                        {# Hidden so the view gets it if ever needed for validation #}
+                        <input type="hidden" name="user" value="{{ locked_customer.id }}" />
+                    </div>
+
+                    {# ── Request Date: pre-filled ── #}
+                    <div class="col-4">
+                        <label for="requite_date" class="control-label">Request Date</label>
+                        <input type="date" class="form-control" name="requite_date" required
+                               value="{{ quotation.request_date|date:'Y-m-d' }}" />
+                    </div>
+
+                </div>
+
+                {# ═══════════════════════ PRODUCT ROWS ═══════════════════════ #}
+                <div id="add-requests" class="form-body mt-2">
+
+                    {# ── Pre-populate existing QuotationItem rows ── #}
+                    {% for item in existing_items %}
+                    {% with forloop.counter as idx %}
+                    <div class="form-group request-row custom-row-data mb-2" data-index="{{ idx }}">
+
+                        {# Product select – pre-selected #}
+                        <select name="product_{{ idx }}"
+                                class="form-control select2 product-select"
+                                style="min-width:160px;">
+                            <option value="">Select Product</option>
+                            {% for product in products %}
+                                <option value="{{ product.id }}"
+                                    {% if product.id == item.product.id %}selected{% endif %}>
+                                    {{ product.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                        {# Qty – pre-filled #}
+                        <input type="number" step="any"
+                               class="form-control qty-input"
+                               name="qty_{{ idx }}"
+                               placeholder="Qty"
+                               value="{{ item.quantity }}"
+                               style="max-width:80px;" />
+
+                        {# Dimension row – visibility restored by JS on page load #}
+                        <div class="dimension-row" style="display:contents;">
+                            <input type="number" step="any"
+                                   class="form-control"
+                                   name="width_{{ idx }}"
+                                   placeholder="Width"
+                                   value="{{ item.width|default:'' }}"
+                                   style="max-width:90px;" />
+
+                            <input type="number" step="any"
+                                   class="form-control"
+                                   name="height_{{ idx }}"
+                                   placeholder="Height"
+                                   value="{{ item.height|default:'' }}"
+                                   style="max-width:90px;" />
+
+                            {# Unit select – pre-selected; changing this recalculates total #}
+                            <select class="form-control unit-select select2"
+                                    name="unit_{{ idx }}"
+                                    style="max-width:90px;">
+                                {% for unit in units %}
+                                    <option value="{{ unit.symbol }}"
+                                        {% if item.unit and unit.symbol == item.unit.symbol %}selected{% endif %}>
+                                        {{ unit.symbol }}
+                                    </option>
+                                {% empty %}
+                                    <option disabled>No Unit</option>
+                                {% endfor %}
+                            </select>
+
+                            {# Row description – pre-filled #}
+                            <input type="text"
+                                   class="form-control"
+                                   name="description_{{ idx }}"
+                                   placeholder="Description"
+                                   value="{{ item.description|default:'' }}" />
+                        </div>
+
+                        {# Total (readonly) – pre-filled from saved unit_cost #}
+                        <input type="text"
+                               class="form-control total-cost"
+                               name="unit_cost_{{ idx }}"
+                               readonly
+                               placeholder="Total"
+                               value="{{ item.unit_cost|default:'' }}"
+                               style="max-width:110px;" />
+
+                        {# Remove #}
+                        <a class="btn-sm remove-row" style="cursor:pointer;">
+                            <i class="text-danger fa fa-minus-square fa-lg"></i>
+                        </a>
+
+                    </div>
+                    {% endwith %}
+                    {% endfor %}
+
+                    {# "+" button appended by JS after last row #}
+
+                </div>{# /add-requests #}
+
+                {# ── Quotation-level description ── #}
+                <div class="mt-2 mb-2">
+                    <textarea name="description" class="form-control"
+                              placeholder="Enter notes...">{{ quotation.description|default:'' }}</textarea>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="history.back()">Cancel</button>
+                <button type="submit" id="edit-submit" class="btn btn-primary">
+                    <i class="fa fa-save"></i> Update Quotation
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>{# /wrapper #}
+{% endblock %}
+
+
+{% block js %}
+<script>
+$(document).ready(function () {
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 1.  counter starts AFTER the existing rows so new rows are numbered
+    //     product_(N+1), product_(N+2) … and the view's while-loop picks them up
+    // ─────────────────────────────────────────────────────────────────────────
+    let counter = {{ existing_items|length }};
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 2.  PRODUCTS_DATA – injected from Django (identical to create form)
+    // ─────────────────────────────────────────────────────────────────────────
+    const PRODUCTS_DATA = {
+        {% for product in products %}
+        "{{ product.id }}": {
+            name:        "{{ product.name|escapejs }}",
+            width:       {{ product.width|default:"null" }},
+            height:      {{ product.height|default:"null" }},
+            price:       {{ product.price|default:0 }},
+            unit:        "{{ product.unit.symbol|default:'mm' }}",
+            fixed_price: "{{ product.fixed_price }}"
+        },
+        {% endfor %}
+    };
+
+    // unit symbol → mm conversion factor
+    const UNIT_MAP = {
+        {% for u in units %}
+        "{{ u.symbol }}": {{ u.to_mm_factor }},
+        {% endfor %}
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 3.  HELPERS
+    // ─────────────────────────────────────────────────────────────────────────
+    function convertToMM(value, unitSymbol) {
+        const factor = UNIT_MAP[unitSymbol] || 1;
+        return value * factor;
+    }
+
+    /**
+     * calculateTotal(row)
+     * -------------------
+     * Exact same formula as the create form:
+     *   - fixed_price  → total = qty × price
+     *   - has dims     → total = qty × price × (requestedArea / productArea)
+     *                    where all measurements are converted to mm first
+     *
+     * Called:
+     *   • on page-load for every existing row  (restore saved total)
+     *   • on product change                    (product selected / swapped)
+     *   • on any change to qty / width / height / unit
+     */
+    function calculateTotal(row) {
+        const qty       = parseFloat(row.find('.qty-input').val()) || 0;
+        const productId = row.find('.product-select').val();
+        const product   = PRODUCTS_DATA[productId];
+        const dimRow    = row.find('.dimension-row');
+
+        if (!product || !product.price) {
+            row.find('.total-cost').val('');
+            return;
+        }
+
+        const hasDimensions = (
+            product.width  && product.width  !== "null" &&
+            product.height && product.height !== "null"
+        );
+        const isFixedPrice = String(product.fixed_price).toLowerCase() === "true";
+
+        if (hasDimensions && !isFixedPrice) {
+            // ── area-scale formula ──
+            dimRow.show();
+
+            const width  = parseFloat(row.find('input[name^="width_"]').val())  || 0;
+            const height = parseFloat(row.find('input[name^="height_"]').val()) || 0;
+
+            // Unit from the row's unit dropdown (user may have changed it)
+            const inputUnit   = row.find('.unit-select').val() || 'mm';
+            const productUnit = product.unit || 'mm';
+
+            const widthInMM         = convertToMM(width,         inputUnit);
+            const heightInMM        = convertToMM(height,        inputUnit);
+            const productWidthInMM  = convertToMM(product.width,  productUnit);
+            const productHeightInMM = convertToMM(product.height, productUnit);
+
+            const productArea   = (productWidthInMM * productHeightInMM) || 1;
+            const requestedArea = widthInMM * heightInMM;
+            const scale         = requestedArea / productArea;
+            const total         = qty * product.price * scale;
+
+            row.find('.total-cost').val(total.toFixed(2));
+
+        } else {
+            // ── fixed price OR no dimensions ──
+            if (isFixedPrice) {
+                dimRow.show();   // show dims for reference but they don't affect price
+            } else {
+                dimRow.hide();
+            }
+            const total = qty * product.price;
+            row.find('.total-cost').val(total.toFixed(2));
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 4.  PAGE-LOAD: restore visibility & totals for EXISTING rows
+    //     We do NOT trigger 'change' on the product-select because that would
+    //     reset width/height to product defaults.  We only re-apply visibility
+    //     rules and recalculate using the already-filled values.
+    // ─────────────────────────────────────────────────────────────────────────
+    $('.request-row').each(function () {
+        const row       = $(this);
+        const productId = row.find('.product-select').val();
+        if (!productId) return;
+
+        const product = PRODUCTS_DATA[productId];
+        if (!product)  return;
+
+        const hasDimensions = (
+            product.width  && product.width  !== "null" &&
+            product.height && product.height !== "null"
+        );
+        const isFixedPrice = String(product.fixed_price).toLowerCase() === "true";
+
+        // Restore dimension-row visibility
+        const dimRow = row.find('.dimension-row');
+        if (isFixedPrice) {
+            dimRow.show();
+            row.find('input[name^="width_"]').prop('disabled', true);
+            row.find('input[name^="height_"]').prop('disabled', true);
+            row.find('.unit-select').prop('disabled', true);
+        } else if (hasDimensions) {
+            dimRow.show();
+            row.find('input[name^="width_"]').prop('disabled', false);
+            row.find('input[name^="height_"]').prop('disabled', false);
+            row.find('.unit-select').prop('disabled', false);
+        } else {
+            dimRow.hide();
+        }
+
+        // Recalculate total using the pre-filled width/height/qty/unit values
+        calculateTotal(row);
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 5.  "+" BUTTON – always lives on the last row
+    // ─────────────────────────────────────────────────────────────────────────
+    function reattachAddButton() {
+        $('.add-request-btn').remove();
+        const lastRow = $('.request-row').last();
+        if (lastRow.length > 0) {
+            lastRow.append(`
+                <a href="#" class="btn-sm add-request-btn" id="add-request-btn">
+                    <i class="text-success fa fa-plus-square fa-lg"></i>
+                </a>
+            `);
+        } else {
+            // No rows at all – show centred prompt
+            $('#add-requests').html(`
+                <div class="msg-content" style="text-align:center;font-size:larger;font-weight:900;">
+                    <a href="#" id="add-request-btn" class="add-request-btn">
+                        Add Product <i class="fa fa-plus text-success"></i>
+                    </a>
+                </div>
+            `);
+        }
+    }
+    // Attach on initial load (after existing rows are rendered)
+    reattachAddButton();
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 6.  ADD NEW ROW
+    // ─────────────────────────────────────────────────────────────────────────
+    $(document).on('click', '#add-request-btn', function (e) {
+        e.preventDefault();
+
+        const productCount = Object.keys(PRODUCTS_DATA).length;
+        if ($('.request-row').length >= productCount) {
+            DisplayAlert(false, "Only " + productCount + " unique product rows allowed.");
+            return;
+        }
+
+        counter++;
+        $('.add-request-btn').remove();
+
+        const html = `
+        <div class="form-group request-row custom-row-data mb-2" data-index="${counter}">
+
+            <select name="product_${counter}"
+                    class="form-control select2 product-select"
+                    style="min-width:160px;">
+                <option value="">Select Product</option>
+                {% for product in products %}
+                    <option value="{{ product.id }}" data-price="{{ product.price }}">
+                        {{ product.name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <input type="number" step="any"
+                   class="form-control qty-input"
+                   name="qty_${counter}"
+                   placeholder="Qty"
+                   style="max-width:80px;" />
+
+            <div class="dimension-row" style="display:contents;">
+                <input type="number" step="any"
+                       class="form-control"
+                       name="width_${counter}"
+                       placeholder="Width"
+                       style="max-width:90px;" />
+                <input type="number" step="any"
+                       class="form-control"
+                       name="height_${counter}"
+                       placeholder="Height"
+                       style="max-width:90px;" />
+                <select class="form-control unit-select select2"
+                        name="unit_${counter}"
+                        style="max-width:90px;">
+                    {% for unit in units %}
+                        <option value="{{ unit.symbol }}">{{ unit.symbol }}</option>
+                    {% empty %}
+                        <option disabled>No Unit</option>
+                    {% endfor %}
+                </select>
+                <input type="text"
+                       class="form-control"
+                       name="description_${counter}"
+                       placeholder="Description" />
+            </div>
+
+            <input type="text"
+                   class="form-control total-cost"
+                   name="unit_cost_${counter}"
+                   readonly
+                   placeholder="Total"
+                   style="max-width:110px;" />
+
+            <a class="btn-sm remove-row" style="cursor:pointer;">
+                <i class="text-danger fa fa-minus-square fa-lg"></i>
+            </a>
+        </div>`;
+
+        $('#add-requests').append(html);
+        reattachAddButton();
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 7.  REMOVE ROW
+    // ─────────────────────────────────────────────────────────────────────────
+    $(document).on('click', '.remove-row', function () {
+        $(this).closest('.request-row').remove();
+        reattachAddButton();
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 8.  PRODUCT DROPDOWN CHANGE
+    //     When the user swaps a product → reset row to new product's defaults
+    //     (same as create form).  Does NOT affect other existing rows.
+    // ─────────────────────────────────────────────────────────────────────────
+    $(document).on('change', '.product-select', function () {
+        const row       = $(this).closest('.request-row');
+        const productId = $(this).val();
+
+        if (!productId) {
+            row.find('.qty-input').val('');
+            row.find('input[name^="width_"]').val('');
+            row.find('input[name^="height_"]').val('');
+            row.find('.total-cost').val('');
+            return;
+        }
+
+        // ── Duplicate check ──
+        let duplicate = false;
+        $('.product-select').not(this).each(function () {
+            if ($(this).val() === productId) { duplicate = true; return false; }
+        });
+        if (duplicate) {
+            DisplayAlert(false, "This product is already selected in another row.");
+            $(this).val('').trigger('change');
+            return;
+        }
+
+        const product = PRODUCTS_DATA[productId];
+        if (!product) return;
+
+        // Reset dimension inputs to product defaults
+        if (product.width && product.width !== "null") {
+            row.find('input[name^="width_"]').val(product.width);
+        } else {
+            row.find('input[name^="width_"]').val('');
+        }
+        if (product.height && product.height !== "null") {
+            row.find('input[name^="height_"]').val(product.height);
+        } else {
+            row.find('input[name^="height_"]').val('');
+        }
+
+        // Set unit to product's default unit
+        row.find('.unit-select').val(product.unit).trigger('change');
+
+        const isFixedPrice = String(product.fixed_price).toLowerCase() === "true";
+        const dimRow       = row.find('.dimension-row');
+
+        if (isFixedPrice) {
+            dimRow.hide();
+            row.find('input[name^="width_"]').prop('disabled', true);
+            row.find('input[name^="height_"]').prop('disabled', true);
+            row.find('.unit-select').prop('disabled', true);
+        } else {
+            dimRow.show();
+            row.find('input[name^="width_"]').prop('disabled', false);
+            row.find('input[name^="height_"]').prop('disabled', false);
+            row.find('.unit-select').prop('disabled', false);
+        }
+
+        calculateTotal(row);
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 9.  LIVE RECALCULATION
+    //     Triggered when qty / width / height / unit changes.
+    //     This is the KEY requirement: changing the unit on an existing row
+    //     immediately re-runs the area-scale formula with the new mm factor.
+    // ─────────────────────────────────────────────────────────────────────────
+    $(document).on(
+        'input change',
+        '.qty-input, .unit-select, input[name^="width_"], input[name^="height_"]',
+        function () {
+            calculateTotal($(this).closest('.request-row'));
+        }
+    );
+
+});
+</script>
+{% endblock %}

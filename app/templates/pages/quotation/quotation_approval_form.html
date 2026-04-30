@@ -110,7 +110,9 @@
         <button class="btn btn-outline-primary btn-action"   onclick="quotation_pdf_download({{ quotation.id }})">  <i class="material-icons">download</i>Download</button>
 
         <button id="edit-category-btn" data-bs-toggle="modal" data-bs-target="#pdf-config-create"class="btn btn-outline-danger btn-action" style="display: inline-flex;gap:2px;"><i class="material-icons">picture_as_pdf</i>PDF config</button>
-
+        {% if request.user.is_superuser %}
+        <a class="btn btn-outline-warning btn-action" href="{%url 'quotation_edit' quotation.id %}">  <i class="material-icons">edit</i>Edit</a>
+         {% endif %}
         <button class="btn btn-outline-secondary  btn-action"  onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
    </div>
@@ -146,13 +148,13 @@
             <thead>
                 <tr>
                     <th>SNO</th>
-                    <th>Product</th> 
+                    <th>Product</th>  
                     <th>Unit Price</th>
                     <th>Quantity</th>
                     <th>Unit</th>
                     <th>Width</th>
-                    <th>Height</th>
-                    {% comment %} <th>Status</th> {% endcomment %}
+                    <th>Height</th> 
+                    <th>Description</th>
                     <th>Total</th>
                 </tr>
             </thead>
@@ -161,12 +163,13 @@
                 {% for quotationsitem in quotationsitems %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td>{{ quotationsitem.product.name }}</td> 
+                    <td>{{ quotationsitem.product.name }}</td>  
                     <td>${{ quotationsitem.product.price }}</td>
                     <td>{{ quotationsitem.quantity }}</td>
                     <td>{{ quotationsitem.unit.symbol }}</td>
                     <td>{{ quotationsitem.width }}</td>
                     <td>{{ quotationsitem.height }}</td>
+                    <td>{{ quotationsitem.description }}</td> 
                     {% comment %} <td> 
                         <span class="badge btn-add">{{quotation.get_approver_status_full}}</span>
                     </td> {% endcomment %}

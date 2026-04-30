@@ -122,12 +122,12 @@
      
   <div class="card">  
     <div class="adv-table">
-        <table id ="quotation-table" class="display table table-bordered">
+        <table id ="quotation-table" class="display table table-bordered dataTable">
             <thead>
                 <tr>
                     <th>S.NO</th>
                     <th>Product</th>
-                    <th>Customer</th>
+                    <th>Description</th>  
                     <th>Unit Price</th>
                     <th>Quantity</th>
                     <th>Unit</th>
@@ -142,7 +142,7 @@
                 <tr>
                     <td>{{ forloop.counter }}</td>
                     <td>{{ quotationsitem.product.name }}</td>
-                    <td>{{ quotationsitem.product.name }}</td>
+                    <td>{{ quotationsitem.description }}</td> 
                     <td>${{ quotationsitem.product.price }}</td>
                     <td>{{ quotationsitem.quantity }}</td>
                     <td>{{ quotationsitem.unit.symbol }}</td>
@@ -153,7 +153,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6">No items available.</td>
+                    <td colspan="">No items available.</td>
                 </tr>
                 {% endfor %}
             </tbody>

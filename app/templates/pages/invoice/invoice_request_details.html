@@ -102,9 +102,11 @@
     <div class="wrapper-title">
     <div class="wrapper-content">Invoice Bill</div>
     <div class="wrapper-actions">
-                        <button class="btn btn-outline-info btn-action"   onclick="printPart({{ quotation.id }})">  <i class="material-icons">print</i>print</button>
+        <button class="btn btn-outline-info btn-action"   onclick="printPart({{ quotation.id }})">  <i class="material-icons">print</i>print</button> 
         <button class="btn btn-outline-primary btn-action"  onclick="quotation_pdf_download({{ quotation.id }})">  <i class="material-icons">download</i>download</button>
-
+        {% if request.user.is_superuser %}
+          <a class="btn btn-outline-warning btn-action" href="{%url 'invoice_edit' quotation.id %}">  <i class="material-icons">edit</i>Edit</a>
+         {% endif %}
         <button class="btn btn-outline-secondary btn-action"   onclick="history.back()">  <i class="material-icons">arrow_circle_left</i>Back</button>
     </div>
    </div>

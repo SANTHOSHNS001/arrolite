@@ -116,7 +116,7 @@ class InvoiceRequestView(View):
         messages.success(request, "Invoice created successfully.")
         return redirect('quotation_invoice')
 
-    def generate_quotation_number(self):
+    def generate_quotation_number(self): 
         last_quotation = Invoice.active_objects.order_by('-id').first()
 
         if last_quotation and last_quotation.invoice_number:
@@ -130,9 +130,10 @@ class InvoiceRequestView(View):
             new_number = 3000  # first ever starts at 3000
 
        
-        return f"Q{new_number:07d}"
+        return f"{new_number:07d}"
 
     def extract_valid_items(self, post_data):
+       
         items = []
         counter = 1
         while True:
@@ -1062,4 +1063,122 @@ class ProductReportInvoice(View):
         except Exception as e:
             return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
      
-        
+class InvoiceEditView(View):
+    """
+    Edit an existing Invoice.
+
+    Key behaviours
+    --------------
+    * GET  – loads the invoice with its items pre-filled.
+             The customer dropdown is LOCKED to the invoice's own customer
+             (only that one customer is passed to the template).
+    * POST – validates header fields, re-extracts items using the same
+             counter-based naming as InvoiceRequestView, then replaces
+             all InvoiceItem rows atomically.
+    """
+    template = "pages/invoice/invoice_edit_form.html"
+
+    # ------------------------------------------------------------------ GET --
+    def get(self, request, pk):
+        invoice = get_object_or_404(
+            Invoice.objects.prefetch_related("invoiceitems"),
+            id=pk,
+        )
+        products       = Product.active_objects.all()
+        units          = Unit.active_objects.all()
+        existing_items = invoice.invoiceitems.all()
+
+        context = {
+            "invoice":         invoice,
+            "products":        products,
+            "units":           units,
+            # ⚠️  Only the invoice's own customer — NOT all customers.
+            "locked_customer": invoice.customer,
+            "existing_items":  existing_items,
+        }
+        return render(request, self.template, context)
+
+    # ----------------------------------------------------------------- POST --
+    def post(self, request, pk):
+        invoice = get_object_or_404(Invoice, id=pk)
+
+        requite_date = request.POST.get("requite_date")
+        description  = request.POST.get("description")
+
+        if not requite_date:
+            messages.error(request, "Request date is required.")
+            return self._render_with_context(request, invoice)
+
+        items = self._extract_valid_items(request.POST)
+
+        if not items:
+            messages.error(request, "At least one product must be added.")
+            return self._render_with_context(request, invoice)
+
+        # ✅ Update invoice header.
+        #    Customer is NOT changed on edit (locked to original).
+        invoice.request_date = requite_date
+        invoice.description  = description
+        invoice.save()
+
+        # ✅ Replace all items atomically: delete old → insert new.
+        with transaction.atomic():
+            invoice.invoiceitems.all().delete()
+            for item in items:
+                InvoiceItem.objects.create(invoice=invoice, **item)
+
+        messages.success(request, "Invoice updated successfully.")
+        return redirect("quotation_invoice")
+
+    # -------------------------------------------------------- helpers --------
+    def _extract_valid_items(self, post_data):
+        """
+        Identical extraction logic to InvoiceRequestView.extract_valid_items.
+        Reads product_1/qty_1/width_1/height_1/unit_1/unit_cost_1/description_1
+        and increments until no product_N key is found.
+        """
+        items   = []
+        counter = 1
+        while True:
+            product_id = post_data.get(f"product_{counter}")
+            if not product_id:
+                break
+            try:
+                product     = Product.objects.get(id=product_id)
+                qty         = float(post_data.get(f"qty_{counter}",       0))
+                width       = float(post_data.get(f"width_{counter}",     0) or 0)
+                height      = float(post_data.get(f"height_{counter}",    0) or 0)
+                unit_cost   = float(post_data.get(f"unit_cost_{counter}", 0) or 0)
+                unit_id     = post_data.get(f"unit_{counter}")
+                description = post_data.get(f"description_{counter}", "")
+                unit        = Unit.active_objects.get(symbol=unit_id) if unit_id else None
+
+                if qty > 0:
+                    items.append({
+                        "product":     product,
+                        "quantity":    qty,
+                        "width":       width,
+                        "height":      height,
+                        "unit_cost":   unit_cost,
+                        "unit":        unit,
+                        "description": description,
+                    })
+            except (Product.DoesNotExist, Unit.DoesNotExist, ValueError):
+                pass  # skip invalid rows
+
+            counter += 1
+        return items
+
+    def _render_with_context(self, request, invoice):
+        """Re-render the form with validation errors."""
+        existing_items = invoice.invoiceitems.all()
+        products       = Product.active_objects.all()
+        units          = Unit.active_objects.all()
+        context = {
+            "invoice":         invoice,
+            "products":        products,
+            "units":           units,
+            "locked_customer": invoice.customer,
+            "existing_items":  existing_items,
+        }
+        return render(request, self.template, context)     

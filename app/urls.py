@@ -16,6 +16,7 @@ from app.view.expenses.expenses_view import (
 from app.view.home import HomePageView
 from app.view.invoices.invoice_view import (
     InvoiceDetails,
+    InvoiceEditView,
     InvoiceListView,
     InvoiceReportPdfView,
     InvoiceReportView,
@@ -106,6 +107,10 @@ urlpatterns = [
     path(
         "quotation-request/", QuotationRequestView.as_view(), name="quotation_request"
     ),
+     path(
+        "quotation/<int:pk>/edit/", QuotationEditView.as_view(), name="quotation_edit"
+    ),
+    
     path(
         "quotation-report-pdf/", QuotationReportPdfView.as_view(), name="quotation_test"
     ),
@@ -115,8 +120,7 @@ urlpatterns = [
         QuotationApprove.as_view(),
         name="quotation_approval",
     ),
-    path("quotation-report/", QuotationReportView.as_view(), name="quotation_report"),
-    path("quotation-edit/<int:pk>/", QuotationEditView.as_view(), name="quotation_edit"),
+    path("quotation-report/", QuotationReportView.as_view(), name="quotation_report"), 
     # Customer Path
     path("customer-list/", CustomerList.as_view(), name="customer_list"),
     path("customer-edit/<int:pk>", CustomerUpdate.as_view(), name="customer_edit"),
@@ -130,6 +134,7 @@ urlpatterns = [
     # Invoice List
     path("invoice-list/", InvoiceListView.as_view(), name="quotation_invoice"),
     path("invoice-request/", InvoiceRequestView.as_view(), name="invoice_request"),
+    path("invoice/<int:pk>/edit/", InvoiceEditView.as_view(), name="invoice_edit"), 
     path(
         "invoice-paid/",
         InvoiceRequestMarkPaidView.as_view(),

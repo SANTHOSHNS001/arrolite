@@ -85,6 +85,8 @@ class Invoice(CustomBase):
             ("can_manage_invoice","Can manage Invoice"),
             ("can_report_invoice","Can Report Invoice"),
             ("can_manager_access", "Manager: Can Access Invoice"),  
+            ("can_modify_invoice", "Can Modify Invoice"),
+            ("can_delete_invoice", "Can Delete Invoice"),
 
         ]
         ordering = ["-created_at"]
