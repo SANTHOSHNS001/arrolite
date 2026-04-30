@@ -96,12 +96,16 @@
                     <div class="col-4">
                         <label class="control-label">Customer</label>
                          
-                        <div class="locked-customer-badge">
-                            <i class="fa fa-lock"></i>
-                            {{ locked_customer }}
-                        </div>
-                        {# Hidden so the view gets it if ever needed for validation #}
-                        <input type="hidden" name="user" value="{{ locked_customer.id }}" />
+                        <select name="customer_id" class="form-control" id="">
+                            <option value="">Select Customer</option>
+                            {% for customer in customer_list %}
+                                <option value="{{ customer.id }}"
+                                    {% if customer.id == quotation.customer.id %}selected{% endif %}>
+                                    {{ customer.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        
                     </div>
 
                     {# ── Request Date: pre-filled ── #}

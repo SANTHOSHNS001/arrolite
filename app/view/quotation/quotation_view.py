@@ -250,6 +250,7 @@ class QuotationEditView(View):
         products      = Product.active_objects.all()
         units         = Unit.active_objects.all()
         existing_items = quotation.items.all()
+        customer_list = Customer.active_objects.all() 
 
         context = {
             "quotation":      quotation,
@@ -259,6 +260,7 @@ class QuotationEditView(View):
             #     The template renders a single locked <option>.
             "locked_customer": quotation.customer,
             "existing_items": existing_items,
+            "customer_list": customer_list,
         }
         return render(request, self.template, context)
 
@@ -268,6 +270,9 @@ class QuotationEditView(View):
 
         requite_date = request.POST.get("requite_date")
         description  = request.POST.get("description")
+        customer  = request.POST.get("customer_id")
+        if  customer:
+            quotation.customer = Customer.objects.get(id=customer)
 
         if not requite_date:
             messages.error(request, "Request date is required.")

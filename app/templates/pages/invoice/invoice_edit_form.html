@@ -96,12 +96,19 @@
                     {# ── Customer: LOCKED — shows badge, not a dropdown ── #}
                     <div class="col-4">
                         <label class="control-label">Customer</label>
-                        <div class="locked-customer-badge">
-                            <i class="fa fa-lock"></i>
-                            {{ locked_customer }}
-                        </div>
+                        
+                      <select name="customer_name" class="form-control">
+                            {% for customer in customer_list %}
+                                {% if customer.id == locked_customer.id %}
+                                    <option value="{{ customer.id }}" selected>{{ customer.name }}</option>
+                                {% else %}
+                                    <option value="{{ customer.id }}">{{ customer.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                            
                         {# Hidden input so POST still carries user id if needed #}
-                        <input type="hidden" name="user" value="{{ locked_customer.id }}" />
+                        
                     </div>
 
                     {# ── Request Date: pre-filled ── #}

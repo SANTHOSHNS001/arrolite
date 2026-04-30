@@ -1092,6 +1092,7 @@ class InvoiceEditView(View):
             "invoice":         invoice,
             "products":        products,
             "units":           units,
+            "customer_list":        Customer.active_objects.all() ,
             # ⚠️  Only the invoice's own customer — NOT all customers.
             "locked_customer": invoice.customer,
             "existing_items":  existing_items,
@@ -1104,19 +1105,23 @@ class InvoiceEditView(View):
 
         requite_date = request.POST.get("requite_date")
         description  = request.POST.get("description")
+        customer  = request.POST.get("customer_name")
+        
 
         if not requite_date:
             messages.error(request, "Request date is required.")
             return self._render_with_context(request, invoice)
 
-        items = self._extract_valid_items(request.POST)
-
+        items = self._extract_valid_items(request.POST) 
         if not items:
             messages.error(request, "At least one product must be added.")
             return self._render_with_context(request, invoice)
 
         # ✅ Update invoice header.
         #    Customer is NOT changed on edit (locked to original).
+        if customer:
+            invoice.customer = Customer.objects.get(id=customer)
+       
         invoice.request_date = requite_date
         invoice.description  = description
         invoice.save()
