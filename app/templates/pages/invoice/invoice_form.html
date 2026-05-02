@@ -52,6 +52,159 @@
     padding: 10px;
     border-radius: 5px;
 }
+.tip-box {
+    background: #f8f9fb;
+    border: 1px solid #d6dde5;
+}
+.tip-text {
+    color: #4f4f4f;
+    font-size: 0.92rem;
+    line-height: 1.4;
+}
+input[type="checkbox"] {
+    appearance: none;
+    background-color: #dfe1e4;
+    border-radius: 72px;
+    border-style: none;
+    flex-shrink: 0;
+    height: 20px;
+    margin: 0;
+    position: relative;
+    width: 40px;
+}
+input[type="checkbox"]::before {
+    bottom: -6px;
+    content: "";
+    left: -6px;
+    position: absolute;
+    right: -6px;
+    top: -6px;
+}
+input[type="checkbox"]::before {
+    bottom: -6px;
+    content: "";
+    left: -6px;
+    position: absolute;
+    right: -6px;
+    top: -6px;
+}
+input[type="checkbox"],
+input[type="checkbox"]::after {
+    transition: all 100ms ease-out;
+}
+input[type="checkbox"]::after {
+    background-color: #fff;
+    border-radius: 50%;
+    content: "";
+    height: 14px;
+    left: 3px;
+    position: absolute;
+    top: 3px;
+    width: 14px;
+}
+input[type="checkbox"] {
+    cursor: default;
+}
+input[type="checkbox"]:hover {
+    background-color: #c9cbcd;
+    transition-duration: 0s;
+}
+input[type="checkbox"]:checked {
+    background-color: #6e79d6;
+}
+input[type="checkbox"]:checked::after {
+    background-color: #fff;
+    left: 22px;
+}
+input[type="checkbox"]:checked:hover {
+    background-color: #535db3 !important;
+    transition-duration: 0s;
+}
+input[type="checkbox"]:checked:hover::after {
+    background-color: #fff;
+    left: 22px;
+}
+input[type="checkbox"]:focus:not(.focus-visible) {
+    outline: 0;
+}
+
+label.text-center.tb-checkbox span {
+    margin-left: 10px;
+    vertical-align: top;
+}
+@media (max-width: 768px) {
+    .wrapper-title {
+        flex-direction: column;
+        text-align: center;
+    }
+    .wrapper-actions {
+        margin-top: 10px;
+    }
+    .custom-row-data {
+        flex-wrap: wrap;
+    }
+    .custom-row-data > * {
+        min-width: 100%;
+    }
+    .tip-box {
+        width: 100%;
+    }
+    .table-header-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    .table-header-cell {
+        width: 100% !important;
+        flex: none !important;
+    }
+}
+.table-header-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding: 12px 10px;
+    background-color: #e8eef6;
+    border-radius: 8px;
+    font-weight: 600;
+    border-bottom: 2px solid #d6dde5;
+    margin-bottom: 10px;
+}
+.table-header-cell {
+    font-size: 0.9rem;
+    color: #333;
+    padding: 8px 5px;
+    flex: 0 0 auto;
+}
+.table-header-cell.col-switch {
+    
+    text-align: center;
+}
+.table-header-cell.col-product {
+    flex: 0 0 150px;
+}
+.table-header-cell.col-qty {
+    width: 80px;
+}
+.table-header-cell.col-width {
+    width: 80px;
+}
+.table-header-cell.col-height {
+    width: 80px;
+}
+.table-header-cell.col-unit {
+    width: 80px;
+}
+.table-header-cell.col-description {
+    flex: 1;
+    min-width: 120px;
+}
+.table-header-cell.col-total {
+    width: 100px;
+}
+.table-header-cell.col-action {
+   
+    text-align: center;
+}
 </style>
     <link href="{% static 'assets/advanced-datatable/media/css/demo_page.css'%}" rel="stylesheet" />
     <link href="{% static 'assets/advanced-datatable/media/css/demo_table.css'%}" rel="stylesheet" />
@@ -75,7 +228,7 @@
                 {% csrf_token %}
                 <div class=" ">
                     <div class="row">
-                        <div class="col-4">
+                        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
                             <label class="" for="inlineFormInput">Customer</label>
                             <div class="group-icon-f">
                             <select class="form-control select2" id="category" name="user">
@@ -89,16 +242,35 @@
                                 <i class="fa fa-user"></i></a>
                             </div>
                         </div>
-                        <div class="col-4">
+                        <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
                             <label for="requite_date" class="control-label ">Request Date</label>
                             <input type="date" class="form-control" name="requite_date" required/>
                         </div>  
+                         <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                            <div class="tip-box p-3 rounded bg-light border">
+                                <strong>Tip:</strong>
+                                <p class="tip-text mb-0">
+                                    Enable the switch in each product row to enter a custom total. When the switch is off, total price is calculated automatically.
+                                </p>
+                            </div>
+                         </div>
                             
                         
                     </div>   
                     <div class="row mt-2">               
                 </div>
                     <div id="add-requests" class="form-body mt-2">
+                         <div class="table-header-row">
+                                <div class="table-header-cell col-switch">Manual</div>
+                                <div class="table-header-cell col-product">Product</div>
+                                <div class="table-header-cell col-qty">Qty</div>
+                                <div class="table-header-cell col-width">Width</div>
+                                <div class="table-header-cell col-height">Height</div>
+                                <div class="table-header-cell col-unit">Unit</div>
+                                <div class="table-header-cell col-description">Description</div>
+                                <div class="table-header-cell col-total">Total</div>
+                                <div class="table-header-cell col-action">Action</div>
+                            </div> 
                     <div class="msg-content" style="
                         text-align: center;
                         font-size: larger;
@@ -296,6 +468,10 @@ function calculateTotal(row) {
 
         const html = `
         <div class="form-group request-row custom-row-data mb-0" data-index="${counter}">
+            <div style="width: 60px; text-align: center;">
+                <input type="hidden" name="is_manual_${counter}" value="0">
+                <input class="form-check-input" type="checkbox" name="custom_total_${counter}" value="1" id="custom_total_${counter}">
+            </div>
             <select name="product_${counter}" class="select2 form-control product-select">
                 <option value="">Select Product</option>
                 {% for product in products %}
@@ -435,6 +611,17 @@ function calculateTotal(row) {
     // On quantity/width/height/unit input change, recalculate
     $(document).on('input change', '.qty-input, .unit-select, input[name^="width_"], input[name^="height_"]', function () {
         calculateTotal($(this).closest('.request-row'));
+    });
+    $(document).on('change', 'input[name^="custom_total_"]', function() {
+        const row = $(this).closest('.request-row');
+        const totalInput = row.find('.total-cost');
+        if ($(this).is(':checked')) {
+            totalInput.prop('readonly', false);
+        } else {
+            totalInput.prop('readonly', true);
+            // Recalculate total if unchecked
+            calculateTotal(row);
+        }
     });
 });
      

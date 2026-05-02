@@ -155,31 +155,15 @@ class InvoiceItem(CustomBase):  # Singular name is conventional
     unit = models.ForeignKey("Unit", on_delete=models.SET_NULL, null=True, blank=True)
     width = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     height = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    auto_derivation = models.BooleanField(default=True, help_text="If true, total price is calculated automatically based on quantity and unit cost. If false, user can enter a custom total price.")
     description = models.TextField(null=True, blank=True)
-    
+     
     class Meta:
             ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.product.name}-status={self.is_deleted}"
-    @property
-    def to_json(self):
-        return {
-            "id": self.id,
-            "product_name": self.product.name,
-            "product_code": self.product.code if hasattr(self.product, "code") else "",
-            "quantity": self.quantity,
-            "unit_cost": float(self.unit_cost or 0),
-            "total_cost": float((self.unit_cost or 0) * self.quantity),
-            "unit": self.unit.symbol if self.unit else None,
-            "width": float(self.width or 0),
-            "height": float(self.height or 0),
-            "description": self.description,
-        }
-        
-        
-        
-        
+   
 def default_report_config():
     return {
         "show_design_note": True,

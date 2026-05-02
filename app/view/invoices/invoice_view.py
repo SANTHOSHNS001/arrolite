@@ -141,13 +141,15 @@ class InvoiceRequestView(View):
             if not product_id:
                 break
             try:
+                is_manual_mode = post_data.get(f'custom_total_{counter}') == 'on'
+                auto_derivation = not is_manual_mode
                 product = Product.objects.get(id=product_id)
                 qty = float(post_data.get(f'qty_{counter}', 0))
                 width = float(post_data.get(f'width_{counter}', 0) or 0)
                 height = float(post_data.get(f'height_{counter}', 0) or 0)
                 unit_cost = float(post_data.get(f'unit_cost_{counter}', 0) or 0)
                 unit_id = post_data.get(f'unit_{counter}')    
-                description = post_data.get(f'description_{counter}')    
+                description = post_data.get(f'description_{counter}')  
                 unit = Unit.active_objects.get(symbol=unit_id) if unit_id else None
 
                 if qty > 0:
@@ -159,7 +161,7 @@ class InvoiceRequestView(View):
                         'unit_cost': unit_cost,
                         'unit': unit,
                         'description': description,
-                         
+                        'auto_derivation': auto_derivation
                     })
             except (Product.DoesNotExist, Unit.DoesNotExist, ValueError):
                 pass  # skip this row if anything is invalid

@@ -124,6 +124,8 @@ class QuotationItem(CustomBase):  # Singular name is conventional
     width = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     height = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
+    auto_derivation = models.BooleanField(default=True, help_text="If true, total price is calculated automatically based on quantity and unit cost. If false, user can enter a custom total price.")
+
     
     class Meta:
             ordering = ["-created_at"]
