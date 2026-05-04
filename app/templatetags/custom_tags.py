@@ -15,6 +15,8 @@ def get_sidebar_menu():
       return [
         {"url": "home", "name": "Dashboard", "icon": "fa fa-dashboard", "class": "sidebar", "parent": None},  
         {"perm": "app.can_manager_access", "name": "Management Access", "icon": "fa fa-key", "permission_only": True, "parent": None},
+        {"perm": "app.can_modify_discount_quotations", "name": "Modify Discount", "icon": "fa fa-key", "permission_only": True, "parent": None},
+        
 
         {"url": "user_list", "name": "Users", "icon": "fa fa-users", "perm": "app.client_role_access", "parent": None},
         {"url": "category_list", "name": "Category", "icon": "fa fa-list", "perm": "app.manage_category", "parent": None},

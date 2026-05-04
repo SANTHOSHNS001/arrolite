@@ -59,14 +59,13 @@ class Quotation(CustomBase):
         permissions = [
             ("can_approve_quotation", "Can approve quotation"),
             ("can_assign_approver_quotation", "Can assign approver"),
-            ("can_manage_quotaion","Can manage Quotaions"),
-            ("can_reports_quotaion","Can Report Quotaions"),
-            ("can_modify_quotaion","Can Modify Quotaions"),
-            ("can_delete_quotaion","Can Delete Quotaions"),
+            ("can_manage_quotations", "Can manage Quotations"),
+            ("can_reports_quotations","Can Report Quotations"),
+            ("can_modify_quotations","Can Modify Quotations"),
+            ("can_delete_quotations","Can Delete Quotations"),
+            ("can_modify_discount_quotations","Can Modify Discount Quotations"),
             
-            
-            
-            
+              
         ]
         ordering = ["-created_at"]
     def __str__(self):

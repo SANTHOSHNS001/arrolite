@@ -175,56 +175,35 @@ class QuotationApprove(View):
             'quotation': quotation,
             'quotationsitems': quotation_items,
         }
-        return render(request, self.template, context)
-
+        return render(request, self.template, context) 
     def post(self, request, pk):
         quotation = get_object_or_404(Quotation, id=pk)
         discount = request.POST.get('discount')
         status = request.POST.get('status')
-        # Validation
-        if not status:
-            quotation_items = QuotationItem.objects.filter(quotation=quotation)
-            context = {
-                'quotation': quotation,
-                'quotationsitems': quotation_items,
-                'error': 'Status is required.',
-            }
-            return render(request, self.template, context)
 
-        # Handle discount input
+        if not status:
+            messages.error(request, "Status is required.")
+            return redirect(request.path)
+
         if discount:
             try:
                 discount_value = float(discount)
                 if not (0 <= discount_value <= 100):
-                    context = {
-                        'quotation': quotation,
-                        'quotationsitems': QuotationItem.objects.filter(quotation=quotation),
-                        'error': 'Discount must be between 0 and 100.',
-                    }
-                    return render(request, self.template, context)
+                    messages.error(request, "Discount must be between 0 and 100.")
+                    return redirect(request.path)
                 quotation.discount = discount_value
             except ValueError:
-                context = {
-                    'quotation': quotation,
-                    'quotationsitems': QuotationItem.objects.filter(quotation=quotation),
-                    'error': 'Invalid discount format.',
-                }
-                return render(request, self.template, context)
+                messages.error(request, "Invalid discount format.")
+                return redirect(request.path)
 
-        # Approver permission check
-        if quotation.approver == request.user and quotation.approver_status == 'pending':
+        if quotation.approver == request.user or request.user.has_perm("app.can_modify_discount_quotations"):
             quotation.approver_status = status
             quotation.save()
-            return redirect('quotation_waiting')  # ✅ Use correct URL name
+            messages.success(request, "Quotation updated successfully.")
+            return redirect('quotation_waiting')
 
-        # Unauthorized access
-        quotation_items = QuotationItem.objects.filter(quotation=quotation)
-        context = {
-            'quotation': quotation,
-            'quotationsitems': quotation_items,
-            'error': 'You are not allowed to update this quotation.',
-        }
-        return render(request, self.template, context)
+        messages.error(request, "You are not allowed to update this quotation.")
+        return redirect(request.path)
     
 class QuotationEditView(View):
     """
