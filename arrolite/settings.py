@@ -31,33 +31,25 @@ DATABASE_NAME = os.environ.get("DATABASE_NAME")
 DATABASE_USER = os.environ.get("DATABASE_USER")
 DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 
+DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t") 
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(",")  # Comma-separated list in .env
 
-DEBUG = os.environ.get("DEBUG", "False") == "True"
-ALLOWED_HOSTS = ['66.116.232.45', 'localhost', '127.0.0.1', '0.0.0.0','.sgprinter.com','sgprinter.com',
-    'www.sgprinter.com',] 
-CSRF_TRUSTED_ORIGINS = [
-    'https://sgprinter.com',
-    'https://www.sgprinter.com',
-    'https://*.sgprinter.com', 
-    'https://*.www.sgprinter.com',
-    'http://66.116.232.45',
-    'https://66.116.232.45',
-    "http://66.116.232.45",
-    "https://66.116.232.45",
-    "http://66.116.232.45:8000",
-    "https://66.116.232.45:8000",
-    "http://localhost",
-    "https://localhost",
-    "http://127.0.0.1",
-    "https://127.0.0.1",
-    "http://localhost:8000",
-    "https://localhost:8000",
-]
+CSRF_FAILURE_VIEW = 'app.view.errors.custom_errors.custom_403_csrf'
+#     'www.sgprinter.com',] 
+# CSRF_TRUSTED_ORIGINS = [
+     
+#     "http://localhost",
+ 
+#     "http://127.0.0.1", 
+#     "http://localhost:8000",
+#     "https://localhost:8000",
+# ]\
 # Essential for Railway/Proxies
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 
 # Also helpful for security
+SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
  
@@ -117,21 +109,47 @@ DATABASES = {
             "PORT": os.environ.get("DB_PORT", "3306"),
         }
     }
-# if os.environ.get('MYSQL_URL'):
-#     DATABASES = {
-#         'default': dj_database_url.config(default=os.environ.get('MYSQL_URL'))
-#     }
-# else:
-#     DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.mysql",
-#             "NAME": os.environ.get("DATABASE_NAME", "your_local_db_name"),
-#             "USER": os.environ.get("DATABASE_USER", "root"),
-#             "PASSWORD": os.environ.get("DATABASE_PASSWORD", ""),
-#             "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
-#             "PORT": os.environ.get("DB_PORT", "3306"),
-#         }
-#     }
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '{levelname} {asctime} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/django.log',
+            'maxBytes': 1024 * 1024 * 15,  # 15MB
+            'backupCount': 10,
+            'formatter': 'simple',
+        },
+        'error_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/django_errors.log',
+            'maxBytes': 1024 * 1024 * 15,
+            'backupCount': 10,
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+        'django.request': {
+            'handlers': ['error_file'],
+            'level': 'ERROR',
+        },
+    },
+}
 AUTH_USER_MODEL = 'app.CustomUser'
  
 AUTH_PASSWORD_VALIDATORS = [

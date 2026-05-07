@@ -102,10 +102,9 @@
 </div>
 </div>
 {% endblock %}
-{% block js %}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link rel="stylesheet" type="text/css" href="bower_components/sweetalert2/dist/sweetalert2.min.css">
-<script>
+{% block js %}  
+<script src="{% static 'js/sweetalert2@11.js'%}"></script> 
+ <script>
 function confirmUserUpdate() {
     Swal.fire({
         title: 'Are you sure?',

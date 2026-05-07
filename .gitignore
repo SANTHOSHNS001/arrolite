@@ -16,7 +16,7 @@ env/
 
 # Git
 .gitignore
-staticfiles/assets
+staticfiles/
 media/receipts
 app/migrations
 app/migrations/*.py

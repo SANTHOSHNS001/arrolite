@@ -1,3 +1,4 @@
+ {% load static %}
  <style>
     .custom-message{
         position: fixed;
@@ -113,8 +114,8 @@
     </div>
   </div>
 <!--Custom js alert End-->
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> 
+ 
+<script src="{% static 'js/jquery-3.6.0.min.js'%}"></script> 
 <!-- Auto-close alert after 5 seconds -->
   <script>
     $(document).ready(function () {
@@ -187,12 +188,8 @@
     return "An unknown error occurred.";
 }
 
-</script> 
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
- 
-
-
+</script>  
+<script src="{% static 'js/sweetalert2@11.js'%}"></script>  
 <script>
 function confirmDeletedUpdate(url) {
     Swal.fire({

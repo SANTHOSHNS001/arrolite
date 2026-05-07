@@ -1,6 +1,7 @@
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+from app.view.errors.custom_errors import custom_400, custom_403_csrf, custom_404, custom_500
 from app.view.expenses.expenses_download import ExpenseExportView
 from app.view.expenses.expenses_view import (
     ExpensesCreate,
@@ -202,6 +203,12 @@ urlpatterns = [
     path("iso-list", ISOSizeListView.as_view(), name="iso_list"),
     path("iso-edit/<int:pk>", ISOSizeEditView.as_view(), name="iso_edit"),
     path("iso-delete/<int:pk>", ISOSizeDelete.as_view(), name="iso_delete"),
+     
+    # test errors
+    path("test-400/", custom_400, name="test_400"),
+    path("test-403/", custom_403_csrf, name="test_403"),
+    path("test-404/", custom_404, name="test_404"),
+    path("test-500/", custom_500, name="test_500"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,229 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied - 403</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #f59e0b;
+            --primary-dark: #d97706;
+            --gray-dark: #1f2937;
+            --gray-light: #f9fafb;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #fef3c7 0%, var(--gray-light) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .error-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            padding: 60px 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            animation: slideUp 0.6s ease-out;
+            border-left: 5px solid var(--primary);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-icon {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 25px;
+            background: #fef3c7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 45px;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+
+        .error-code {
+            font-size: 100px;
+            font-weight: 900;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);
+        }
+
+        h1 {
+            font-size: 32px;
+            color: var(--gray-dark);
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .error-message p {
+            font-size: 16px;
+            color: #6b7280;
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+
+        .permission-info {
+            background: #fef3c7;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-align: left;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .permission-info strong {
+            color: var(--primary-dark);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--gray-light);
+            color: var(--gray-dark);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+            transform: translateY(-2px);
+        }
+
+        .lock-icon {
+            position: fixed;
+            opacity: 0.05;
+            font-size: 300px;
+            pointer-events: none;
+            color: var(--primary);
+            top: -50px;
+            right: -50px;
+        }
+
+        @media (max-width: 600px) {
+            .error-container {
+                padding: 40px 25px;
+            }
+
+            .error-code {
+                font-size: 70px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .error-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .lock-icon {
+                font-size: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="lock-icon">🔒</div>
+
+    <div class="error-container">
+        <div class="error-icon">⛔</div>
+        <div class="error-code">403</div>
+        <div class="error-message">
+            <h1>Access Denied</h1>
+            <p>You don't have permission to access this resource.</p>
+        </div>
+        
+        {% if reason %}
+        <div class="permission-info">
+            <strong>Reason:</strong>
+            {{ reason }}
+        </div>
+        {% endif %}
+
+        <div class="permission-info">
+            <strong>Why am I seeing this?</strong>
+            This could be because you:
+            <ul style="margin-left: 20px; margin-top: 8px;">
+                <li>Don't have the required permissions</li>
+                <li>Need to be logged in</li>
+                <li>Provided an invalid security token</li>
+            </ul>
+        </div>
+
+        <div class="error-actions">
+            <a href="/" class="btn btn-primary">← Go Home</a>
+            <a href="/login/" class="btn btn-secondary">🔑 Login</a>
+        </div>
+    </div>
+</body>
+</html>
