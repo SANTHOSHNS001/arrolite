@@ -32,19 +32,12 @@ DATABASE_USER = os.environ.get("DATABASE_USER")
 DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t") 
+# Allow all hosts during development, but in production, specify allowed hosts in the .env file as a comma-separated list.
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(",")  # Comma-separated list in .env
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",")  # Comma-separated list in .env
 
 CSRF_FAILURE_VIEW = 'app.view.errors.custom_errors.custom_403_csrf'
-#     'www.sgprinter.com',] 
-# CSRF_TRUSTED_ORIGINS = [
-     
-#     "http://localhost",
  
-#     "http://127.0.0.1", 
-#     "http://localhost:8000",
-#     "https://localhost:8000",
-# ]\
-# Essential for Railway/Proxies
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 
@@ -110,6 +103,11 @@ DATABASES = {
         }
     }
 # Logging Configuration
+# Logging Setup
+LOG_DIR = BASE_DIR / 'logs'
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+    
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
