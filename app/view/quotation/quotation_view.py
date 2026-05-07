@@ -196,7 +196,7 @@ class QuotationApprove(View):
                 messages.error(request, "Invalid discount format.")
                 return redirect(request.path)
 
-        if quotation.approver == request.user or request.user.has_perm("app.can_modify_discount_quotations"):
+        if request.user.has_perm("app.can_modify_discount_quotations"):
             quotation.approver_status = status
             quotation.save()
             messages.success(request, "Quotation updated successfully.")
