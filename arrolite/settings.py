@@ -34,7 +34,23 @@ DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t") 
 # Allow all hosts during development, but in production, specify allowed hosts in the .env file as a comma-separated list.
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(",")  # Comma-separated list in .env
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",")  # Comma-separated list in .env
+# CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",") if origin.strip()]  # Comma-separated list in .env
+
+raw_origins = os.environ.get(
+    "CSRF_TRUSTED_ORIGINS", 
+    "http://localhost:3000,http://localhost:8000"
+).split(",")
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in raw_origins if origin.strip()
+]
+
+# Manually adding your production domains with the required schemes:
+CSRF_TRUSTED_ORIGINS += [
+    'https://sgprinter.com',
+    'https://www.sgprinter.com',
+    'http://66.116.232.45', # Use https if you have SSL setup for the IP
+]
 
 CSRF_FAILURE_VIEW = 'app.view.errors.custom_errors.custom_403_csrf'
  
