@@ -135,19 +135,11 @@
 			<div class="Value-part">{{quotation.approver.get_full_name}}</div>
 		</div>
 	</div>  
-      
-        {% comment %} <div class="col-lg-1 col-sm-2">
-            <div class="card detail-card">
-                <div class="detail-icon">  
-                    <i class="material-icons" onclick="quotation_pdf_download({{ quotation.id }})">download</i>
-                </div>
-                
-            </div>
-        </div> {% endcomment %}
+ 
            
 </div>
   <div class="card" id="printSection">
-        <table id ="invoice-table" class="display table table-bordered">
+        <table id ="invoice-table" class="display table table-bordered dataTable">
             <thead>
                 <tr>
                     <th>SNO</th>

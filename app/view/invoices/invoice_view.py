@@ -334,7 +334,7 @@ class InvoiceRequestDetails(View):
                 # ── Discount (managers only) ─────────────────────────────
                 new_discount_amt = Decimal("0.00")
  
-                if discount_str not in (None, ""):
+                if discount_str not in (None, "") and new_discount_amt < 0:
                     if not request.user.has_perm("app.can_manager_access"):
                         raise ValidationError("You are not allowed to set a discount.")
  
