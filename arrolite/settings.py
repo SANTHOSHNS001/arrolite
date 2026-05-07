@@ -33,9 +33,16 @@ DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t") 
 # Allow all hosts during development, but in production, specify allowed hosts in the .env file as a comma-separated list.
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(",")  # Comma-separated list in .env
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get("ALLOWED_HOSTS", "localhost").split(",") if host.strip()]  # Comma-separated list in .env
 # CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",") if origin.strip()]  # Comma-separated list in .env
-
+print("ALLOWED_HOSTS:", ALLOWED_HOSTS)
+ALLOWED_HOSTS += [
+    'sgprinter.com',
+    'www.sgprinter.com',
+    '66.116.232.45', # Use https if you have SSL setup for the IP
+    '127.0.0.1',
+    'localhost',
+]
 raw_origins = os.environ.get(
     "CSRF_TRUSTED_ORIGINS", 
     "http://localhost:3000,http://localhost:8000"
