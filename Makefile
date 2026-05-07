@@ -1,8 +1,12 @@
+BRANCH = main
 # Stop old Gunicorn and start again
 run:
 	pkill gunicorn || true
 	gunicorn arrolite.wsgi:application --bind 0.0.0.0:8000
 
+# Pull latest code from GitHub
+pull:
+	git pull origin $(BRANCH)
 # Create and apply database migrations
 migrate:
 	python3 manage.py makemigrations
@@ -29,7 +33,7 @@ restart_nginx:
 	systemctl restart nginx
 
 # Full deploy (FIXED)
-deploy: migrate static clear restart_gunicorn restart_nginx
+deploy: pull migrate static clear restart_gunicorn restart_nginx
 
 # Backup database
 backup:
