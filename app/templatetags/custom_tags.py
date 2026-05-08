@@ -22,9 +22,9 @@ def get_sidebar_menu():
         {"url": "category_list", "name": "Category", "icon": "fa fa-list", "perm": "app.manage_category", "parent": None},
         {"url": "sub_category_list", "name": "Sub-Category", "icon": "fa fa-sitemap", "perm": "app.manage_subcategory", "parent": None},
         # Setting
-        {"url": "permission_setting", "name": "Permission", "icon": "fa fa-cog", "perm": "app.client_manege_access", "parent": "Setting"},
-        {"url": "unit_list", "name": "Unit", "icon": "fa fa-ruler", "perm": "app.manage_unit", "parent": "Setting"},
-        # {"url": "iso_list", "name": "ISO-Size", "icon": "fa fa-cubes", "perm": "app.can_manage_isosize", "parent": "Setting"},
+        {"url": "permission_setting", "name": "Permission", "icon": "fa fa-cog", "perm": "app.client_manege_access", "parent": "Settings"},
+        {"url": "unit_list", "name": "Unit", "icon": "fa fa-ruler", "perm": "app.manage_unit", "parent": "Settings"},
+        # {"url": "iso_list", "name": "ISO-Size", "icon": "fa fa-cubes", "perm": "app.can_manage_isosize", "parent": "Settings"},
         # Product (single menu, not grouped)
         {"url": "product_list", "name": "Product", "icon": "fa fa-shopping-cart", "perm": "app.can_manage_product", "parent": "Product"},
         {"url": "invoice_product_report", "name": "Product-Report", "icon": "fa fa-shopping-cart", "perm": "app.can_report_invoice", "parent": "Product"},
@@ -50,6 +50,27 @@ def get_sidebar_menu():
 @register.filter
 def has_perm(user, perm_name):
     return user.has_perm(perm_name)
+
+
+@register.simple_tag(takes_context=True)
+def current_url_name(context):
+    request = context.get('request')
+    if request is None:
+        return ''
+    resolver_match = getattr(request, 'resolver_match', None)
+    if resolver_match:
+        return resolver_match.url_name or ''
+    return ''
+
+
+@register.filter
+def menu_is_active(menu_items, current_url):
+    if not current_url:
+        return False
+    for item in menu_items:
+        if item.get('url') == current_url:
+            return True
+    return False
 
 
 @register.simple_tag(takes_context=True)

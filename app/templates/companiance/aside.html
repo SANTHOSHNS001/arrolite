@@ -1,5 +1,6 @@
 {% load custom_tags %}
 {% get_sidebar_menu as sidebar_menu %}
+{% current_url_name as current_url %}
   
  
 
@@ -14,8 +15,8 @@
                 
                 {% if group.grouper %}
                     <!-- Sub Menu -->
-                    <li class="sub-menu">
-                    <a href="javascript:;">
+                    <li class="sub-menu {% if group.list|menu_is_active:current_url %}active dcjq-current-parent{% endif %}">
+                    <a href="javascript:;" class="{% if group.list|menu_is_active:current_url %}active{% endif %}">
                         <i class="{{group.list.0.icon}}"></i>
                         <span>{{ group.grouper }}</span>
                     </a>
@@ -23,7 +24,7 @@
                         {% for item in group.list %}
                         {% if not item.permission_only %}
                             {% if not item.perm or request.user|has_perm:item.perm %}
-                            <li><a href="{% url item.url %}"> {{ item.name }}</a></li>
+                            <li class="{% if item.url == current_url %}active{% endif %}"><a href="{% url item.url %}" class="{% if item.url == current_url %}active{% endif %}"> {{ item.name }}</a></li>
                             {% endif %}
                         {% endif %}
                         {% endfor %}
@@ -34,8 +35,8 @@
                     {% for item in group.list %}
                     {% if not item.permission_only %}
                         {% if not item.perm or request.user|has_perm:item.perm %}
-                        <li>
-                            <a href="{% url item.url %}">
+                        <li class="{% if item.url == current_url %}active{% endif %}">
+                            <a href="{% url item.url %}" class="{% if item.url == current_url %}active{% endif %}">
                             <i class="{{ item.icon }}"></i>
                             <span>{{ item.name }}</span>
                             </a>

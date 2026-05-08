@@ -38,3 +38,6 @@ deploy: pull migrate static clear restart_gunicorn restart_nginx
 # Backup database
 backup:
 	bash backup_db.sh
+
+run-prod:
+	/root/arrolite/venv/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 arrolite.wsgi:application

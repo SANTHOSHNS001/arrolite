@@ -92,11 +92,12 @@
     }
 
     .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: space-around;
+}
 
     .brand-mark {
       width: 36px; height: 36px;
@@ -109,8 +110,8 @@
     .brand-mark svg { width: 18px; height: 18px; fill: #fff; }
 
     .brand-name {
-      font-size: 15px;
-      font-weight: 700;
+      font-size: 27px;
+      font-weight: 1000;
       letter-spacing: .12em;
       text-transform: uppercase;
       color: var(--ink);
@@ -280,20 +281,8 @@
 
     .btn-login .btn-text { position: relative; z-index: 1; }
 
-    /* ── Divider ── */
-    .divider {
-      display: flex; align-items: center; gap: 12px;
-      margin: 24px 0;
-      color: var(--border);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--muted);
-    }
-    .divider::before, .divider::after {
-      content: ''; flex: 1;
-      height: 1px; background: var(--border);
-    }
+     
+     
 
     /* ── Register ── */
     .register-text {
@@ -380,26 +369,12 @@
               </button>
             </div>
           </div>
-
-          <!-- Remember & Forgot -->
-          <div class="form-row">
-            <label class="remember">
-              <input type="checkbox" name="remember" />
-              Remember me
-            </label>
-            <a href="#" class="forgot-link">Forgot password?</a>
-          </div>
+ 
 
           <button type="submit" class="btn-login">
             <span class="btn-text">Sign In</span>
           </button>
-        </form>
-
-        <div class="divider">or</div>
-
-        <p class="register-text">
-          Don't have an account? <a href="#">Create one free</a>
-        </p>
+        </form> 
       </div>
 
       <!-- Footer -->
