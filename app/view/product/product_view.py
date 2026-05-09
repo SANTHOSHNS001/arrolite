@@ -1,7 +1,7 @@
 from django.http import FileResponse, JsonResponse
 from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
-from app.forms.product.product_form import ProductCreateForm
+from app.forms.product.product_form import ProductCreateForm, ProductUpdateForm
 from app.models.category.category_model import Category
 from app.models.invoice_model.invoice_model import default_report_config
 from app.models.product.product_model import Product
@@ -74,8 +74,7 @@ class ProductListView(View):
 class ProductEditView(View):
    def post(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
-   
-        form = ProductCreateForm(request.POST, instance=product)
+        form = ProductUpdateForm(request.POST, instance=product)
         if form.is_valid():
             form.save() 
             return JsonResponse({

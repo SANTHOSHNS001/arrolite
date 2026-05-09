@@ -68,8 +68,8 @@
                                         <button id ="edit-product-btn" data-bs-toggle="modal" data-bs-target="#project-edit-model" class="btn btn-edi btn-sm edit-category-btn" data-id="{{product.id}}"
                                          data-name="{{product.name}}" data-categorie="{{product.category.id}}" data-subcategory="{{product.subcategory.id}}" 
                                          data-unit="{{product.unit.id}}"  data-description="{{product.description}}"  data-price="{{product.price}}" 
-                                         data-width="{{product.width}}"  data-fixed_price ="{{product.fixed_price}}"
-                                         data-height="{{product.height}}"  ><i class="fa fa-pencil"></i></button>
+                                         data-width="{{product.width|default:'0.00'}}"  data-fixed_price ="{{product.fixed_price}}"
+                                         data-height="{{product.height|default:'0.00'}}"  ><i class="fa fa-pencil"></i></button>
                                          
                                          <button class="btn btn-del btn-sm" onclick="confirmDeletedUpdate('{% url 'product_delete' product.id%}')"><i class="fa fa-trash-o "></i></button>
                                     </td>

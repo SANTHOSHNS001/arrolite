@@ -121,13 +121,13 @@ class InvoiceRequestView(View):
 
         if last_quotation and last_quotation.invoice_number:
             last_number = int(last_quotation.invoice_number.replace('Q', ''))
-            # if last is below 3000, reset to 3000
-            if last_number < 3000:
-                new_number = 3000
+            # if last is below 4000, reset to 4000
+            if last_number < 4000:
+                new_number = 4000
             else:
                 new_number = last_number + 1
         else:
-            new_number = 3000  # first ever starts at 3000
+            new_number = 4000  # first ever starts at 4000
 
        
         return f"{new_number:07d}"
