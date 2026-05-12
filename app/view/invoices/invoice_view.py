@@ -852,8 +852,7 @@ class InvoiceReportPdfView(View):
 class InvoiceReportView(View):
     template = "pages/invoice/invoice_report.html"
     def get(self, request):
-        quotations = Invoice.active_objects.all()
-
+        quotations = Invoice.active_objects.all() 
         # Distinct approvers from quotations
         
         approvers=(
@@ -908,8 +907,8 @@ class InvoiceReportView(View):
                     if "to" in request_date_str:  # Date range case: "01-09-2025 to 06-09-2025"
                         start_str, end_str = [d.strip() for d in request_date_str.split("to")]
                         filters["request_date__date__range"] = (
-                            datetime.strptime(start_str, "%d-%m-%Y").date(),
-                            datetime.strptime(end_str, "%d-%m-%Y").date()
+                            datetime.strptime(start_str, "%Y-%m-%d").date(),
+                            datetime.strptime(end_str, "%Y-%m-%d").date()
                         )
                     else:  # Single date case: "2025-09-06"
                         filters["request_date__date"] = datetime.strptime(request_date_str, "%Y-%m-%d").date()

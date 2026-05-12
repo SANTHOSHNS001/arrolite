@@ -59,21 +59,28 @@
                      </select>
                 </div>
                 <div class="col-2">
-                    <label class="form-lable" for ="status">Status</lable>
-                    <select class="form-control select2" name="status" id ="status">
-                        <option value="">All</option>           
+                    <label class="form-label" for="status">Status</label>
+                    <select class="form-control select2" name="status" id="status">
+                       <option value="">All</option>           
                        <option value="pending">Pending</option>
                        <option value="approved">Approved</option>
-                       <option value="rejected">Rejected</option>                         
+                       <option value="sent_to_manager">Sent to Approver</option>      
+                       <option value="pending_payment">Pending Payment</option>  
+                       <option value="rejected">Rejected</option>     
+                          
+                                            
                      </select>
                 </div>
                 <div class="col-2">
-                    <label class="form-lable" for ="approver">Request date</label>
-                    <input type="date" class="form-control" id="request_date" name="request_date">
+                    <label class="form-label" for="request_date_from">Request date
+                     </label>
+                    <div class="d-flex gap-1">
+                        <input type="date" class="form-control" id="request_date_from" name="request_date_from" placeholder="From">
+                        <input type="date" class="form-control" id="request_date_to" name="request_date_to" placeholder="To">
+                    </div>
                 </div>
                 <div class="col-2">
-                     
-                     <button class="btn btn-warning" type="button"  onclick="fetchQuotations()">Filter</button>
+                     <button class="btn btn-warning" type="button" onclick="fetchQuotations()">Filter</button>
                      <button class="btn btn-success" type="button" id="download-xlsx">Excel</button>
                 </div>
             </div>
@@ -139,27 +146,31 @@
     table.download("xlsx", "Invoice.xlsx", {
         sheetName: "Invoice",
         documentProcessing: function(workbook){
-            // Get worksheet
-            var sheet = workbook.Sheets["Invoices"];
-
-            // Find last row
+            var sheet = workbook.Sheets[workbook.SheetNames[0]];
             var range = XLSX.utils.decode_range(sheet["!ref"]);
-            var lastRow = range.e.r + 2; // +1 for next row, +1 offset
+            var lastRow = range.e.r + 1;
 
-            // Calculate total
-            var total = table.getCalcResults().bottom.price; // ✅ Tabulator calc results
+            var total = 0;
+            var calcResults = table.getCalcResults();
+            if (calcResults && calcResults.bottom && typeof calcResults.bottom.price === "number") {
+                total = calcResults.bottom.price;
+            }
 
-            // Add "Total Price" label in second last column
-            var labelCell = XLSX.utils.encode_cell({r:lastRow, c:sheet["!ref"].split(":")[1].match(/\d+/) - 2});
-            sheet[labelCell] = { t:"s", v:"Total Price" };
+            var priceCol = range.s.c;
+            for (var c = range.s.c; c <= range.e.c; c++) {
+                var headerCell = sheet[XLSX.utils.encode_cell({r: range.s.r, c: c})];
+                if (headerCell && headerCell.v === "Price") {
+                    priceCol = c;
+                    break;
+                }
+            }
 
-            // Add total value in last column
-            var totalCell = XLSX.utils.encode_cell({r:lastRow, c:range.e.c});
-            sheet[totalCell] = { t:"n", v:total };
+            var labelCell = XLSX.utils.encode_cell({r: lastRow, c: Math.max(range.s.c, priceCol - 1)});
+            var totalCell = XLSX.utils.encode_cell({r: lastRow, c: priceCol});
+            sheet[labelCell] = {t: "s", v: "Total Price"};
+            sheet[totalCell] = {t: "n", v: total};
 
-            // Update worksheet range
-            sheet["!ref"] = XLSX.utils.encode_range(range.s, {r:lastRow, c:range.e.c});
-
+            sheet["!ref"] = XLSX.utils.encode_range(range.s, {r: lastRow, c: range.e.c});
             return workbook;
         }
     });
@@ -178,9 +189,11 @@
 
         // Single values
         let statusVal = document.getElementById("status").value;
-        let requestDateVal = document.getElementById("request_date").value;
+        let requestDateFromVal = document.getElementById("request_date_from").value;
+        let requestDateToVal = document.getElementById("request_date_to").value;
+        let requestDateFilter = buildRequestDateFilter(requestDateFromVal, requestDateToVal);
         if (statusVal) formData.append("status", statusVal);
-        if (requestDateVal) formData.append("request_date", requestDateVal);
+        if (requestDateFilter) formData.append("request_date", requestDateFilter);
 
         fetch(window.location.href, {
             method: "POST",
@@ -205,6 +218,14 @@
 
     // Run once on page load
     fetchQuotations();
+
+    // Reusable request date helper: single date or range
+    function buildRequestDateFilter(fromDate, toDate) {
+        if (fromDate && toDate) {
+            return `${fromDate} to ${toDate}`;
+        }
+        return fromDate || toDate || "";
+    }
 
     // CSRF helper for Django POST
     function getCookie(name) {
