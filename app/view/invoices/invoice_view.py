@@ -294,14 +294,13 @@ class InvoiceRequestMarkPaidView(View):
  
     template = "pages/invoice/invoice_paid.html"
     def get(self, request): 
-        quotation = Invoice.active_objects.all()  
+        quotation = Invoice.active_objects.filter(approver_status__in =["paid","sent_to_manager"]).order_by("-created_at")
         context = {
             'quotations':quotation, 
         }
         return render(request, self.template, context)
- 
-# Invoice paid Details
 
+# Invoice Details with Manager Access for Marking Paid
 class InvoiceRequestDetails(View):
     template = "pages/invoice/invoice_request_details.html"
  
@@ -322,6 +321,7 @@ class InvoiceRequestDetails(View):
         deposit_str    = request.POST.get('deposit',     '').strip()
         is_disc_flag   = request.POST.get('is_discount',  'off') == 'on'
         allow_discount = request.POST.get('allow_discount', 'off') == 'on' 
+        discount_str = float(discount_str)
         # ── Validate status ──────────────────────────────────────────────
         if not status_str:
             return self._error(request, quotation, "Status is required.")
@@ -332,9 +332,10 @@ class InvoiceRequestDetails(View):
                 update_fields = ['approver_status', 'updater']
  
                 # ── Discount (managers only) ─────────────────────────────
-                new_discount_amt = Decimal("0.00")
+                 
+                 
  
-                if discount_str not in (None, "") and new_discount_amt < 0:
+                if discount_str not in (None, "") and (discount_str) > 0:
                     if not request.user.has_perm("app.can_manager_access"):
                         raise ValidationError("You are not allowed to set a discount.")
  

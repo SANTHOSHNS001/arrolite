@@ -560,11 +560,7 @@ function calculateTotal(row) {
         }
     });
 
-    if (duplicate) {
-        DisplayAlert(false,"This product is already selected in another row.");
-        $(this).val('').trigger('change'); // reset current selection
-        return;
-    }
+ 
 
     if (product) {
         // set default values

@@ -126,8 +126,7 @@ input[type="checkbox"]:checked:hover::after {
 }
 input[type="checkbox"]:focus:not(.focus-visible) {
     outline: 0;
-}
-
+} 
 label.text-center.tb-checkbox span {
     margin-left: 10px;
     vertical-align: top;
@@ -545,13 +544,7 @@ function calculateTotal(row) {
             return false; // break loop
         }
     });
-
-    if (duplicate) {
-        DisplayAlert(false,"This product is already selected in another row.");
-        $(this).val('').trigger('change'); // reset current selection
-        return;
-    }
-
+ 
     if (product) {
         // set default values
         if (product.width && product.width !== "null") {

@@ -69,10 +69,9 @@ class QuotationRequestView(View):
             'units': units,
             'users': customer,
             "iso_sizes":iso_sizes
-        }
- 
+        } 
         return render(request, self.template, context)
-
+    
     def post(self, request):
         requite_date = request.POST.get("requite_date")
         user_id = request.POST.get("user")
