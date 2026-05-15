@@ -24,7 +24,8 @@ from django.contrib.staticfiles import finders
 from django.db import transaction 
 import json,os,io
 
-from app.view.report_config.report_config import get_config
+from app.view.report_config.report_config import get_quotation_config
+
 
 
 def get_static_asset_path(*parts):
@@ -416,7 +417,7 @@ class QuotationReportPdfView(View):
         )
 
         # ── Config flags ─────────────────────────────────────────────────────
-        config                = get_config().label or default_report_config()
+        config                = get_quotation_config().label or default_report_config()
         show_design_note      = config.get("show_design_note",      True)
         show_deposit_note     = config.get("show_deposit_note",     True)
         show_discount_product = config.get("show_discount_product", True)

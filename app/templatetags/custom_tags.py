@@ -27,7 +27,7 @@ def get_sidebar_menu():
         # {"url": "iso_list", "name": "ISO-Size", "icon": "fa fa-cubes", "perm": "app.can_manage_isosize", "parent": "Settings"},
         # Product (single menu, not grouped)
         {"url": "product_list", "name": "Product", "icon": "fa fa-shopping-cart", "perm": "app.can_manage_product", "parent": "Product"},
-        {"url": "invoice_product_report", "name": "Product-Report", "icon": "fa fa-shopping-cart", "perm": "app.can_report_invoice", "parent": "Product"},
+        # {"url": "invoice_product_report", "name": "Product-Report", "icon": "fa fa-shopping-cart", "perm": "app.can_report_invoice", "parent": "Product"},
     
         # QUOTATIONS
         {"url": "quotation_list", "name": "Quotation", "icon": "fa fa-file", "perm": "app.can_manage_quotaion", "parent": "Quotation"},

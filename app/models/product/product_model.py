@@ -14,8 +14,8 @@ class Product(CustomBase):
         "SubCategory", on_delete=models.SET_NULL, null=True, related_name="product_subcategory"        
     )
     name = models.CharField(max_length=255, unique=True)
-    width = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    height = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    width = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,default=0.0)
+    height = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True ,default=0.0)
     unit = models.ForeignKey("Unit", on_delete=models.SET_NULL, null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     fixed_price = models.BooleanField(default=False)

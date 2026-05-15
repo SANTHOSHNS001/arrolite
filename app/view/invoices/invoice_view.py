@@ -4,7 +4,7 @@ from django.db import DatabaseError
 from django.views import View
 from django.shortcuts import get_object_or_404, render, redirect
 from app.models.customer_model.customer_model import CustomUser, Customer
-from app.models.invoice_model.invoice_model import Invoice, InvoiceItem
+from app.models.invoice_model.invoice_model import Invoice, InvoiceItem, default_report_config
 from app.models.iso_series.iso_series_model import ISOSize
 from app.models.product.product_model import Product
 from app.models.product.quotation_model import Quotation
@@ -29,6 +29,8 @@ from django.contrib.staticfiles import finders
 from decimal import Decimal, InvalidOperation
 from django.db import transaction
 from django.core.exceptions import ValidationError
+
+from app.view.report_config.report_config import get_invoice_config
 
 
 def get_static_asset_path(*parts):
@@ -161,7 +163,7 @@ class InvoiceRequestView(View):
                         'unit_cost': unit_cost,
                         'unit': unit,
                         'description': description,
-                        'auto_derivation': auto_derivation
+                        # 'auto_derivation': auto_derivation
                     })
             except (Product.DoesNotExist, Unit.DoesNotExist, ValueError):
                 pass  # skip this row if anything is invalid
@@ -444,22 +446,27 @@ class InvoiceReportPdfView(View):
         self.company_name = "ARROLITE"
         super().__init__(**kwargs)
     def post(self, request):
-        try:      
- 
+        try:
             data = json.loads(request.body)
             document_id = data.get("document_id")
-            qns = Invoice.active_objects.get(id=document_id)
+            if not document_id:
+                return JsonResponse({"error": "document_id is required"}, status=400)
+
+            qns = get_object_or_404(Invoice.active_objects, id=document_id)
             data = []
             for qs in qns.invoiceitems.all():
+                unit_price = float(qs.unit_cost or Decimal("0.00"))
+                quantity = int(qs.quantity or 0)
+                line_total = float((qs.unit_cost or Decimal("0.00")) * quantity)
                 data.append({
-                    "product": qs.product.name,
-                    "quantity": qs.quantity,
-                    "unit_price" :float(qs.product.price),
-                    "total_cost" : round(qs.unit_cost, 2),
-                    "unit": qs.unit or "-",  # Default to dash if None
-                    "description":qs.description or '',    
+                    "product": qs.product.name if qs.product else "-",
+                    "quantity": quantity,
+                    "unit_price": unit_price,
+                    "total_cost": round(line_total, 2),
+                    "unit": qs.unit.symbol if qs.unit else "-",
+                    "description": qs.description or '',
                 })
-       
+
             if not data:
                 return JsonResponse({"error": "No data found"}, status=404)
 
@@ -486,8 +493,6 @@ class InvoiceReportPdfView(View):
         pdfmetrics.registerFont(
             TTFont("GothamLight", titles_add)
         )
-        
-        pdfmetrics.registerFont(TTFont("GothamBold", titles_header_fonts))
 
 
         # Define Styles
@@ -602,14 +607,15 @@ class InvoiceReportPdfView(View):
       
        
         #  that add that dection part 
+         
         canvas.setFillColorRGB(0.95, 0.95, 0.95)
         canvas.rect(doc.leftMargin - 0.5 * cm, 0.9 * cm, doc.width + 1 * cm, 2.1 * cm, stroke=0, fill=1)
 
         # === Calculate Totals ===
-        total = sum(item["total_cost"] for item in quotationitems)
-        discount = quotation.discount or 0
-        discount_amount = total * discount / 100
+        total = sum(Decimal(str(item["total_cost"])) for item in quotationitems) if quotationitems else Decimal("0.00")
+        discount_amount = quotation.discount_amount or Decimal("0.00")
         grand_total = total - discount_amount
+        advance_amount = quotation.advance_amount or Decimal("0.00")
 
         # === Styles ===
         for_style = ParagraphStyle("ForLabel", fontName="Helvetica-Bold", fontSize=10, textColor=colors.red)
@@ -631,8 +637,8 @@ class InvoiceReportPdfView(View):
          # === Right (TOTAL / DEPOSIT / BALANCE) as 2-column inner table ===
         right_inner_table = Table(
             [
-                [Paragraph("total", total_label_style),   Paragraph(f"<b><font size='10'>$ {quotation.total_cost:,.2f}</font></b>", total_value_style)],
-                [Paragraph("deposit", total_label_style), Paragraph(f"<b><font size='10'>${quotation.advance_amount:,.2f}</font></b>", total_value_style)],
+                [Paragraph("total", total_label_style),   Paragraph(f"<b><font size='10'>${total:,.2f}</font></b>", total_value_style)],
+                [Paragraph("deposit", total_label_style), Paragraph(f"<b><font size='10'>${advance_amount:,.2f}</font></b>", total_value_style)],
                 [Paragraph("balance", total_label_style), Paragraph(f"<b><font size='10'>${quotation.balance_due:,.2f}</font></b>", total_value_style)],
             ],
             colWidths=[2 * cm, 3 * cm],  # adjust widths to balance text/value
@@ -740,7 +746,14 @@ class InvoiceReportPdfView(View):
             topMargin=0.7 * cm,
             bottomMargin=3 * cm,
         )
-
+         # ── Config flags ─────────────────────────────────────────────────────
+        config                = get_invoice_config().label or default_report_config()
+        show_design_note      = config.get("show_design_note",      True)
+        show_deposit_note     = config.get("show_deposit_note",     True)
+        show_discount_product = config.get("show_discount_product", True)
+        design_note_text      = config.get("design_note",  "DESIGN PROVIDED BY YOU")
+        deposit_note_text     = config.get("deposit_note", "50% deposit required")
+        
         frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id='normal')
         def header_with_data(canvas, doc):
             self.header(canvas, doc, quotation)
@@ -763,6 +776,12 @@ class InvoiceReportPdfView(View):
             Paragraph("<b>quantity</b>", header_style),
             Paragraph("<b>price</b>", header_style),
         ]]
+        for_desc_style = ParagraphStyle(
+            "for_desc",
+            fontName="Helvetica-Bold",
+            fontSize=9,
+            textColor=colors.HexColor("#74666a"),
+        )
 
         for item in body_data:
             product_text = f"""
@@ -786,65 +805,80 @@ class InvoiceReportPdfView(View):
             ("GRID", (0, 0), (-1, -1), 1, colors.white),
         ]))
 
-        total = sum(item["total_cost"] for item in quotationitems)
-        discount = quotation.discount or 0
-        discount_amount = total * discount / 100
+        total = sum(Decimal(str(item["total_cost"])) for item in quotationitems) if quotationitems else Decimal("0.00")
+        discount_amount = quotation.discount_amount or Decimal("0.00")
         grand_total = total - discount_amount
-
-        total_table = Table([
-            
-            [f"Discount ({discount}%)", f"-${discount_amount:.2f}"],
-           
-        ], colWidths=[14 * cm, 4* cm], style=[
-            ("ALIGN", (1, 0), (1, -1), "LEFT"),
-            ("FONTSIZE", (0, 0), (-1, -1), 8),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#74666a")),
-        ])
-         
-         
-        # FOR / TOTAL block
-        for_label_style = ParagraphStyle("for_label", fontName="Helvetica-Bold", fontSize=9, textColor=colors.red)
-        for_desc_style = ParagraphStyle("for_label", fontName="Helvetica-Bold", fontSize=9, textColor=colors.HexColor("#74666a"))
-        for_name_style = ParagraphStyle("for_name", fontName="Helvetica-Bold", fontSize=12, textColor=colors.HexColor("#74666a"))
-        for_address_style = ParagraphStyle("for_address", fontName="Helvetica", fontSize=10, textColor=colors.gray)
-        total_label_style = ParagraphStyle("total_label", fontName="Helvetica-Bold", fontSize=9, textColor=colors.white)
-        total_value_style = ParagraphStyle("total_value", fontName="Helvetica-Bold", fontSize=12, textColor=colors.white, alignment=2)
-
-        for_section = [
-            Paragraph("for", for_label_style),
-            Paragraph("HN CONSTRUCTION PTE LTD<br/>", for_name_style),
-            Spacer(1, 5), 
-            Paragraph("39 Woodlands close, MEGA@woodlands #08-84<br/>Singapore 737856", for_address_style)
-        ]
-        total_section = [
-            Paragraph("total", total_label_style),
-            Paragraph(f"${grand_total:,.2f}", total_value_style)
-        ]
-         
-         
-         
-        summary_table = Table([
-            [for_section, total_section]
-        ], colWidths=[13.2 * cm, 6.3 * cm], style=[
-            ("BACKGROUND", (0, 0), (0, 0), colors.whitesmoke),
-            ("BACKGROUND", (1, 0), (1, 0), colors.HexColor("#231f20")),
-            ("LEFTPADDING", (0, 0), (-1, -1), 12),
-            ("TOPPADDING", (0, 0), (-1, -1), 12),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ])
-        
+        discount_label = (
+            f"{quotation.discount}%" if quotation.allow_percentage_discount and quotation.is_percentage
+            else f"${quotation.discount:,.2f}"
+        )
         elements = [
             Spacer(1, 6 * cm),
             body_table,
             Spacer(1, 0.5 * cm),
-            # KeepTogether(total_table),
-            # Spacer(1, 0.5 * cm),
-            # desc_table,
-            # desc_table2,
-            Spacer(1, 1 * cm),
-            # KeepTogether(summary_table),
         ]
+
+         
+        if show_discount_product:
+            total_table = Table([
+                [f"Discount ({discount_label})", f"-${discount_amount:,.2f}"],
+            ], colWidths=[14 * cm, 1 * cm], style=[
+                ("ALIGN",        (0, 0), (0, -1), "LEFT"),
+                ("ALIGN",        (1, 0), (1, -1), "RIGHT"),
+                ("FONTSIZE",     (0, 0), (-1, -1), 8),
+                ("TEXTCOLOR",    (0, 0), (-1, -1), colors.HexColor("#74666a")),
+                ("LEFTPADDING",  (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ])
+            elements.append(total_table)
+        if show_design_note and design_note_text:
+            desc_table = Table(
+                [[[Paragraph(f"*{design_note_text}", for_desc_style)]]],
+                style=[("FONTSIZE", (0, 0), (-1, -1), 8)]
+            )
+            elements.append(desc_table)
+
+        if show_deposit_note:
+            desc_table2 = Table(
+                [[[Paragraph(f"- {deposit_note_text}", for_desc_style)]]],
+                style=[("FONTSIZE", (0, 0), (-1, -1), 8)]
+            )
+            elements.append(desc_table2)
+
+         
+         
+        # FOR / TOTAL block
+        # for_label_style = ParagraphStyle("for_label", fontName="Helvetica-Bold", fontSize=9, textColor=colors.red)
+        # for_desc_style = ParagraphStyle("for_label", fontName="Helvetica-Bold", fontSize=9, textColor=colors.HexColor("#74666a"))
+        # for_name_style = ParagraphStyle("for_name", fontName="Helvetica-Bold", fontSize=12, textColor=colors.HexColor("#74666a"))
+        # for_address_style = ParagraphStyle("for_address", fontName="Helvetica", fontSize=10, textColor=colors.gray)
+        # total_label_style = ParagraphStyle("total_label", fontName="Helvetica-Bold", fontSize=9, textColor=colors.white)
+        # total_value_style = ParagraphStyle("total_value", fontName="Helvetica-Bold", fontSize=12, textColor=colors.white, alignment=2)
+
+        # for_section = [
+        #     Paragraph("for", for_label_style),
+        #     Paragraph("HN CONSTRUCTION PTE LTD<br/>", for_name_style),
+        #     Spacer(1, 5), 
+        #     Paragraph("39 Woodlands close, MEGA@woodlands #08-84<br/>Singapore 737856", for_address_style)
+        # ]
+        # total_section = [
+        #     Paragraph("total", total_label_style),
+        #     Paragraph(f"${grand_total:,.2f}", total_value_style)
+        # ]
+         
+         
+         
+        # summary_table = Table([
+        #     [for_section, total_section]
+        # ], colWidths=[13.2 * cm, 6.3 * cm], style=[
+        #     ("BACKGROUND", (0, 0), (0, 0), colors.whitesmoke),
+        #     ("BACKGROUND", (1, 0), (1, 0), colors.HexColor("#231f20")),
+        #     ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        #     ("TOPPADDING", (0, 0), (-1, -1), 12),
+        #     ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+        #     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        # ])
+        # elements.append(summary_table)
 
         doc.build(elements)
         buffer.seek(0)

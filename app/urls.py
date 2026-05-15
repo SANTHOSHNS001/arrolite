@@ -48,7 +48,7 @@ from app.view.quotation.quotation_view import (
     QuotationView,
     QuotationApprove,
 )
-from app.view.report_config.report_config import QuotationReportConfigView
+from app.view.report_config.report_config import  InvoiceReportConfigView, QuotationReportConfigView
 from app.view.sub_category.sub_category_view import (
     SubCategoryDelete,
     SubCategoryEditView,
@@ -140,6 +140,11 @@ urlpatterns = [
         "invoice-paid/",
         InvoiceRequestMarkPaidView.as_view(),
         name="invoice_paid_report",
+    ),
+    path(
+        "invoice-report-config/",
+        InvoiceReportConfigView.as_view(),
+        name="invoice_report_config",
     ),
     path(
         "invoice-Request-Details/<int:pk>/",

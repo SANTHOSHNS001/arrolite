@@ -155,7 +155,7 @@ class InvoiceItem(CustomBase):  # Singular name is conventional
     unit = models.ForeignKey("Unit", on_delete=models.SET_NULL, null=True, blank=True)
     width = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     height = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    auto_derivation = models.BooleanField(default=True, help_text="If true, total price is calculated automatically based on quantity and unit cost. If false, user can enter a custom total price.")
+    # auto_derivation = models.BooleanField(default=True,null=True ,blank=True,help_text="If true, total price is calculated automatically based on quantity and unit cost. If false, user can enter a custom total price.")
     description = models.TextField(null=True, blank=True)
      
     class Meta:
@@ -173,14 +173,7 @@ def default_report_config():
         "show_footer": True
     }
 
-def default_report_config():
-    return {
-        "show_design_note": True,
-        "show_deposit_note": True,
-        "design_note": "DESIGN PROVIDED BY YOU",
-        "deposit_note": "50% deposit required",
-        "show_footer": True
-    }
+ 
 
 class QuotationReportGenerator(CustomBase):
     is_tagged = models.BooleanField(default=False)
@@ -190,6 +183,24 @@ class QuotationReportGenerator(CustomBase):
 
     def save(self, *args, **kwargs): 
         if not self.pk and QuotationReportGenerator.objects.exists():
+            raise ValidationError("Only one config allowed")
+
+        # ✅ merge default + user data
+        default = default_report_config()
+        if self.label:
+            default.update(self.label)
+
+        self.label = default
+        super().save(*args, **kwargs)
+        
+class InvoiceReportGenerator(CustomBase):
+    is_tagged = models.BooleanField(default=False)
+
+    # ✅ default config applied automatically
+    label = models.JSONField(default=default_report_config, blank=True, null=True)
+
+    def save(self, *args, **kwargs): 
+        if not self.pk and InvoiceReportGenerator.objects.exists():
             raise ValidationError("Only one config allowed")
 
         # ✅ merge default + user data
