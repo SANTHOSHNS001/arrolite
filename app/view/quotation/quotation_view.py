@@ -134,6 +134,8 @@ class QuotationRequestView(View):
                 unit_id = post_data.get(f'unit_{counter}')    
                 unit = Unit.active_objects.get(symbol=unit_id) if unit_id else None
                 description = post_data.get(f'description_{counter}', '').strip()
+                is_manual_mode = post_data.get(f'custom_total_{counter}') is not None
+                auto_derivation = not is_manual_mode
 
                 if qty > 0:
                     items.append({
@@ -143,7 +145,8 @@ class QuotationRequestView(View):
                         'height': height,
                         'unit_cost': unit_cost,
                         'unit': unit,
-                        'description': description
+                        'description': description,
+                        'auto_derivation': auto_derivation,
                     })
             except (Product.DoesNotExist, Unit.DoesNotExist, ValueError):
                 pass  # skip this row if anything is invalid
@@ -299,6 +302,8 @@ class QuotationEditView(View):
                 unit_id   = post_data.get(f"unit_{counter}")
                 unit      = Unit.active_objects.get(symbol=unit_id) if unit_id else None
                 description = post_data.get(f"description_{counter}", "").strip()
+                is_manual_mode = post_data.get(f"custom_total_{counter}") is not None
+                auto_derivation = not is_manual_mode
 
                 if qty > 0:
                     items.append({
@@ -309,6 +314,7 @@ class QuotationEditView(View):
                         "unit_cost":   unit_cost,
                         "unit":        unit,
                         "description": description,
+                        "auto_derivation": auto_derivation,
                     })
             except (Product.DoesNotExist, Unit.DoesNotExist, ValueError):
                 pass  # skip invalid rows

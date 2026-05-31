@@ -163,7 +163,7 @@ class InvoiceRequestView(View):
                         'unit_cost': unit_cost,
                         'unit': unit,
                         'description': description,
-                        # 'auto_derivation': auto_derivation
+                        'auto_derivation': auto_derivation
                     })
             except (Product.DoesNotExist, Unit.DoesNotExist, ValueError):
                 pass  # skip this row if anything is invalid
@@ -455,9 +455,9 @@ class InvoiceReportPdfView(View):
             qns = get_object_or_404(Invoice.active_objects, id=document_id)
             data = []
             for qs in qns.invoiceitems.all():
-                unit_price = float(qs.unit_cost or Decimal("0.00"))
+                unit_price = float(qs.product.price or Decimal("0.00"))
                 quantity = int(qs.quantity or 0)
-                line_total = float((qs.unit_cost or Decimal("0.00")) * quantity)
+                line_total = float((qs.unit_cost or Decimal("0.00")) )
                 data.append({
                     "product": qs.product.name if qs.product else "-",
                     "quantity": quantity,
@@ -616,7 +616,6 @@ class InvoiceReportPdfView(View):
         discount_amount = quotation.discount_amount or Decimal("0.00")
         grand_total = total - discount_amount
         advance_amount = quotation.advance_amount or Decimal("0.00")
-
         # === Styles ===
         for_style = ParagraphStyle("ForLabel", fontName="Helvetica-Bold", fontSize=10, textColor=colors.red)
         company_style = ParagraphStyle("CompanyName", fontName="Helvetica-Bold", fontSize=12, textColor=colors.HexColor("#7B6F6F"))
@@ -1192,6 +1191,8 @@ class InvoiceEditView(View):
                 unit_cost   = float(post_data.get(f"unit_cost_{counter}", 0) or 0)
                 unit_id     = post_data.get(f"unit_{counter}")
                 description = post_data.get(f"description_{counter}", "")
+                is_manual_mode = post_data.get(f"custom_total_{counter}") == 'on'
+                auto_derivation = not is_manual_mode
                 unit        = Unit.active_objects.get(symbol=unit_id) if unit_id else None
 
                 if qty > 0:
@@ -1203,6 +1204,7 @@ class InvoiceEditView(View):
                         "unit_cost":   unit_cost,
                         "unit":        unit,
                         "description": description,
+                        "auto_derivation": auto_derivation,
                     })
             except (Product.DoesNotExist, Unit.DoesNotExist, ValueError):
                 pass  # skip invalid rows

@@ -155,7 +155,7 @@ class InvoiceItem(CustomBase):  # Singular name is conventional
     unit = models.ForeignKey("Unit", on_delete=models.SET_NULL, null=True, blank=True)
     width = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     height = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    # auto_derivation = models.BooleanField(default=True,null=True ,blank=True,help_text="If true, total price is calculated automatically based on quantity and unit cost. If false, user can enter a custom total price.")
+    auto_derivation = models.BooleanField(default=True,null=True ,blank=True,help_text="If true, total price is calculated automatically based on quantity and unit cost. If false, user can enter a custom total price.")
     description = models.TextField(null=True, blank=True)
      
     class Meta:
